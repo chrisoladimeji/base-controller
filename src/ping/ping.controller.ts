@@ -24,7 +24,5 @@ export class PingController {
     return result;
 
   }
-  getRequestConfig(): AxiosRequestConfig<any> {
-    throw new Error('Method not implemented.');
-  }
+  
 }

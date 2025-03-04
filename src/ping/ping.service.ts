@@ -30,7 +30,7 @@ export class PingService {
             return response;
         } catch (error) {
             console.error('Error fetching connections:', error);
-            throw error;
+            return error.code;
         }
     }
 }

@@ -4,10 +4,10 @@ import { BasicMessagesService } from './basicmessages.service';
 import { WorkflowModule } from '../workflow/workflow.module';
 import { ConfigModule } from '@nestjs/config';
 import { HttpModule } from '@nestjs/axios';
-import { EllucianService } from 'src/ellucian/ellucian.service';
 import { RedisService } from '../services/redis.service';
 import { EllucianController } from 'src/ellucian/ellucian.controller';
 import { AcaPyService } from '../services/acapy.service';
+import { SisService } from 'src/sis/sis.service';
 
 @Module({
   imports: [WorkflowModule, ConfigModule, HttpModule],
@@ -15,9 +15,8 @@ import { AcaPyService } from '../services/acapy.service';
   providers: [
     BasicMessagesService,
     RedisService,
-    EllucianService,
-    EllucianController,
-    AcaPyService
+    AcaPyService,
+    SisService
   ],
 })
 export class BasicMessagesModule {}

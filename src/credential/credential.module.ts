@@ -8,6 +8,7 @@ import { ConfigService } from '@nestjs/config';
 import { ConnectionService } from '../connection/connection.service';
 import { EllucianModule } from '../ellucian/ellucian.module';
 import { AcaPyService } from '../services/acapy.service';
+import { SisService } from 'src/sis/sis.service';
 
 
 @Module({
@@ -18,7 +19,8 @@ import { AcaPyService } from '../services/acapy.service';
     ConfigService,
     EventsGateway,
     ConnectionService,
-    AcaPyService
+    AcaPyService,
+    SisService
   ],
 })
 export class CredentialModule {}

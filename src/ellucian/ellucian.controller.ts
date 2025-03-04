@@ -2,7 +2,6 @@ import { Controller, Get, Query, HttpException, HttpStatus } from '@nestjs/commo
 import { ApiTags, ApiOperation, ApiResponse, ApiQuery } from '@nestjs/swagger';
 import { EllucianService } from './ellucian.service';
 
-@ApiTags('CapeFear SIS')
 @Controller()
 export class EllucianController {
   constructor(

@@ -1,13 +1,13 @@
-import { Column, Entity, PrimaryGeneratedColumn } from "typeorm";
+interface Student {
+    studentIdCred: {
+      firstName: string;
+      middleName: string;
+      lastName: string;
+      fullName: string;
+      studentNumber: string;
+    };
+    studentCumulativeTranscript: any;
+    courseTranscript: Object[];
+  }
 
-@Entity()
-export class Si {
-    @PrimaryGeneratedColumn()
-    studentId: number;
-
-    @Column()
-    studentName:string;
-
-    @Column()
-    transcript:string;
-}
+  export default Student;

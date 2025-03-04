@@ -1,27 +1,11 @@
-import { Controller, Get, Post, Body, Patch, Param, Delete, HttpException, HttpStatus, Query } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, Query } from '@nestjs/common';
 import { SisService } from './sis.service';
-import { CreateSiDto } from './dto/create-si.dto';
-import { UpdateSiDto } from './dto/update-si.dto';
-import { ApiOperation, ApiQuery, ApiResponse } from '@nestjs/swagger';
+import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
-@Controller('sis')
+@ApiTags('SIS')
+@Controller()
 export class SisController {
   constructor(private readonly sisService: SisService) {}
-/* 
-  @Get('student-transcript')
-  @ApiOperation({ summary: 'Retrieve student transcript by student number' })
-  @ApiQuery({ name: 'studentNumber', required: true, type: String, description: 'The student number' })
-  @ApiResponse({ status: 200, description: 'The student transcript' })
-  @ApiResponse({ status: 404, description: 'Student not found' })
-  async getStudentTranscript(@Query('studentNumber') studentNumber: string) {
-      let transcript={}
-      try {
-          transcript=this.sisService.getStudentTranscript(studentNumber);
-      } catch (error) {
-          throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
-      }
-      return transcript;
-  }
 
   @Get('student-id')
   @ApiOperation({ summary: 'Retrieve student name by student number' })
@@ -31,11 +15,40 @@ export class SisController {
   async getStudentDetails(@Query('studentNumber') studentNumber: string) {
       let studentIdCred={}
       try {
-          studentIdCred=this.sisService.getStudentDetails(studentNumber);
+          studentIdCred=await this.sisService.getStudentDetails(studentNumber);
       } catch (error) {
           throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
       }
       return studentIdCred;
-  } */
+  }
 
+  @Get('cumulative-transcript')
+  @ApiOperation({ summary: 'Retrieve student transcript by student number' })
+  @ApiQuery({ name: 'studentNumber', required: true, type: String, description: 'The student number' })
+  @ApiResponse({ status: 200, description: 'The student transcript' })
+  @ApiResponse({ status: 404, description: 'Student not found' })
+  async getStudentTranscript(@Query('studentNumber') studentNumber: string) {
+      let transcript={}
+      try {
+          transcript=this.sisService.getCumulativeTranscript(studentNumber);
+      } catch (error) {
+          throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+      return transcript;
+  }
+
+  @Get('student-transcript')
+  @ApiOperation({ summary: 'Retrieve student transcript by student number' })
+  @ApiQuery({ name: 'studentNumber', required: true, type: String, description: 'The student number' })
+  @ApiResponse({ status: 200, description: 'The student transcript' })
+  @ApiResponse({ status: 404, description: 'Student not found' })
+  async getCourseTranscript(@Query('studentNumber') studentNumber: string) {
+      let transcript={}
+      try {
+          transcript=this.sisService.getCourseTranscripts(studentNumber);
+      } catch (error) {
+          throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+      return transcript;
+  }
 }

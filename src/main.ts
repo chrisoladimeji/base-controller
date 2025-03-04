@@ -30,8 +30,8 @@ async function bootstrap() {
   });
 
   const config = new DocumentBuilder()
-    .setTitle('Cape Fear API Client')
-    .setDescription('The Cape Fear API client description')
+    .setTitle('Base Controller API Client')
+    .setDescription('API client for the Base Controller')
     .setVersion('1.1')
     .build();
   const document = SwaggerModule.createDocument(app, config);

@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { parse } from '@nas-veridid/workflow-parser';
 import { AcaPyService } from '../services/acapy.service';
 import { EllucianController } from 'src/ellucian/ellucian.controller';
+import { SisService } from 'src/sis/sis.service';
 
 @Injectable()
 export class BasicMessagesService {
@@ -10,7 +11,7 @@ export class BasicMessagesService {
   constructor(
     private readonly configService: ConfigService,
     private readonly acapyService: AcaPyService,
-    private readonly ellucianController: EllucianController
+    private readonly sisService: SisService
   ) { }
 
   // Method to validate JSON format
@@ -100,9 +101,9 @@ export class BasicMessagesService {
                   //get student transcript info from Ellucian
                   let studentTranscripts;
                   try {
-                    studentTranscripts = await this.ellucianController.getStudentInfo(metadata.student_id);
+                    studentTranscripts = await this.sisService.getStudent(metadata.student_id);
                   } catch (error: any) {
-                    console.log("Error retrieving from Ellucian", error);
+                    console.log("Error retrieving from SIS", error);
                     //invoke workflow parse
                     const action = { workflowID: 'RequestTranscript', actionID: 'metadataNotFound', data: {} };
                     await this.invokeWorkflowParser(connectionId, action);

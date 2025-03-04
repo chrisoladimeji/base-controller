@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { EventsGateway } from '../events/events.gateway';
-import { EllucianService } from '../ellucian/ellucian.service';
+import { SisService } from '../sis/sis.service';
 import { AcaPyService } from '../services/acapy.service';
 
 @Injectable()
@@ -9,7 +9,7 @@ export class ConnectionService {
   constructor(
     private readonly configService: ConfigService,
     private readonly eventsGateway: EventsGateway,
-    private readonly ellucianService: EllucianService,
+    private readonly sisService: SisService,
     private readonly acapyService: AcaPyService,
   ) {}
 
@@ -44,7 +44,7 @@ export class ConnectionService {
 
     try {
       const studentIdCred =
-        await this.ellucianService.getStudentIdCred(studentNumber);
+        await this.sisService.getStudentDetails(studentNumber);
       console.log('studentIdCred at ConnectionController', studentIdCred);
 
       if (studentIdCred) {

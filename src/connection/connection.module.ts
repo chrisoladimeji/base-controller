@@ -4,11 +4,11 @@ import { ConnectionService } from './connection.service';
 import { HttpModule } from '@nestjs/axios';
 import { EventsGateway } from 'src/events/events.gateway';
 import { RedisService } from '../services/redis.service';
-import { EllucianService } from 'src/ellucian/ellucian.service';
 import { MetadataService } from 'src/metadata/metadata.service';
 import { ConfigModule } from '@nestjs/config';
 import { WorkflowModule } from 'src/workflow/workflow.module';
 import { AcaPyService } from '../services/acapy.service';
+import { SisService } from 'src/sis/sis.service';
 
 
 @Module({
@@ -18,9 +18,9 @@ import { AcaPyService } from '../services/acapy.service';
     ConnectionService,
     RedisService,
     EventsGateway,
-    EllucianService,
     MetadataService,
-    AcaPyService
+    AcaPyService,
+    SisService
   ],
 })
 export class ConnectionModule {}

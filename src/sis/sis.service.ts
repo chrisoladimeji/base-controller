@@ -1,24 +1,32 @@
 import { Injectable } from '@nestjs/common';
-import { UpdateSiDto } from './dto/update-si.dto';
-import path from 'path';
-import fs from 'fs';
+const path = require('path');
+const fs = require('fs');
+import Student from './entities/si.entity';
 
 @Injectable()
 export class SisService {
   
-  // filePath = path.join(process.cwd(), './src/sis/student-transcript.json');
-    // result = JSON.parse(fs.readFileSync(this.filePath, 'utf-8').toString());
-/*   
-    async getStudentTranscript(studentNumber: string) {
-        return this.result.transcript;
+  filePath = path.join(process.cwd(), './src/sis/student-transcript.json');
+  rawData = fs.readFileSync(this.filePath, 'utf-8');
+  studentData:Student[] = JSON.parse(this.rawData);
+  
+  getStudent(studentNumber){
+    return this.studentData.find((student) => student.studentIdCred.studentNumber === studentNumber);
+  }
+
+  async getCumulativeTranscript(studentNumber: string) {
+      const student = this.getStudent(studentNumber);
+        return student? student.studentCumulativeTranscript :null ;
     }
 
     async getStudentDetails(studentNumber: string) {
-        return this.result.studentId;
+      const student:Student = this.getStudent(studentNumber);
+      return student;
     }
     
-    async getStudent(id: number) {
-      return this.result;
+    async getCourseTranscripts(studentNumber: string) {
+      const student:Student = this.getStudent(studentNumber);
+      return student ? student.courseTranscript : null;
     }
- */
+
 }
