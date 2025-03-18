@@ -1,4 +1,4 @@
-import { Controller, Get, HttpException, HttpStatus, Query } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, Query, Res } from '@nestjs/common';
 import { SisService } from './sis.service';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
@@ -50,5 +50,19 @@ export class SisController {
           throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
       }
       return transcript;
+  }
+
+  @Get('pdf-transcript')
+  @ApiOperation({ summary: 'Retrieve student transcript by student number' })
+  @ApiQuery({ name: 'studentNumber', required: true, type: String, description: 'The student number' })
+  @ApiResponse({ status: 200, description: 'The student transcript' })
+  @ApiResponse({ status: 404, description: 'Student not found' })
+  async getPdfTranscript(@Query('studentNumber') studentNumber: string, @Res() res: Response) {
+      try {
+          this.sisService.getPdfTranscript(studentNumber, res);
+      } catch (error) {
+          throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
+      }
+      return res;
   }
 }
