@@ -2,38 +2,38 @@ import { Injectable } from '@nestjs/common';
 const path = require('path');
 const fs = require('fs');
 const PDFDocument = require('pdfkit');
-import Student from './entities/si.entity';
+import { Student } from './students/student.entity';
 
 @Injectable()
 export class SisService {
   
   filePath = path.join(process.cwd(), './src/sis/student-transcript.json');
   rawData = fs.readFileSync(this.filePath, 'utf-8');
-  studentData:Student[] = JSON.parse(this.rawData);
+  studentData: Student[] = JSON.parse(this.rawData);
   
   getStudent(studentNumber){
-    return this.studentData.find((student) => student.studentIdCred.studentNumber === studentNumber);
+    return null; //return this.studentData.find((student) => student.studentIdCred.studentNumber === studentNumber);
   }
 
   async getCumulativeTranscript(studentNumber: string) {
     const student = this.getStudent(studentNumber);
-      return student? student.studentCumulativeTranscript :null ;
+      return null; //return student? student.studentCumulativeTranscript :null ;
   }
 
   async getStudentDetails(studentNumber: string) {
     const student:Student = this.getStudent(studentNumber);
-    return student;
+    return null; //return student;
   }
   
   async getCourseTranscripts(studentNumber: string) {
     const student:Student = this.getStudent(studentNumber);
-    return student ? student.courseTranscript : null;
+    return null; //return student ? student.courseTranscript : null;
   }
 
   async getPdfTranscript(studentNumber: string, res) {
     console.log('getting transcript...')
 
-    const student:Student = this.getStudent(studentNumber);
+    const student: Student = null; // this.getStudent(studentNumber);
 
     const transcriptText = fs.readFileSync('./src/sis/sample_transcript.txt', 'utf8');
     const doc = new PDFDocument({
@@ -48,5 +48,4 @@ export class SisService {
 
     return student ? res : null;
   }
-
 }

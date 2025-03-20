@@ -17,6 +17,7 @@ import { BasicMessagesModule } from './basicmessages/basicmessages.module';
 import { WorkflowModule } from './workflow/workflow.module';
 import { PostgresService } from './services/postgres.service';
 import { RedisService } from './services/redis.service';
+import { StudentsModule } from './sis/students/students.module';
 import {
   initDb,
   loadWorkflowsFromFile,
@@ -53,7 +54,7 @@ import { SisModule } from './sis/sis.module';
         password: configService.get<string>('WORKFLOW_DB_PASSWORD'),
         database: configService.get<string>('WORKFLOW_DB_NAME'),
         autoLoadEntities: true,
-        synchronize: true,
+        synchronize: true, // TODO: Disable this in production
       }),
     }),
     RouterModule.register([
@@ -97,6 +98,7 @@ import { SisModule } from './sis/sis.module';
     MetadataModule,
     SvgModule,
     SisModule,
+    StudentsModule,
   ],
   providers: [
     AppService,
