@@ -12,7 +12,7 @@ export class PingService {
 
         console.log('Ping controller');
 
-        const messageUrl = `${this.configService.get<string>('API_BASE_URL')}/connections?limit=100&offset=0`;
+        const messageUrl = `${this.configService.get<string>('API_BASE_URL')}:8032/connections?limit=100&offset=0`;
         console.log('messageUrl:', messageUrl);
         const requestConfig: AxiosRequestConfig = {
             headers: {
