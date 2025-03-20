@@ -1,16 +1,26 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, OnModuleInit } from '@nestjs/common';
 const path = require('path');
 const fs = require('fs');
 const PDFDocument = require('pdfkit');
 import { Student } from './students/student.entity';
+import { StudentsService } from './students/students.service';
 
 @Injectable()
-export class SisService {
+export class SisService implements OnModuleInit {
   
   filePath = path.join(process.cwd(), './src/sis/student-transcript.json');
   rawData = fs.readFileSync(this.filePath, 'utf-8');
   studentData: Student[] = JSON.parse(this.rawData);
-  
+ 
+  constructor(
+    private studentsService: StudentsService
+  ) {};
+
+
+  async onModuleInit() {
+    await this.studentsService.insertOne();
+  }
+
   getStudent(studentNumber){
     return null; //return this.studentData.find((student) => student.studentIdCred.studentNumber === studentNumber);
   }
@@ -31,8 +41,6 @@ export class SisService {
   }
 
   async getPdfTranscript(studentNumber: string, res) {
-    console.log('getting transcript...')
-
     const student: Student = null; // this.getStudent(studentNumber);
 
     const transcriptText = fs.readFileSync('./src/sis/sample_transcript.txt', 'utf8');
