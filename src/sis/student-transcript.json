@@ -7,7 +7,7 @@
       "fullName" : "Sanford Braun Koufax",
       "studentNumber": "1000"
     },
-    "student-transcript":{
+    "studentTranscript":{
     "studentCumulativeTranscript": {
       "cumulativeAttemptedCredits": 14,
       "cumulativeEarnedCredits": 14,
@@ -53,7 +53,7 @@
       "fullName" : "Jane F Doe",
       "studentNumber": "2000"
     },
-    "student-transcript":{
+    "studentTranscript":{
     "studentCumulativeTranscript": {
       "cumulativeAttemptedCredits": 16,
       "cumulativeEarnedCredits": 16,
@@ -90,6 +90,51 @@
       }
     ]
   }
+},{
+  "studentIdCred": {
+    "firstName": "Michael",
+    "middleName": "J",
+    "lastName": "Francis",
+    "fullName" : "Michael J Francis",
+    "studentNumber": "2002"
+  },
+  "studentTranscript":{
+  "studentCumulativeTranscript": {
+    "cumulativeAttemptedCredits": 16,
+    "cumulativeEarnedCredits": 16,
+    "cumulativeGradePointAverage": 4.36
+  },
+  "courseTranscript": [
+    {
+      "Term": "FY",
+      "Grade": "B",
+      "syear": 2023,
+      "CourseCode": "AMT0775F5",
+      "CourseTitle": "Engine - Removal Installation"
+    },
+    {
+      "Term": "FY",
+      "Grade": "B",
+      "syear": 2023,
+      "CourseCode": "AMT0775F4",
+      "CourseTitle": "Engine Op - Troubleshting Repair"
+    },
+    {
+      "Term": "FY",
+      "Grade": "B",
+      "syear": 2023,
+      "CourseCode": "AMT0776F6",
+      "CourseTitle": "Pro - pellers"
+    },
+    {
+      "Term": "FY",
+      "Grade": "C",
+      "syear": 2023,
+      "CourseCode": "AMT0776F1",
+      "CourseTitle": "Eng Instr - Fire Protection Lub"
+    }
+  ]
+}
 }
   
 ]

@@ -57,10 +57,10 @@ import { SisModule } from './sis/sis.module';
       }),
     }),
     RouterModule.register([
-          {
-            path: 'topic',
-            module: AppModule,
-          },
+      {
+        path: 'topic',
+        module: AppModule,
+        children: [
           {
             path: 'ping',
             module: PingModule,
@@ -85,14 +85,28 @@ import { SisModule } from './sis/sis.module';
             path: 'basicmessages',
             module: BasicMessagesModule,
           },
+        ],
+      },
+      {
+        path: 'sis',
+        module: SisModule,
+        children: [
           {
-            path: 'sis',
-            module: SisModule,        
+            path: '',
+            module: SisModule,
           },
+        ],        
+      },
+      {
+        path: 'workflow',
+        module: WorkflowModule,
+        children: [
           {
-            path: 'workflow',
+            path: '',
             module: WorkflowModule,
           },
+        ],
+      },
     ]),
     MetadataModule,
     SvgModule,

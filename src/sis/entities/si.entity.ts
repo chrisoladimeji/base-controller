@@ -6,8 +6,10 @@ interface Student {
       fullName: string;
       studentNumber: string;
     };
-    studentCumulativeTranscript: any;
-    courseTranscript: Object[];
+    studentTranscript: {
+        studentCumulativeTranscript: Object;
+        courseTranscript: Object[];
+    }
   }
 
   export default Student;
