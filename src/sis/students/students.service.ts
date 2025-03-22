@@ -20,7 +20,6 @@ export class StudentsService {
   }
 
   async insert(students: Student[]) {
-    console.log(`Inserting: ${students.length} students`);
     await this.studentsRepository.insert(students);
   }
 

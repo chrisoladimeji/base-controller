@@ -26,6 +26,7 @@ export class PostgresService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy() {
+    console.log("Disconnecting from PostgresSQL");
     await this.pool.end();
   }
 
