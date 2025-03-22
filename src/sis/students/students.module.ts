@@ -9,6 +9,5 @@ import { StudentsService } from './students.service';
     StudentsService
   ],
   exports: [StudentsService]
-  // controllers: [StudentsController],
 })
 export class StudentsModule {}

@@ -16,9 +16,11 @@ export class Student{
   fullName: string;
 
   @Column()
-  studentIdNumber: number;
+  studentIdNumber: string;
 
-  @Column()
+  @Column({
+    nullable: true
+  })
   transcript: string;
 
 }

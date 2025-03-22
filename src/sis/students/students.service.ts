@@ -15,21 +15,13 @@ export class StudentsService {
     return this.studentsRepository.find();
   }
 
-  findOne(studentIdNumber: number): Promise<Student | null> {
+  findOne(studentIdNumber: string): Promise<Student | null> {
     return this.studentsRepository.findOneBy({ studentIdNumber });
   }
 
-  async insertOne() {
-    const initStudent: Student = this.studentsRepository.create({
-      firstName: "Michael",
-      lastName: "Jordan",
-      fullName: "Michael Jordan",
-      studentIdNumber: 23,
-      transcript: 'THE GOAT'
-    });
-
-    console.log(`Inserting: ${initStudent.fullName}`)
-    await this.studentsRepository.insert(initStudent)
+  async insert(students: Student[]) {
+    console.log(`Inserting: ${students.length} students`);
+    await this.studentsRepository.insert(students);
   }
 
   async remove(id: number): Promise<void> {

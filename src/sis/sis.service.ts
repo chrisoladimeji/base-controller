@@ -1,24 +1,22 @@
 import { Injectable, OnModuleInit } from '@nestjs/common';
-const path = require('path');
 const fs = require('fs');
 const PDFDocument = require('pdfkit');
 import { Student } from './students/student.entity';
 import { StudentsService } from './students/students.service';
+import { SisLoaderService } from './loaders/sisLoader.service';
 
 @Injectable()
 export class SisService implements OnModuleInit {
   
-  filePath = path.join(process.cwd(), './src/sis/student-transcript.json');
-  rawData = fs.readFileSync(this.filePath, 'utf-8');
-  studentData: Student[] = JSON.parse(this.rawData);
  
   constructor(
-    private studentsService: StudentsService
+    private studentsService: StudentsService,
+    private loaderService: SisLoaderService
   ) {};
 
 
   async onModuleInit() {
-    await this.studentsService.insertOne();
+    this.loaderService.load();
   }
 
   getStudent(studentNumber){
