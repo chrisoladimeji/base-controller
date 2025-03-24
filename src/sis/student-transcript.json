@@ -5,7 +5,8 @@
       "middleName": "Braun",
       "lastName": "Koufax ",
       "fullName" : "Sanford Braun Koufax",
-      "studentNumber": "1000"
+      "studentNumber": "1000",
+      "expiration": "20260601"
     },
     "student-transcript":{
     "studentCumulativeTranscript": {

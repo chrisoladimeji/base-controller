@@ -1,7 +1,7 @@
 // src/workflow/workflow.controller.ts
 import { Controller, Post, Body} from '@nestjs/common';
 import { ApiTags, ApiResponse,ApiBody } from '@nestjs/swagger';
-import { parse } from '@nas-veridid/workflow-parser';
+import { parse } from '@veridid/workflow-parser';
 
 @ApiTags('Workflow')
 @Controller()

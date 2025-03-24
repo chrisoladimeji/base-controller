@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { parse } from '@nas-veridid/workflow-parser';
+import { parse } from '@veridid/workflow-parser';
 import { AcaPyService } from '../services/acapy.service';
 import { EllucianController } from 'src/ellucian/ellucian.controller';
 import { SisService } from 'src/sis/sis.service';

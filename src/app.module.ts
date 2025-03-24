@@ -21,7 +21,7 @@ import {
   initDb,
   loadWorkflowsFromFile,
   getWorkflows,
-} from '@nas-veridid/workflow-parser';
+} from '@veridid/workflow-parser';
 import * as path from 'path';
 import { readFileSync } from 'fs';
 import { SvgService } from './svg/svg.service';
@@ -60,30 +60,32 @@ import { SisModule } from './sis/sis.module';
           {
             path: 'topic',
             module: AppModule,
-          },
-          {
-            path: 'ping',
-            module: PingModule,
-          },
-          {
-            path: 'connections',
-            module: ConnectionModule,
-          },
-          {
-            path: 'out_of_band',
-            module: OutOfBandModule,
-          },
-          {
-            path: 'issue_credential',
-            module: CredentialModule,
-          },
-          {
-            path: 'present_proof',
-            module: VerificationModule,
-          },
-          {
-            path: 'basicmessages',
-            module: BasicMessagesModule,
+            children: [
+              {
+                path: 'ping',
+                module: PingModule,
+              },
+              {
+                path: 'connections',
+                module: ConnectionModule,
+              },
+              {
+                path: 'out_of_band',
+                module: OutOfBandModule,
+              },
+              {
+                path: 'issue_credential',
+                module: CredentialModule,
+              },
+              {
+                path: 'present_proof',
+                module: VerificationModule,
+              },
+              {
+                path: 'basicmessages',
+                module: BasicMessagesModule,
+              },
+            ]
           },
           {
             path: 'sis',

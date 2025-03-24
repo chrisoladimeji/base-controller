@@ -15,18 +15,18 @@ export class SisService {
   }
 
   async getCumulativeTranscript(studentNumber: string) {
-      const student = this.getStudent(studentNumber);
-        return student? student.studentCumulativeTranscript :null ;
-    }
+    const student = this.getStudent(studentNumber);
+    return student? student.studentCumulativeTranscript :null ;
+  }
 
-    async getStudentDetails(studentNumber: string) {
-      const student:Student = this.getStudent(studentNumber);
-      return student;
-    }
-    
-    async getCourseTranscripts(studentNumber: string) {
-      const student:Student = this.getStudent(studentNumber);
-      return student ? student.courseTranscript : null;
-    }
+  async getStudentDetails(studentNumber: string) {
+    const student:Student = this.getStudent(studentNumber);
+    return student;
+  }
+  
+  async getCourseTranscripts(studentNumber: string) {
+    const student:Student = this.getStudent(studentNumber);
+    return student ? student.courseTranscript : null;
+  }
 
 }

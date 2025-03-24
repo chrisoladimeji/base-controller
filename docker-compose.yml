@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:  
   controller-db:
     image: postgres:15
@@ -32,22 +30,22 @@ services:
       - redis-data:/data
 
   controller:
-      build: 
-        context: .
-        dockerfile: Dockerfile
-      container_name: controller
-      ports:
-        - "3000:3000"
-      working_dir: /usr/src/app
-      command: npm run start
-      env_file:
-        - .env
-      environment:
-        - DATABASE_URL=postgres://${WORKFLOW_DB_USER}:${WORKFLOW_DB_PASSWORD}@controller-db:5432/${WORKFLOW_DB_NAME}
-        - REDIS_HOST=redis
-      depends_on:
-        - controller-db
-        - redis
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: controller
+    ports:
+      - "3000:3000"
+    working_dir: /usr/src/app
+    command: npm run start
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgres://${WORKFLOW_DB_USER}:${WORKFLOW_DB_PASSWORD}@controller-db:5432/${WORKFLOW_DB_NAME}
+      - REDIS_HOST=redis
+    depends_on:
+      - controller-db
+      - redis
 
 volumes:
   controller-db-data:

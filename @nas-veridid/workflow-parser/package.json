@@ -1,0 +1,42 @@
+{
+  "name": "@nas-veridid/workflow-parser",
+  "version": "0.3.3",
+  "description": "Workflow Parser is a TypeScript Node.js module for parsing and managing workflow definitions in a PostgreSQL database.",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc && cp src/schema.sql dist/",
+    "start": "node dist/index.js",
+    "prepublishOnly": "npm run build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/DigiCred-Holdings/workflow-parser.git"
+  },
+  "keywords": [
+    "workflow",
+    "parser",
+    "action-menu"
+  ],
+  "author": "Nas Til",
+  "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/DigiCred-Holdings/workflow-parser/issues"
+  },
+  "homepage": "https://github.com/DigiCred-Holdings/workflow-parser#readme",
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "pg": "^8.12.0",
+    "uuid": "^10.0.0"
+  },
+  "devDependencies": {
+    "@types/dotenv": "^8.2.0",
+    "@types/node": "^20.14.2",
+    "@types/pg": "^8.11.6",
+    "@types/uuid": "^9.0.8",
+    "typescript": "^5.4.5"
+  },
+  "files": [
+    "dist"
+  ]
+}
