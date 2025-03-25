@@ -11,19 +11,19 @@ export class StudentsService {
     private studentsRepository: Repository<Student>,
   ) {}
 
-  findAll(): Promise<Student[]> {
-    return this.studentsRepository.find();
-  }
+  // findAll(): Promise<Student[]> {
+  //   return this.studentsRepository.find();
+  // }
 
-  findOne(studentIdNumber: string): Promise<Student | null> {
-    return this.studentsRepository.findOneBy({ studentIdNumber });
-  }
+  // findOne(id: string): Promise<Student | null> {
+  //   return this.studentsRepository.findOneBy({ id });
+  // }
 
   async insert(students: Student[]) {
     await this.studentsRepository.insert(students);
   }
 
-  async remove(id: number): Promise<void> {
-    await this.studentsRepository.delete(id);
-  }
+  // async remove(id: number): Promise<void> {
+  //   await this.studentsRepository.delete(id);
+  // }
 }

@@ -8,42 +8,42 @@
       "studentNumber": "1000"
     },
     "student-transcript":{
-    "studentCumulativeTranscript": {
-      "cumulativeAttemptedCredits": 14,
-      "cumulativeEarnedCredits": 14,
-      "cumulativeGradePointAverage": 3.286
-    },
-    "courseTranscript": [
-      {
-        "Term": "FY",
-        "Grade": "B",
-        "syear": 2023,
-        "CourseCode": "AMT0775F5",
-        "CourseTitle": "Engine - Removal Installation"
+      "studentCumulativeTranscript": {
+        "cumulativeAttemptedCredits": 14,
+        "cumulativeEarnedCredits": 14,
+        "cumulativeGradePointAverage": 3.286
       },
-      {
-        "Term": "FY",
-        "Grade": "B",
-        "syear": 2023,
-        "CourseCode": "AMT0775F4",
-        "CourseTitle": "Engine Op - Troubleshting Repair"
-      },
-      {
-        "Term": "FY",
-        "Grade": "B",
-        "syear": 2023,
-        "CourseCode": "AMT0776F6",
-        "CourseTitle": "Pro - pellers"
-      },
-      {
-        "Term": "FY",
-        "Grade": "C",
-        "syear": 2023,
-        "CourseCode": "AMT0776F1",
-        "CourseTitle": "Eng Instr - Fire Protection Lub"
-      }
-    ]
-  }
+      "courseTranscript": [
+        {
+          "Term": "FY",
+          "Grade": "B",
+          "syear": 2023,
+          "CourseCode": "AMT0775F5",
+          "CourseTitle": "Engine - Removal Installation"
+        },
+        {
+          "Term": "FY",
+          "Grade": "B",
+          "syear": 2023,
+          "CourseCode": "AMT0775F4",
+          "CourseTitle": "Engine Op - Troubleshting Repair"
+        },
+        {
+          "Term": "FY",
+          "Grade": "B",
+          "syear": 2023,
+          "CourseCode": "AMT0776F6",
+          "CourseTitle": "Pro - pellers"
+        },
+        {
+          "Term": "FY",
+          "Grade": "C",
+          "syear": 2023,
+          "CourseCode": "AMT0776F1",
+          "CourseTitle": "Eng Instr - Fire Protection Lub"
+        }
+      ]
+    }
   },
   {
     "studentIdCred": {
