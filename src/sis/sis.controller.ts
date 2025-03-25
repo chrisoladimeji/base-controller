@@ -22,27 +22,12 @@ export class SisController {
       return studentIdCred;
   }
 
-  @Get('cumulative-transcript')
-  @ApiOperation({ summary: 'Retrieve student transcript by student number' })
-  @ApiQuery({ name: 'studentNumber', required: true, type: String, description: 'The student number' })
-  @ApiResponse({ status: 200, description: 'The student transcript' })
-  @ApiResponse({ status: 404, description: 'Student not found' })
-  async getStudentTranscript(@Query('studentNumber') studentNumber: string) {
-      let transcript={}
-      try {
-          transcript=this.sisService.getCumulativeTranscript(studentNumber);
-      } catch (error) {
-          throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
-      }
-      return transcript;
-  }
-
   @Get('student-transcript')
   @ApiOperation({ summary: 'Retrieve student transcript by student number' })
   @ApiQuery({ name: 'studentNumber', required: true, type: String, description: 'The student number' })
   @ApiResponse({ status: 200, description: 'The student transcript' })
   @ApiResponse({ status: 404, description: 'Student not found' })
-  async getCourseTranscript(@Query('studentNumber') studentNumber: string) {
+  async getTranscript(@Query('studentNumber') studentNumber: string) {
       let transcript={}
       try {
           transcript=this.sisService.getCourseTranscripts(studentNumber);

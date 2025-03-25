@@ -91,10 +91,18 @@ import { SisModule } from './sis/sis.module';
             path: 'sis',
             module: SisModule,        
           },
+        ],        
+      },
+      {
+        path: 'workflow',
+        module: WorkflowModule,
+        children: [
           {
-            path: 'workflow',
+            path: '',
             module: WorkflowModule,
           },
+        ],
+      },
     ]),
     MetadataModule,
     SvgModule,
