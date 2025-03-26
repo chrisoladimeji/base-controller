@@ -13,6 +13,11 @@ services:
     restart: unless-stopped
     volumes:
       - controller-db-data:/var/lib/postgresql/data
+      - ./logs:/var/log/postgresql
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf
+      - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
+    command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf",
+               "-c", "hba_file=/etc/postgresql/pg_hba.conf",]
     # healthcheck:
     #   test: ["CMD", "pg_isready", "-U", "${WORKFLOW_DB_USER}", "-d", "${WORKFLOW_DB_NAME}"]
     #   interval: 10s

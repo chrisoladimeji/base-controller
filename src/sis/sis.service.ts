@@ -16,7 +16,7 @@ export class SisService {
 
   async getCumulativeTranscript(studentNumber: string) {
     const student = this.getStudent(studentNumber);
-    return student? student.studentCumulativeTranscript :null ;
+    return student? student?.studentTranscript?.studentCumulativeTranscript :null ;
   }
 
   async getStudentDetails(studentNumber: string) {
@@ -26,7 +26,7 @@ export class SisService {
   
   async getCourseTranscripts(studentNumber: string) {
     const student:Student = this.getStudent(studentNumber);
-    return student ? student.courseTranscript : null;
+    return student ? student?.studentTranscript?.courseTranscript : null;
   }
 
 }

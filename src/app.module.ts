@@ -56,54 +56,48 @@ import { SisModule } from './sis/sis.module';
         synchronize: true,
       }),
     }),
-    RouterModule.register([
-          {
-            path: 'topic',
-            module: AppModule,
-            children: [
-              {
-                path: 'ping',
-                module: PingModule,
-              },
-              {
-                path: 'connections',
-                module: ConnectionModule,
-              },
-              {
-                path: 'out_of_band',
-                module: OutOfBandModule,
-              },
-              {
-                path: 'issue_credential',
-                module: CredentialModule,
-              },
-              {
-                path: 'present_proof',
-                module: VerificationModule,
-              },
-              {
-                path: 'basicmessages',
-                module: BasicMessagesModule,
-              },
-            ]
-          },
-          {
-            path: 'sis',
-            module: SisModule,        
-          },
-        ],        
-      },
-      {
-        path: 'workflow',
-        module: WorkflowModule,
-        children: [
-          {
-            path: '',
-            module: WorkflowModule,
-          },
-        ],
-      },
-    ]),
+    RouterModule.register(
+      [
+        {
+          path: 'topic',
+          module: AppModule,
+          children: [
+            {
+              path: 'ping',
+              module: PingModule,
+            },
+            {
+              path: 'connections',
+              module: ConnectionModule,
+            },
+            {
+              path: 'out_of_band',
+              module: OutOfBandModule,
+            },
+            {
+              path: 'issue_credential',
+              module: CredentialModule,
+            },
+            {
+              path: 'present_proof',
+              module: VerificationModule,
+            },
+            {
+              path: 'basicmessages',
+              module: BasicMessagesModule,
+            },
+          ]
+        },
+        {
+          path: 'sis',
+          module: SisModule,        
+        },
+        {
+          path: 'workflow',
+          module: WorkflowModule,
+        },
+      ],
+    ),
     MetadataModule,
     SvgModule,
     SisModule,
