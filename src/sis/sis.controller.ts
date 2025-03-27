@@ -1,6 +1,7 @@
 import { Controller, Get, HttpException, HttpStatus, Query, Res } from '@nestjs/common';
 import { SisService } from './sis.service';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { Student } from './students/student.entity';
 
 @ApiTags('SIS')
 @Controller()
@@ -13,13 +14,19 @@ export class SisController {
   @ApiResponse({ status: 200, description: 'The student name' })
   @ApiResponse({ status: 404, description: 'Student not found' })
   async getStudentId(@Query('studentNumber') studentNumber: string) {
-      let studentIdCred={}
+      let studentId: Student;
       try {
-          studentIdCred=await this.sisService.getStudentId(studentNumber);
+          studentId = await this.sisService.getStudentId(studentNumber);
       } catch (error) {
           throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
       }
-      return studentIdCred;
+
+      const formattedStudentIdName = {
+        studentIdCred: {
+            fullName: studentId.fullName
+        }
+      }
+      return formattedStudentIdName;
   }
 
   @Get('cumulative-transcript')
