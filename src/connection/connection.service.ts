@@ -44,7 +44,7 @@ export class ConnectionService {
 
     try {
       const studentIdCred =
-        await this.sisService.getStudentDetails(studentNumber);
+        await this.sisService.getStudentId(studentNumber);
       console.log('studentIdCred at ConnectionController', studentIdCred);
 
       if (studentIdCred) {

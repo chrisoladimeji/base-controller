@@ -11,7 +11,7 @@ export class EnrollmentsService {
     private enrollmentsRepository: Repository<Enrollment>,
   ) {}
 
-  async insert(enrollments: Enrollment[]) {
-    await this.enrollmentsRepository.insert(enrollments);
+  async save(enrollments: Enrollment[]) {
+    await this.enrollmentsRepository.save(enrollments);
   }
 }

@@ -12,10 +12,10 @@ export class SisController {
   @ApiQuery({ name: 'studentNumber', required: true, type: String, description: 'The student number' })
   @ApiResponse({ status: 200, description: 'The student name' })
   @ApiResponse({ status: 404, description: 'Student not found' })
-  async getStudentDetails(@Query('studentNumber') studentNumber: string) {
+  async getStudentId(@Query('studentNumber') studentNumber: string) {
       let studentIdCred={}
       try {
-          studentIdCred=await this.sisService.getStudentDetails(studentNumber);
+          studentIdCred=await this.sisService.getStudentId(studentNumber);
       } catch (error) {
           throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
       }

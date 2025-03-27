@@ -28,9 +28,12 @@ export class SisService implements OnModuleInit {
       return null; //return student? student.studentCumulativeTranscript :null ;
   }
 
-  async getStudentDetails(studentNumber: string) {
-    const student:Student = this.getStudent(studentNumber);
-    return null; //return student;
+  async getStudentId(studentNumber: string) {
+    console.log(`Getting student id: ${studentNumber}`);
+    let details: Student = await this.studentsService.getStudent(studentNumber);
+    if (details) console.log(`Student found: ${details.fullName}`);
+    else console.log('Student not found');
+    return details;
   }
   
   async getCourseTranscripts(studentNumber: string) {

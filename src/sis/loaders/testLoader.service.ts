@@ -71,12 +71,11 @@ export class TestLoaderService extends SisLoaderService {
             students.push(parsedStudent);
         }
 
-        await this.studentsService.insert(students);
-        await this.enrollmentsService.insert(enrollments);
+        await this.studentsService.save(students);
+        //await this.enrollmentsService.save(enrollments);
         // await this.sessionService.insert(sessions);
         // await this.courseService.insert(courses);
         // await this.schoolService.insert(school);
         console.log('TestLoader: SIS batch load complete')
     };
 }
- 
