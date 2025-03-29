@@ -1,9 +1,9 @@
 services:  
-  controller-db:
+  postgres:
     image: postgres:15
     container_name: workflow-db
     env_file:
-      - .env
+      - .env.development.container
     environment:
       POSTGRES_USER: ${WORKFLOW_DB_USER}
       POSTGRES_PASSWORD: ${WORKFLOW_DB_PASSWORD}
@@ -12,36 +12,33 @@ services:
       - "5435:5432"
     restart: unless-stopped
     volumes:
-      - controller-db-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql/data
 
   redis:
     image: redis:alpine
-    container_name: controller-redis
+    container_name: crms-controller-redis
     ports:
       - "6379:6379"
     env_file:
-      - .env
+      - .env.development.container
     volumes:
       - redis-data:/data
 
-  controller:
+  node:
       build: 
         context: .
         dockerfile: Dockerfile
-      container_name: controller
+      container_name: crms-controller-app
       ports:
         - "3000:3000"
       working_dir: /usr/src/app
       command: npm run start
       env_file:
-        - .env
-      environment:
-        - DATABASE_URL=postgres://${WORKFLOW_DB_USER}:${WORKFLOW_DB_PASSWORD}@controller-db:5432/${WORKFLOW_DB_NAME}
-        - REDIS_HOST=redis
+        - .env.development.container
       depends_on:
-        - controller-db
+        - postgres
         - redis
 
 volumes:
-  controller-db-data:
+  postgres-data:
   redis-data:
