@@ -1,5 +1,3 @@
-version: '3.8'
-
 services:  
   controller-db:
     image: postgres:15
@@ -15,11 +13,6 @@ services:
     restart: unless-stopped
     volumes:
       - controller-db-data:/var/lib/postgresql/data
-    # healthcheck:
-    #   test: ["CMD", "pg_isready", "-U", "${WORKFLOW_DB_USER}", "-d", "${WORKFLOW_DB_NAME}"]
-    #   interval: 10s
-    #   retries: 5
-    #   timeout: 5s
 
   redis:
     image: redis:alpine

@@ -1,4 +1,4 @@
-import { Module, OnModuleInit } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RouterModule } from '@nestjs/core';
@@ -17,14 +17,6 @@ import { BasicMessagesModule } from './basicmessages/basicmessages.module';
 import { WorkflowModule } from './workflow/workflow.module';
 import { PostgresService } from './services/postgres.service';
 import { RedisService } from './services/redis.service';
-import { StudentsModule } from './sis/students/students.module';
-import {
-  initDb,
-  loadWorkflowsFromFile,
-  getWorkflows,
-} from '@nas-veridid/workflow-parser';
-import * as path from 'path';
-import { readFileSync } from 'fs';
 import { SvgService } from './svg/svg.service';
 import { SvgModule } from './svg/svg.module';
 import { SisModule } from './sis/sis.module';
@@ -98,7 +90,6 @@ import { SisModule } from './sis/sis.module';
     MetadataModule,
     SvgModule,
     SisModule,
-    StudentsModule,
   ],
   providers: [
     AppService,
@@ -109,38 +100,4 @@ import { SisModule } from './sis/sis.module';
   ],
   controllers: [AppController],
 })
-export class AppModule implements OnModuleInit {
-  constructor(private configService: ConfigService) {}
-
-  async onModuleInit() {
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      await initDb();
-
-      // Adding delay after initializing the database
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-
-      // Load workflows from the JSON file if exists
-      const workflowsFilePath = path.join(__dirname, '..', 'workflows.json');
-      await loadWorkflowsFromFile(workflowsFilePath);
-
-      // Validate workflows
-      const workflowsFromFile = JSON.parse(
-        readFileSync(workflowsFilePath, 'utf-8'),
-      );
-      const workflowsFromDb = await getWorkflows();
-
-      if (workflowsFromFile.length === workflowsFromDb.length) {
-        console.log(
-          'No.of workflows in workflows.json and No.of workflows in workflow_db table workflows matches! Good ',
-        );
-      } else {
-        console.error(
-          'Error loading workflows: Mismatch in number of workflows.',
-        );
-      }
-    } catch (error) {
-      console.error('Error initializing workflows:', error.message);
-    }
-  }
-}
+export class AppModule {}

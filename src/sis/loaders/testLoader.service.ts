@@ -2,12 +2,13 @@ import { Injectable } from "@nestjs/common";
 import { SisLoaderService } from "./sisLoader.service";
 import { StudentsService } from "../students/students.service";
 import { Student } from "../students/student.entity";
-import * as studentDump from "../../resources/testStudentDump.json";
 import { Enrollment } from "../enrollments/enrollment.entity";
 import { Session } from "../sessions/session.entity";
 import { Course } from "../courses/course.entity";
 import { EnrollmentsService } from "../enrollments/enrollments.service";
 import { School } from "../schools/school.entity";
+
+import * as studentDump from "../../../test/testStudentDump.json";
 
 
 @Injectable()
