@@ -8,7 +8,6 @@ import { Session } from "../sessions/session.entity";
 import { Course } from "../courses/course.entity";
 import { EnrollmentsService } from "../enrollments/enrollments.service";
 import { School } from "../schools/school.entity";
-import { parse } from "path";
 
 
 @Injectable()
@@ -53,8 +52,6 @@ export class TestLoaderService extends SisLoaderService {
                 // let parsedCourse = new Course();
                 // let parsedEnrollment = new Enrollment();
 
-
-                parsedEnrollment.grade = courseData["Grade"];
                 // parsedEnrollment.session = parsedSession;
                 // parsedEnrollment.student = parsedStudent;
 
