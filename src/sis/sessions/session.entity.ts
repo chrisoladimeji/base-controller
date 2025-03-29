@@ -1,31 +1,25 @@
-import { Entity, Column, PrimaryGeneratedColumn, OneToMany, ManyToOne } from 'typeorm'
-import { Enrollment } from '../enrollments/enrollment.entity';
+import { Entity, Column, ManyToOne, PrimaryGeneratedColumn } from 'typeorm'
 import { Course } from '../courses/course.entity';
 
 @Entity()
 export class Session {
 
-    @PrimaryGeneratedColumn('uuid')
-    uuid: string;
+    @PrimaryGeneratedColumn()
+    id: string;
 
-    @ManyToOne(() => Course, (course) => course.sessions)
-    course: Course;
+    @Column()
+    @ManyToOne(() => Course, (course) => course.code)
+    course: string;
 
-    @OneToMany(() => Enrollment, (enrollment) => enrollment.session)
-    enrollments: Enrollment[];
-
-    @Column({nullable: true})
-    sessionId: string;
-
-    @Column({nullable: true})
+    @Column()
     termYear: number;
 
-    @Column({nullable: true})
+    @Column()
     termSeason: string;
 
-    @Column({nullable: true})
+    @Column()
     startDate: Date;
 
-    @Column({nullable: true})
+    @Column()
     endDate: Date;
 }

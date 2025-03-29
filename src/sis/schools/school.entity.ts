@@ -5,11 +5,12 @@ import { Course } from "../courses/course.entity";
 @Entity()
 export class School {
 
+    constructor(name: string) {
+        this.name = name;
+    }
+
     @PrimaryColumn()
     name: string;
-
-    @OneToMany(() => Course, (course) => course.school)
-    courses: Course[];
 
     @Column()
     address: string;

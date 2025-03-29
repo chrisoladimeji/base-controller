@@ -4,6 +4,8 @@ const PDFDocument = require('pdfkit');
 import { Student } from './students/student.entity';
 import { StudentsService } from './students/students.service';
 import { SisLoaderService } from './loaders/sisLoader.service';
+import { StudentId } from '../models/studentId.model';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SisService implements OnModuleInit {
@@ -11,7 +13,8 @@ export class SisService implements OnModuleInit {
  
   constructor(
     private studentsService: StudentsService,
-    private loaderService: SisLoaderService
+    private loaderService: SisLoaderService,
+    private configService: ConfigService
   ) {};
 
 
@@ -28,12 +31,33 @@ export class SisService implements OnModuleInit {
       return null; //return student? student.studentCumulativeTranscript :null ;
   }
 
-  async getStudentId(studentNumber: string) {
+  async getStudentId(studentNumber: string): Promise<StudentId> {
     console.log(`Getting student id: ${studentNumber}`);
-    let details: Student = await this.studentsService.getStudent(studentNumber);
-    if (details) console.log(`Student found: ${details.fullName}`);
+    let student: Student = await this.studentsService.getStudent(studentNumber);
+    if (student) console.log(`Student found: ${student.fullName}`);
     else console.log('Student not found');
-    return details;
+
+
+    let studentId = {
+      // Student ID fields
+      studentNumber: student.id,
+      studentFullName: student.fullName,
+      studentBirthDate: student.birthDate ? student.birthDate.toString(): null,
+  
+      studentContactName: student.contactName,
+      studentContactPhone: student.contactPhone,
+  
+      // Student registration fields
+      program: student.program,
+      graduationDate: student.graduationDate,
+  
+      // School ID fields
+      schoolName: this.configService.get('SCHOOL'),
+      schoolContact: null,
+      schoolPhone: null,
+    };
+
+    return studentId;
   }
   
   async getCourseTranscripts(studentNumber: string) {

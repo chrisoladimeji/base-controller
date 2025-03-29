@@ -1,5 +1,4 @@
-import { Column, Entity, ManyToOne, OneToMany, PrimaryColumn } from "typeorm";
-import { Session } from "../sessions/session.entity";
+import { Column, Entity, ManyToOne, PrimaryColumn } from "typeorm";
 import { School } from "../schools/school.entity";
 
 
@@ -7,18 +6,16 @@ import { School } from "../schools/school.entity";
 export class Course {
 
     @PrimaryColumn()
-    courseCode: string;
+    code: string;
 
-    @ManyToOne(() => School, (school) => school.courses)
-    school: School;
+    @ManyToOne(() => School, (school) => school.name)
+    @Column()
+    school: string;
 
-    @OneToMany(() => Session, (session) => session.course)
-    sessions: Session[];
+    @Column()
+    title: string;
 
-    @Column({nullable: true})
-    courseTitle: string;
-
-    @Column({type: 'float', nullable: true})
+    @Column({type: 'float'})
     credits: number;
 
 }

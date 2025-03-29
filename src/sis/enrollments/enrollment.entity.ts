@@ -1,18 +1,18 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm'
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, PrimaryColumn } from 'typeorm'
 import { Student } from '../students/student.entity';
 import { Session } from '../sessions/session.entity';
 
 @Entity()
 export class Enrollment{
-  
+
   @PrimaryGeneratedColumn('uuid')
-  uuid: string;
-
+  id: string;
+  
   @ManyToOne(() => Student, (student) => student.enrollments)
-  student: Student
+  student: Student;
 
-  @ManyToOne(() => Session, (session) => session.enrollments)
-  session: Session
+  @ManyToOne(() => Session)
+  session: Session  ;
 
   @Column({nullable: true})
   gradeLevel: string;

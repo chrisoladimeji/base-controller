@@ -4,6 +4,10 @@ import { Enrollment } from '../enrollments/enrollment.entity';
 @Entity()
 export class Student{
 
+  constructor(id: string) {
+    this.id = id;
+  }
+
   @PrimaryColumn()
   id: string;
 
@@ -31,7 +35,7 @@ export class Student{
   @Column({nullable: true})
   contactPhone: string;
 
-  @Column({nullable:true})
+  @Column({nullable: true})
   graduationDate: string;
 
   @Column({nullable: true})
