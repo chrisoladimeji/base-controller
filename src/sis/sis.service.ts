@@ -48,6 +48,12 @@ export class SisService implements OnModuleInit {
       schoolName: this.configService.get('SCHOOL'),
       schoolContact: null,
       schoolPhone: null,
+
+      // Dave's additional fields
+      expiration: null,
+      barcodeType: null,
+      barcode: null,
+      qrCode: null,
     };
 
     return studentId;
