@@ -3,6 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { EventsGateway } from '../events/events.gateway';
 import { SisService } from '../sis/sis.service';
 import { AcaPyService } from '../services/acapy.service';
+import { parse, getWorkflows,getWorkflowById, getWorkflowInstance, updateWorkflowInstanceByID } from '@veridid/workflow-parser';
+
 
 @Injectable()
 export class ConnectionService {
@@ -19,9 +21,32 @@ export class ConnectionService {
       this.emitEvent(connectionData, null, null);
     } else if (connectionData.state === 'active') {
       console.log('Connection is active.');
-      await this.handleActiveState(connectionData);
+      await this.handleActiveStateWorklow(connectionData,"root-menu");
     }
   }
+
+  private async handleActiveStateWorklow(connectionData: any, workflowId: string) {
+        const workflow = await getWorkflowById(workflowId);
+        console.log("workflow data", workflow);
+        const CURRENT_STATE = 'ConnectionActive'
+        const connectionId = connectionData.connection_id;
+        console.log("Verfication data from request-sent state", connectionData);
+        //Add threadId into workflow instance ID 
+        const threadId = connectionData?.thread_id;
+        const response = await getWorkflowInstance(`${connectionId}`, `${workflowId}`)
+        console.log("response from verify section", response);
+        const instanceID = response?.instanceID;
+        const instance = {
+          instanceID: `${instanceID}`,
+          workflowID: `${workflowId}`,
+          connectionID: `${connectionId}`,
+          currentState: `${CURRENT_STATE}`,
+          stateData: { "threadId": `${threadId}` }
+        }
+        await updateWorkflowInstanceByID(`${instanceID}`, instance)
+        await this.acapyService.sendMessage(connectionData.connection_id,workflowId)
+        
+    }
 
   private async handleActiveState(connectionData: any) {
     const alias = connectionData.alias;
@@ -59,7 +84,10 @@ export class ConnectionService {
             "attributes": attributes
           }
         }
-        this.acapyService.sendCredOffer(credentialOfferBody);
+/*
+Send 
+ */
+        //this.acapyService.sendCredOffer(credentialOfferBody);
       } else {
         console.error(
           'Unable to obtain Student info from Student Information System',
@@ -78,9 +106,29 @@ export class ConnectionService {
       attributes,
       this.configService.get<string>('STUDENTID_CREDENTIAL_DEFINITION_ID'),
     );
+    //await setWorkflowInstance(connectionData.connection_id, 'root-menu', 'ConnectionActive', { "threadId": connectionData?.thread_id })
+    
     await this.acapyService.sendWelcomeMessage(connectionData);
+    const WORKFLOW_ID = 'root-menu';
+        const CURRENT_STATE = 'ConnectionActive'
+        const connectionId = connectionData.connection_id;
+        console.log("Verfication data from request-sent state", connectionData);
+        //Add threadId into workflow instance ID 
+        const threadId = connectionData?.thread_id;
+        const response = await getWorkflowInstance(`${connectionId}`, `${WORKFLOW_ID}`)
+        console.log("response from verify section", response);
+        const instanceID = response?.instanceID;
+        const instance = {
+          instanceID: `${instanceID}`,
+          workflowID: `${WORKFLOW_ID}`,
+          connectionID: `${connectionId}`,
+          currentState: `${CURRENT_STATE}`,
+          stateData: { "threadId": `${threadId}` }
+        }
+        await updateWorkflowInstanceByID(`${instanceID}`, instance)
+        await this.acapyService.sendMessage(connectionData.connection_id,instance.workflowID)
   }
-
+  
   private extractStudentNumber(alias: string): string | null {
     const parts = alias.split(' -studentID- ');
     return parts.length > 1 ? parts[1] : null;

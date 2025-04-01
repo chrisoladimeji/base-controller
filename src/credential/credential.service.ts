@@ -1,5 +1,5 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { parse, getWorkflowInstance, updateWorkflowInstanceByID, getWorkflowInstanceByConnectionID } from '@nas-veridid/workflow-parser';
+import { parse, getWorkflowInstances, updateWorkflowInstanceByID, getWorkflowInstanceByID } from '@veridid/workflow-parser';
 import { MetadataService } from '../metadata/metadata.service';
 import { AcaPyService } from '../services/acapy.service';
 import { EventsGateway } from '../events/events.gateway';
@@ -92,13 +92,13 @@ export class CredentialService {
     const threadId = credentialData.thread_id;
 
     try {
-      const response = await getWorkflowInstance(connectionId, WORKFLOW_ID);
+      const response = await getWorkflowInstanceByID(connectionId, WORKFLOW_ID);
       const instanceID = response?.instanceID;
       const instance = {
         instanceID,
         workflowID: WORKFLOW_ID,
         connectionID: connectionId,
-        currentState: response.currentState,
+        currentState: response?.currentState,
         stateData: { threadId },
       };
 
@@ -113,7 +113,7 @@ export class CredentialService {
   private async handleStateCredAckWorkflow(credentialData: CredentialData): Promise<void> {
     const connectionId = credentialData.connection_id;
     const threadId = credentialData.thread_id;
-    const existAnyInstances = await getWorkflowInstanceByConnectionID(connectionId);
+    const existAnyInstances = await getWorkflowInstanceByID(connectionId);
     if (existAnyInstances.length === 0) {
       const action = { workflowID: 'root-menu', actionID: '', data: {} };
       let response: any;
@@ -135,7 +135,7 @@ export class CredentialService {
     const WORKFLOW_ID = 'NewStudentOrientation';
     const ACTION_ID_ISSUED = 'accepted';
     try {
-      const response = await getWorkflowInstance(connectionId, WORKFLOW_ID);
+      const response = await getWorkflowInstanceByID(connectionId, WORKFLOW_ID);
       if (response && response.stateData?.threadId === threadId) {
         const action = {
           workflowID: WORKFLOW_ID,

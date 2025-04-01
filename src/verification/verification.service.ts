@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { MetadataService } from '../metadata/metadata.service';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { lastValueFrom, firstValueFrom, map } from 'rxjs';
-import { parse, getWorkflowInstance, updateWorkflowInstanceByID } from '@nas-veridid/workflow-parser';
+import { parse, getWorkflowInstanceByID, updateWorkflowInstanceByID } from '@veridid/workflow-parser';
 
 
 @Injectable()
@@ -43,7 +43,7 @@ export class VerificationService {
     console.log("Verfication data from request-sent state", connectionData);
     //Add threadId into workflow instance ID 
     const threadId = connectionData?.thread_id;
-    const response = await getWorkflowInstance(`${connectionId}`, `${WORKFLOW_ID}`)
+    const response = await getWorkflowInstanceByID(`${connectionId}`, `${WORKFLOW_ID}`)
     console.log("response from verify section", response);
     const instanceID = response?.instanceID;
     const instance = {
@@ -158,7 +158,7 @@ export class VerificationService {
     const connectionId = data?.connection_id;
     const threadId = data?.thread_id;
     console.log("verified Data from verified state: ", data)
-    const response = await getWorkflowInstance(`${connectionId}`, `${WORKFLOW_ID}`)
+    const response = await getWorkflowInstanceByID(`${connectionId}`, `${WORKFLOW_ID}`)
     console.log("response from verified state", response);
 
     if (response && response.stateData?.threadId === `${threadId}`) {
@@ -182,7 +182,7 @@ export class VerificationService {
     const WORKFLOW_ID = 'NewStudentOrientation';
     const connectionId = connectionData?.connection_id;
     const threadId = connectionData?.thread_id;
-    const response = await getWorkflowInstance(`${connectionId}`, `${WORKFLOW_ID}`)
+    const response = await getWorkflowInstanceByID(`${connectionId}`, `${WORKFLOW_ID}`)
     console.log("response from abandoned state", response);
 
     if (response && response.stateData?.threadId === `${threadId}`) {
