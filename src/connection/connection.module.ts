@@ -8,11 +8,16 @@ import { MetadataService } from 'src/metadata/metadata.service';
 import { ConfigModule } from '@nestjs/config';
 import { WorkflowModule } from 'src/workflow/workflow.module';
 import { AcaPyService } from '../services/acapy.service';
-import { SisService } from 'src/sis/sis.service';
+import { SisModule } from 'src/sis/sis.module';
 
 
 @Module({
-  imports: [HttpModule, ConfigModule, WorkflowModule],
+  imports: [
+    HttpModule,
+    ConfigModule,
+    WorkflowModule,
+    SisModule,
+  ],
   controllers: [ConnectionController],
   providers: [
     ConnectionService,
@@ -20,7 +25,6 @@ import { SisService } from 'src/sis/sis.service';
     EventsGateway,
     MetadataService,
     AcaPyService,
-    SisService
   ],
 })
 export class ConnectionModule {}

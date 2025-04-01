@@ -1,0 +1,32 @@
+------------------------------------------------------------
+                     SAMPLE UNIVERSITY
+                      Unofficial Transcript
+------------------------------------------------------------
+Name: John Doe            ID: 123456789  
+Issued To: Employer XYZ   SSN: XXX-XX-1234  
+Birth Date: 01/01/2000    Date: 03/12/2025  
+------------------------------------------------------------
+                   TRANSFERRED COURSES
+------------------------------------------------------------
+Course     Title                        Cred  Transferred From  
+ACA-122*A  College Transfer Success      1.0  Community College  
+ENG-101    English Composition           3.0  Community College  
+------------------------------------------------------------
+                     FALL 2023  
+------------------------------------------------------------
+Course     Title                        Grade  Hrs Attempted  Hrs Completed  GPA Points  
+MAT-271    Calculus I                     A        4.0            4.0         16.0  
+HIS-121    American History I              B        3.0            3.0         9.0  
+------------------------------------------------------------
+Term Total:                                7.0            7.0         25.0  
+Cumulative:                                7.0            7.0         25.0  
+------------------------------------------------------------
+Academic Standing: Good Standing  
+------------------------------------------------------------
+Program: Associate in Arts  
+Total Completed Credits: 7.0  
+GPA: 3.57  
+------------------------------------------------------------
+ U* = Universal General Education Transfer Component  
+ A* = CAA Course  
+------------------------------------------------------------

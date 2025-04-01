@@ -99,9 +99,9 @@ export class BasicMessagesService {
                   //send basic message while waiting
                   await this.acapyService.sendMessage(connectionId, JSON.stringify(response));
                   //get student transcript info from Ellucian
-                  let studentTranscripts;
+                  let studentId;
                   try {
-                    studentTranscripts = await this.sisService.getStudent(metadata.student_id);
+                    studentId = await this.sisService.getStudentId(metadata.student_id);
                   } catch (error: any) {
                     console.log("Error retrieving from SIS", error);
                     //invoke workflow parse
@@ -109,14 +109,14 @@ export class BasicMessagesService {
                     await this.invokeWorkflowParser(connectionId, action);
                     return;
                   }
-                  if (!studentTranscripts?.courseTranscript || studentTranscripts?.courseTranscript.length < 1) {
+                  if (!studentId?.courseTranscript || studentId?.courseTranscript.length < 1) {
                     console.log("Unable to retrieve any transcript data ");
                     const action = { workflowID: 'RequestTranscript', actionID: 'metadataNotFound', data: {} };
                     await this.invokeWorkflowParser(connectionId, action);
                     return;
                   }
                   // send transcript offer to student
-                  const courseTranscripts = JSON.stringify(studentTranscripts?.courseTranscript);
+                  const courseTranscripts = JSON.stringify(studentId?.courseTranscript);
                   const credentialOfferBody = {
                     "auto_issue": true,
                     "connection_id": connectionId,
@@ -126,12 +126,12 @@ export class BasicMessagesService {
                       "attributes": [
                         {
                           "name": "Last",
-                          "value": `${studentTranscripts.studentId[0]?.lastName}`
+                          "value": `${studentId.studentId[0]?.lastName}`
                         },
 
                         {
                           "name": "First",
-                          "value": `${studentTranscripts.studentId[0]?.firstName}`
+                          "value": `${studentId.studentId[0]?.firstName}`
                         },
                         {
                           "name": "Expiration",
@@ -139,11 +139,11 @@ export class BasicMessagesService {
                         },
                         {
                           "name": "StudentID",
-                          "value": `${studentTranscripts.studentId[0]?.studentID}`
+                          "value": `${studentId.studentId[0]?.studentID}`
                         },
                         {
                           "name": "Middle",
-                          "value": `${studentTranscripts.studentId[0]?.middleName}`
+                          "value": `${studentId.studentId[0]?.middleName}`
                         },
                         {
                           "name": "Transcript",
@@ -155,7 +155,7 @@ export class BasicMessagesService {
                         },
                         {
                           "name": "GPA",
-                          "value": `${studentTranscripts.studentCumulativeTranscript[0].cumulativeGradePointAverage}`
+                          "value": `${studentId.studentCumulativeTranscript[0].cumulativeGradePointAverage}`
                         },
 
                       ]

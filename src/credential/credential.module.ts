@@ -8,11 +8,11 @@ import { ConfigService } from '@nestjs/config';
 import { ConnectionService } from '../connection/connection.service';
 import { EllucianModule } from '../ellucian/ellucian.module';
 import { AcaPyService } from '../services/acapy.service';
-import { SisService } from 'src/sis/sis.service';
+import { SisModule } from 'src/sis/sis.module';
 
 
 @Module({
-  imports: [HttpModule, MetadataModule, EllucianModule],
+  imports: [HttpModule, MetadataModule, EllucianModule, SisModule],
   controllers: [CredentialController],
   providers: [
     CredentialService,
@@ -20,7 +20,6 @@ import { SisService } from 'src/sis/sis.service';
     EventsGateway,
     ConnectionService,
     AcaPyService,
-    SisService
   ],
 })
 export class CredentialModule {}
