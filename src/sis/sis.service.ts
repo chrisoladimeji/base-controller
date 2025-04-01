@@ -6,7 +6,6 @@ import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class SisService implements OnModuleInit {
-  
  
   constructor(
     private studentsService: StudentsService,
@@ -17,10 +16,6 @@ export class SisService implements OnModuleInit {
 
   async onModuleInit() {
     this.loaderService.load();
-  }
-
-  getStudent(studentNumber){
-    return null; //return this.studentData.find((student) => student.studentIdCred.studentNumber === studentNumber);
   }
 
   async getStudentId(studentNumber: string) {
