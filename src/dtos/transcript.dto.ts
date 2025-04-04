@@ -64,6 +64,7 @@ export class TermDto {
 export class CourseDto {
     courseCode: string;
     courseTitle: string;
+    repeat: boolean;
 
     grade: string;
     
