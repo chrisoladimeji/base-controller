@@ -1,6 +1,6 @@
 
 
-export class TranscriptDto {
+export class HighSchoolTranscriptDto {
     
     // The full transcript if they can't send labeled data, may be a PDF
     studentTranscript: string;
@@ -19,8 +19,12 @@ export class TranscriptDto {
     studentGraduationDate: string;
     studentProgram: string;
 
-    studentCumulativeGpa: number;
-    studentCumulativeCreditsEarned: number;
+    cumulativeGpa: number;
+    weightedCumulativeGpa: number;
+    cumulativeCreditsEarned: number;
+    weightedCumulativeCreditsEarned: number;
+
+    studentClassRank: string;
 
     schoolName: string;
     schoolAddress: string;
