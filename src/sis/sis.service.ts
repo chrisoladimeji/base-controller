@@ -1,32 +1,56 @@
-import { Injectable } from '@nestjs/common';
-const path = require('path');
-const fs = require('fs');
-import Student from './entities/si.entity';
+import { Injectable, OnModuleInit } from '@nestjs/common';
+import { Student } from './students/student.entity';
+import { StudentsService } from './students/students.service';
+import { SisLoaderService } from './loaders/sisLoader.service';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
-export class SisService {
-  
-  filePath = path.join(process.cwd(), './src/sis/student-transcript.json');
-  rawData = fs.readFileSync(this.filePath, 'utf-8');
-  studentData:Student[] = JSON.parse(this.rawData);
-  
-  getStudent(studentNumber){
-    return this.studentData.find((student) => student.studentIdCred.studentNumber === studentNumber);
+export class SisService implements OnModuleInit {
+ 
+  constructor(
+    private studentsService: StudentsService,
+    private loaderService: SisLoaderService,
+    private configService: ConfigService
+  ) {};
+
+
+  async onModuleInit() {
+    this.loaderService.load();
   }
 
-  async getCumulativeTranscript(studentNumber: string) {
-    const student = this.getStudent(studentNumber);
-    return student? student?.studentTranscript?.studentCumulativeTranscript :null ;
-  }
+  async getStudentId(studentNumber: string) {
+    console.log(`Getting student id: ${studentNumber}`);
+    let student: Student = await this.studentsService.getStudent(studentNumber);
+    if (student) console.log(`Student found: ${student.fullName}`);
+    else console.log('Student not found');
 
-  async getStudentDetails(studentNumber: string) {
-    const student:Student = this.getStudent(studentNumber);
-    return student;
-  }
+
+    let studentId = {
+      // Student ID fields
+      studentNumber: student.id,
+      studentFullName: student.fullName,
+      studentBirthDate: student.birthDate ? student.birthDate.toString(): null,
   
-  async getCourseTranscripts(studentNumber: string) {
-    const student:Student = this.getStudent(studentNumber);
-    return student ? student?.studentTranscript?.courseTranscript : null;
-  }
+      studentContactName: student.contactName,
+      studentContactPhone: student.contactPhone,
+  
+      // Student registration fields
+      program: student.program,
+      gradeLevel: null,
+      graduationDate: student.graduationDate,
+  
+      // School ID fields
+      schoolName: this.configService.get('SCHOOL'),
+      schoolContact: null,
+      schoolPhone: null,
 
+      // Dave's additional fields
+      expiration: null,
+      barcodeType: null,
+      barcode: null,
+      qrCode: null,
+    };
+
+    return studentId;
+  }
 }
