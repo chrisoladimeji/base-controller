@@ -1,6 +1,10 @@
 
 
-export class HighSchoolTranscriptDto {
+export class TranscriptDto {
+
+}
+
+export class HighSchoolTranscriptDto extends TranscriptDto {
     
     // The full transcript if they can't send labeled data, may be a PDF
     studentTranscript: string;
@@ -41,6 +45,10 @@ export class HighSchoolTranscriptDto {
     terms: TermDto[];
 
     other: any;
+}
+
+export class CollegeTranscriptDto extends TranscriptDto {
+
 }
 
 export class TermDto {

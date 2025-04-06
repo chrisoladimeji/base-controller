@@ -22,4 +22,20 @@ export class SisController {
         }
     return studentId;
   }
+
+
+  @Get('student-transcript')
+  @ApiOperation({ summary: 'Retrieve student transcript by student number' })
+  @ApiQuery({ name: 'studentNumber', required: true, type: String, description: 'The student number' })
+  @ApiResponse({ status: 200, description: 'Student Transcript Found' })
+  @ApiResponse({ status: 404, description: 'Student not found' })
+  async getStudentTranscript(@Query('studentNumber') studentNumber: string) {
+      let studentTranscript;
+        try {
+            studentTranscript = await this.sisService.getStudentTranscript(studentNumber);
+        } catch (error) {
+            throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    return studentTranscript;
+  }
 }
