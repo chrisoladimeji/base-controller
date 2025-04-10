@@ -86,6 +86,7 @@ export class EllucianController {
       const studentIdCred = await this.ellucianService.getStudentIdCred(studentNumber);
       return { studentIdCred };
     } catch (error) {
+      console.log(error);
       throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }

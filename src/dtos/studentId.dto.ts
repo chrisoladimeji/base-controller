@@ -20,6 +20,8 @@ export class StudentIdDto {
     
     studentContactPhone: string;
 
+    studentPhoto: File;
+
     // Student registration fields
     program: string;
     
