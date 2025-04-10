@@ -5,10 +5,13 @@ import { firstValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { RedisService } from '../services/redis.service';
 import { jwtDecode } from 'jwt-decode';
+import { StudentIdDto } from 'src/dtos/studentId.dto';
+import { SisLoaderService } from 'src/sis/loaders/sisLoader.service';
+import { TranscriptDto } from 'src/dtos/transcript.dto';
 
 
 @Injectable()
-export class EllucianService {
+export class EllucianService extends SisLoaderService {
   private accessToken: string = '';
   private apiUrl: string;
   private authUrl: string;
@@ -18,12 +21,17 @@ export class EllucianService {
     private configService: ConfigService,
     private redisService: RedisService
   ) {
+    super();
     const baseUrl = this.configService.get<string>('ELLUCIAN_BASE_API_URL');
     const authRoute = this.configService.get<string>('ELLUCIAN_AUTH_ROUTE');
     this.authUrl = `${baseUrl}${authRoute}`;
     this.apiUrl = baseUrl;
   }
 
+  // Ellucian had not specified a load procedure
+  async load(): Promise<void> {}
+
+  
   async getAccessToken(): Promise<void> {
     const tokenKey = 'accessToken';
     const expiryKey = 'tokenExpiry';
@@ -148,24 +156,24 @@ export class EllucianService {
     return this.fetchFromEllucian(url);
   }
 
-
-  async getStudentIdCred(studentNumber: string) {
+  async getStudentId(studentNumber: string) {
     await this.getAccessToken();
     const person = await this.getPerson(studentNumber);
     if (!person || !person.length) {
       throw new HttpException('Student not found', HttpStatus.NOT_FOUND);
     }
 
-    return person
-    //   fullName: person[0].names[0]?.fullName ?? null,
-    //   firstName: person[0].names[0]?.firstName ?? null,
-    //   middleName: person[0].names[0]?.middleName ?? null,
-    //   lastName: person[0].names[0]?.lastName ?? null,
-    //   schoolPrimaryEmail: person[0].emails.find(email => email.type.emailType === "school" && email.preference === "primary")?.address ?? null,
-    //   personalEmail: person[0].emails.find(email => email.type.emailType === "personal")?.address ?? null,
-    //   studentsId: person[0].studentsId.studentsId ?? null,
-    //   studentGUID: person[0].id
-    // };
+    console.log(person);
+
+    let studentId = new StudentIdDto();
+
+    studentId.studentFullName = person[0].names[0]?.fullName ?? null;
+    studentId.studentNumber = person[0].studentsId?.studentsId ?? null;
+    studentId.studentContactEmail = person[0].emails.find(e => e.preference === "primary")?.address ?? null;
+    return studentId;
   }
 
+  async getStudentTranscript(studentNumber: string): Promise<TranscriptDto> {
+    return null;
+  }
 }

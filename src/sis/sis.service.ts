@@ -9,39 +9,28 @@ import { validate } from 'class-validator';
 
 
 @Injectable()
-export class SisService implements OnModuleInit {
- 
+export class SisService {
+
   constructor(
-    private studentsService: StudentsService,
     private loaderService: SisLoaderService,
     private configService: ConfigService
   ) {};
 
-  async onModuleInit() {
+  async load() {
     this.loaderService.load();
   }
 
   async getStudentId(studentNumber: string): Promise<StudentIdDto> {
     console.log(`Getting student id: ${studentNumber}`);
 
-    let student: Student = await this.studentsService.getStudent(studentNumber);
-    if (!student) {
-      console.log('Student not found');
-      return null;
+    console.log(typeof( this.loaderService ));
+
+    let studentId = await this.loaderService.getStudentId(studentNumber);
+
+    if (!studentId) {
+        console.log(`StudentNumber was not found: ${studentNumber}`);
+        return null;
     }
-
-
-    console.log(`Student found: ${student.fullName}`);
-
-    let studentId = new StudentIdDto();
-
-    if (student.id) studentId.studentNumber = student.id
-    if (student.fullName) studentId.studentFullName = student.fullName
-    if (student.birthDate) studentId.studentBirthDate = student.birthDate.toString();
-    if (student.contactName) studentId.studentContactName = student.contactName;
-    if (student.contactPhone) studentId.studentContactPhone = student.contactPhone;
-    if (student.program) studentId.program = student.program;
-    if (student.graduationDate) studentId.graduationDate = student.graduationDate;
 
     studentId.schoolName = this.configService.get('SCHOOL');
     studentId.expiration = this.configService.get('STUDENTID_EXPIRATION');

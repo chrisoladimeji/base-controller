@@ -7,7 +7,7 @@ export class TranscriptDto {
 export class HighSchoolTranscriptDto extends TranscriptDto {
     
     // Raw transcript data, may be a PDF, XML, etc.
-    originalTranscript: File;
+    originalTranscript: string;
 
     transcriptDate: string;
 

@@ -82,12 +82,13 @@ export class EllucianController {
   @ApiResponse({ status: 404, description: 'Student not found' })
   async getStudentName(@Query('studentNumber') studentNumber: string) {
     console.log('************* Ellucian API controller -student-ID ***************  /n');
+    let studentId;
     try {
-      const studentIdCred = await this.ellucianService.getStudentIdCred(studentNumber);
-      return { studentIdCred };
+      studentId = await this.ellucianService.getStudentId(studentNumber);
     } catch (error) {
       console.log(error);
       throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
     }
+    return studentId;
   }
 }
