@@ -1,50 +1,55 @@
 
 
 export class TranscriptDto {
-
-}
-
-export class HighSchoolTranscriptDto extends TranscriptDto {
-    
-    // The full transcript if they can't send labeled data, may be a PDF
-    studentTranscript: string;
-
+    // Transcript Metadata
     transcriptDate: string;
+    transcriptComments: string;
 
     // Student Information
-    studentId: string;
+    studentNumber: string;
     studentFullName: string;
     studentBirthDate: string;
-    studentAddress: string;
     studentPhone: string;
+    studentEmail: string;
+    studentAddress: string;
     studentSsn: string;
-    emergencyContactName: string;
-    emergencyContactPhone: string;
-    studentGraduationDate: string;
-    studentProgram: string;
 
-    // Grade and Credit Information
-    gpa: number;
-    weightedGpa: number;
-    studentClassRank: string;
-    totalPoints: number;
-    weightedTotalPoints: number;
-    totalCredits: number;
-    potentialCredits: number;
+    gradeLevel: string;
+    graduationDate: string;
+    program: string;
+
 
     // School Information
     schoolName: string;
+    schoolPhone: string;
     schoolAddress: string;
-    schoolContactName: string;
-    schoolContactPhone: string;
-    schoolDistrict: string;
-    schoolId: string;
+    schoolFax: string;
+    schoolCode: string;
     schoolGradeLevels: string;
 
-    // Term Information
-    terms: TermDto[];
+    // Grade information
+    gpa: number; // Weighted GPA for High Schools
 
-    other: any;
+    // Term Information
+    terms: TermDto[] | string;
+}
+
+export class HighSchoolTranscriptDto extends TranscriptDto {
+
+    // Grade and Credit Information
+    gpaUnweighted: number;
+    classRank: string;
+
+    attemptedCredits: number;
+    earnedCredits: number;
+    requiredCredits: number;
+    remainingCredits: number;
+
+    // High School Information
+    schoolDistrict: string;
+    schoolAccreditation: string;
+    schoolCeebCode: string;
+    schoolPrincipal: string;
 }
 
 export class CollegeTranscriptDto extends TranscriptDto {
@@ -53,37 +58,42 @@ export class CollegeTranscriptDto extends TranscriptDto {
 
 export class TermDto {
     // Term Information
-
-    studentGradeLevel: string;
-    academicStanding: string;
-
-    sessionSeason: string;
-    sessionYear: string;
-
-    transferTerm: boolean;
-    transferSchool: string;
+    termGradeLevel: string;
+    termYear: string;
+    termSchoolName: string;
 
     // Course Information
     courses: CourseDto[];
+}
 
-    other: any;
+export class HighSchoolTermDto extends TermDto {
+    termCredit: number;
+    cumulativeGpa: number;
+    cumulativeUnweightedGpa: number;
+}
+
+export class CollegeTermDto {
+    termSeason: string;
+    academicStanding: string;
 }
 
 export class CourseDto {
     courseCode: string;
     courseTitle: string;
+
+    grade: string; // Also displayed as "Mark" on some transcripts
+
+    creditEarned: number;
+}
+
+export class NorthCarolinaCourseDto extends CourseDto {
+    courseWeight: number;
+    UncRequirement: boolean;
+}
+
+export class CollegeCourseDto extends CourseDto {
+    hoursPossible: number;
+    hoursEarned: number;
+
     repeat: boolean;
-
-    grade: string;
-    
-    hoursPossible: number; // College
-    hoursEarned: number; // College
-
-    pointsEarned: number;
-    weightedPointsEarned: number; // High School
-
-    sessionStartDate: string;
-    sessionEndDate: string;
-
-    other: any;
 }

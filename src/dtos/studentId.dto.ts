@@ -1,11 +1,6 @@
 import { IsDefined, IsNotEmpty } from "class-validator";
 
-
 export class StudentIdDto {
-
-    // Credential fields
-    @IsNotEmpty()
-    expiration: string;
 
     // Student ID fields
     @IsNotEmpty()
@@ -14,25 +9,29 @@ export class StudentIdDto {
     @IsNotEmpty()
     studentFullName: string;
 
-    studentBirthDate: string;
+    studentBirthDate: string; 
+    studentPhone: string;
+    studentEmail: string;
+
+    studentPhoto: string;
+
+    // Parent/Emergency Contact fields
+    guardianName: string;
+    guardianPhone: string;
+    guardianEmail: string;
     
-    studentContactName: string;
-    
-    studentContactPhone: string;
+    emergencyName: string;
+    emergencyPhone: string;
+    emergencyEmail: string;
 
     // Student registration fields
-    program: string;
-    
     gradeLevel: string;
-    
     graduationDate: string;
+    program: string;
 
     @IsNotEmpty()
     // School ID fields
-    schoolName: string;
-    
-    schoolContact: string;
-    
+    schoolName: string;    
     schoolPhone: string;
 
     // Barcode fields
@@ -41,4 +40,8 @@ export class StudentIdDto {
     barcode: string;
     
     qrCode: string;
+
+    // Credential fields
+    @IsNotEmpty()
+    expiration: string;
 }
