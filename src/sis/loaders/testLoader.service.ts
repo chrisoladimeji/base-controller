@@ -1,9 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { SisLoaderService } from "./sisLoader.service";
-import * as fs from "fs";
-import * as pdf from "pdf-parse";
 import { StudentIdDto } from "../../dtos/studentId.dto";
-import { TranscriptDto } from "../../dtos/transcript.dto";
+import { HighSchoolTermDto, HighSchoolTranscriptDto, TranscriptDto } from "../../dtos/transcript.dto";
 import * as sharp from 'sharp'
 
 
@@ -11,24 +9,91 @@ import * as sharp from 'sharp'
 export class TestLoaderService extends SisLoaderService {
 
     exampleStudent = {
-        studentName: "Michael Jordan",
         studentNumber: "0023",
-        schoolName: "DigiCred High School",
-
-        birthDate: "01/01/2000",
-        phone: "(555)-555-5555",
-        email: "mj@digicred.com",
+        studentFullName: "Michael Jordan",
+        studentBirthDate: "01/01/2000",
+        studentPhone: "(555)-555-5555",
+        studentEmail: "mj@digicred.com",
+        studentAddress: "1111 Basketball Ave, Wilminton, NC",
+        studentSsn: "111-11-1111",
 
         guardianName: "Michael Jordan Sr",
         guardianPhone: "(555)-555-5555",
         guardianEmail: "mjs@digicred.com",
 
-        program: "Geography",
         gradeLevel: "12",
-        graduationDate: "5/2025",
+        graduationDate: "2025",
+        program: "Geography",
 
-        schoolContact: "Jordan Michael",
+        schoolName: "DigiCred High School",
+        schoolAddress: "14328 NC Hwy 210, Rocky Point, NC 28457",
         schoolPhone: "(555)-555-5555",
+        schoolFax: "(555)-555-5555",
+
+        schoolDistrict: "Secure County Public Schools",
+        schoolAccreditation: "SA",
+        schoolCeebCode: "555555",
+        schoolPrincipal: "John Meyers",
+
+        transcriptDate: "04/12/2025",
+        transcriptComments: "Not a real transcript, all grades are simulated",
+        
+        gpa: 4.1,
+        gpaUnweighted: 3.8,
+        classRank: "18 of 200",
+
+        attemptedCredits: 28.0,
+        earnedCredits: 28.0,
+        requiredCredits: 22.0,
+        remainingCredits: 0.0,
+
+        terms: [
+            {
+                studentGradeLevel: "8",
+                termYear: "2020-2021",
+                termSchoolName: "DigiCred Middle School",
+                termCredit: 1.0,
+                cumulativeGpa: 0.0,
+                cumulativeUnweightedGpa: 0.0,
+                courses: [
+                    {
+                        courseCode: "0001Y0",
+                        courseTitle: "Pre-Algebra",
+                        grade: "90",
+                        courseWeight: 0.0,
+                        creditEarned: 1,
+                        UncRequirement: true
+                    }
+                ]
+            },
+            {
+                studentGradeLevel: "9",
+                termYear: "2021-2022",
+                termSchoolName: "DigiCred High School",
+                termCredit: 2.0,
+                cumulativeGpa: 4.0,
+                cumulativeUnweightedGpa: 0.0,
+                courses: [
+                    {
+                        courseCode: "0001X0",
+                        courseTitle: "Algebra",
+                        grade: "99",
+                        courseWeight: 1.0,
+                        creditEarned: 1,
+                        UncRequirement: true
+                    },
+                    {
+                        courseCode: "0002X0",
+                        courseTitle: "English I",
+                        grade: "90",
+                        courseWeight: 1.0,
+                        creditEarned: 1,
+                        UncRequirement: true
+                    }
+                ]
+            },
+        ]
+
     }
 
     photoURL = "test/sis/sample-id-photo.png";
@@ -41,14 +106,15 @@ export class TestLoaderService extends SisLoaderService {
 
     async getStudentId(studentNumber: string): Promise<StudentIdDto> {
         if (studentNumber === this.exampleStudent["studentNumber"]) {
-            let studentId = new StudentIdDto;
+            let studentId = new StudentIdDto();
+
             studentId.studentNumber = this.exampleStudent["studentNumber"];
-            studentId.studentFullName = this.exampleStudent["studentName"];
+            studentId.studentFullName = this.exampleStudent["studentFullName"];
             studentId.schoolName = this.exampleStudent["schoolName"];            
 
-            studentId.studentBirthDate = this.exampleStudent["birthDate"];
-            studentId.studentPhone = this.exampleStudent["phone"];
-            studentId.studentEmail = this.exampleStudent["email"];
+            studentId.studentBirthDate = this.exampleStudent["studentBirthDate"];
+            studentId.studentPhone = this.exampleStudent["studentPhone"];
+            studentId.studentEmail = this.exampleStudent["studentEmail"];
             studentId.guardianName = this.exampleStudent["guardianName"];
             studentId.guardianPhone = this.exampleStudent["guardianPhone"];
             studentId.guardianEmail = this.exampleStudent["guardianEmail"];
@@ -56,11 +122,10 @@ export class TestLoaderService extends SisLoaderService {
             studentId.gradeLevel = this.exampleStudent["gradeLevel"];
             studentId.graduationDate = this.exampleStudent["graduationDate"];
 
-            studentId.schoolContact = this.exampleStudent["schoolContact"];
             studentId.schoolPhone = this.exampleStudent["schoolPhone"];
 
             try{ 
-                let photoBuffer = await sharp(this.photoURL).jpeg({quality: 5, force: true}).toBuffer();
+                let photoBuffer = await sharp(this.photoURL).jpeg({quality: 3, force: true}).toBuffer();
                 studentId.studentPhoto = photoBuffer.toString("base64");
                 console.log(`StudentID photo successfully loaded`);
             }
@@ -75,16 +140,34 @@ export class TestLoaderService extends SisLoaderService {
 
     async getStudentTranscript(studentNumber: string): Promise<TranscriptDto> {
         if (studentNumber === this.exampleStudent["studentNumber"]) {
-            let transcript = new TranscriptDto();
-            transcript.studentFullName = "Michael Jordan";
+            let transcript = new HighSchoolTranscriptDto();
+
+            transcript.transcriptDate = this.exampleStudent["transcriptDate"];
+            transcript.transcriptComments = this.exampleStudent["transcriptComments"];
+
+            transcript.studentNumber = this.exampleStudent["studentNumber"];
+            transcript.studentFullName = this.exampleStudent["studentFullName"];
+            transcript.studentBirthDate = this.exampleStudent["studentBirthDate"];
+            transcript.studentPhone = this.exampleStudent["studentPhone"];
+            transcript.studentEmail  = this.exampleStudent["studentEmail"];
+            transcript.studentAddress = this.exampleStudent["studentAddress"];
+            transcript.studentSsn = this.exampleStudent["studentSsn"];
+
+            transcript.gradeLevel = this.exampleStudent["gradeLevel"];
+            transcript.graduationDate = this.exampleStudent["graduationDate"];
+            transcript.program = this.exampleStudent["program"];
+
+            transcript.schoolName = this.exampleStudent["schoolName"];
+            transcript.schoolAddress = this.exampleStudent["schoolAddress"];
+            transcript.schoolFax = this.exampleStudent["schoolFax"];
             
+            transcript.gpa = this.exampleStudent["gpa"];
 
-            let originalFile = fs.readFileSync('test/sis/CFCC_Sampletranscript.pdf');
-            const pdfData = await pdf(originalFile);
+            for (const term of this.exampleStudent["terms"]) {
+                let term = new HighSchoolTermDto();
 
-            console.log(pdfData.text);
 
-            transcript.originalTranscript = pdfData.text;
+            }
         }
         return null;
     }

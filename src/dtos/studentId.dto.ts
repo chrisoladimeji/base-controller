@@ -25,18 +25,13 @@ export class StudentIdDto {
     emergencyEmail: string;
 
     // Student registration fields
-    program: string;
-    
     gradeLevel: string;
-    
     graduationDate: string;
+    program: string;
 
     @IsNotEmpty()
     // School ID fields
-    schoolName: string;
-    
-    schoolContact: string;
-    
+    schoolName: string;    
     schoolPhone: string;
 
     // Barcode fields

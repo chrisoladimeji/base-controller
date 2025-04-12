@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { SisLoaderService } from './loaders/sisLoader.service';
 import { ConfigService } from '@nestjs/config';
-import { HighSchoolTranscriptDto } from '../dtos/transcript.dto';
+import { HighSchoolTranscriptDto, TranscriptDto } from '../dtos/transcript.dto';
 import { StudentIdDto } from '../dtos/studentId.dto';
 import { validate } from 'class-validator';
 
@@ -16,12 +16,12 @@ export class SisService {
 
   async load() {
     console.log("Loading SIS data")
-    this.loaderService.load();
+    await this.loaderService.load();
     console.log("Loading SIS data finished");
   }
 
   async getStudentId(studentNumber: string): Promise<StudentIdDto> {
-    console.log(`Getting student id: ${studentNumber}`);
+    console.log(`Getting StudentId for student: ${studentNumber}`);
     let studentId = await this.loaderService.getStudentId(studentNumber);
 
     if (!studentId) {
@@ -41,8 +41,23 @@ export class SisService {
     return studentId;
   }
 
-  async getStudentTranscript(studentNumber: string): Promise<HighSchoolTranscriptDto> {
+  async getStudentTranscript(studentNumber: string): Promise<TranscriptDto> {
+    console.log(`Getting transcript for student: ${studentNumber}`);
+    let transcript = await this.loaderService.getStudentTranscript(studentNumber);
 
-    return null;
+    if (!transcript) {
+      console.log(`Transcript was not found: ${studentNumber}`);
+      return null;
+    }
+
+    try {
+      validate(transcript);
+    }
+    catch (error) {
+      console.log(`Transcript did not have required fields: ${error}`);
+      return null;
+    }
+
+    return transcript;
   }
 }

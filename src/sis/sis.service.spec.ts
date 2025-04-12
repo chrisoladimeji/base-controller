@@ -52,7 +52,7 @@ describe('SisController', () => {
 
         const expectedDto = new StudentIdDto();
         expectedDto.studentNumber = testStudentValues.studentNumber;
-        expectedDto.studentFullName = testStudentValues.studentName;
+        expectedDto.studentFullName = testStudentValues.studentFullName;
         expectedDto.schoolName = testStudentValues.schoolName;
         expectedDto.expiration = env.STUDENTID_EXPIRATION;
 
