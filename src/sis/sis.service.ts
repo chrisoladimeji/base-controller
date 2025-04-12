@@ -58,6 +58,9 @@ export class SisService {
       return null;
     }
 
+    // Convert terms into a json string for flat structure
+    transcript.terms = JSON.stringify(transcript.terms);
+
     return transcript;
   }
 }

@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { SisLoaderService } from "./sisLoader.service";
 import { StudentIdDto } from "../../dtos/studentId.dto";
-import { HighSchoolTermDto, HighSchoolTranscriptDto, TranscriptDto } from "../../dtos/transcript.dto";
+import { HighSchoolTermDto, HighSchoolTranscriptDto, NorthCarolinaCourseDto, TranscriptDto } from "../../dtos/transcript.dto";
 import * as sharp from 'sharp'
 
 
@@ -14,7 +14,7 @@ export class TestLoaderService extends SisLoaderService {
         studentBirthDate: "01/01/2000",
         studentPhone: "(555)-555-5555",
         studentEmail: "mj@digicred.com",
-        studentAddress: "1111 Basketball Ave, Wilminton, NC",
+        studentAddress: "1111 Basketball Ave, Wilmington, NC",
         studentSsn: "111-11-1111",
 
         guardianName: "Michael Jordan Sr",
@@ -49,9 +49,9 @@ export class TestLoaderService extends SisLoaderService {
 
         terms: [
             {
-                studentGradeLevel: "8",
+                termGradeLevel: "8",
                 termYear: "2020-2021",
-                termSchoolName: "DigiCred Middle School",
+                termSchoolName: "Digital Middle School",
                 termCredit: 1.0,
                 cumulativeGpa: 0.0,
                 cumulativeUnweightedGpa: 0.0,
@@ -67,7 +67,7 @@ export class TestLoaderService extends SisLoaderService {
                 ]
             },
             {
-                studentGradeLevel: "9",
+                termGradeLevel: "9",
                 termYear: "2021-2022",
                 termSchoolName: "DigiCred High School",
                 termCredit: 2.0,
@@ -162,12 +162,35 @@ export class TestLoaderService extends SisLoaderService {
             transcript.schoolFax = this.exampleStudent["schoolFax"];
             
             transcript.gpa = this.exampleStudent["gpa"];
+            transcript.gpaUnweighted = this.exampleStudent["gpaUnweighted"];
+            transcript.classRank = this.exampleStudent["classRank"];
 
+            transcript.terms = [];
             for (const term of this.exampleStudent["terms"]) {
-                let term = new HighSchoolTermDto();
+                let termDto = new HighSchoolTermDto();
+                termDto.termGradeLevel = term["termGradeLevel"];
+                termDto.termYear = term["termYear"];
+                termDto.termSchoolName = term["termSchoolName"];
+                termDto.termCredit = term["termCredit"];
+                termDto.cumulativeGpa = term["cumulativeGpa"];
+                termDto.cumulativeUnweightedGpa = term["cumulativeUnweightedGpa"];
 
+                termDto.courses = [];
+                for (const course of term.courses) {
+                    let courseDto = new NorthCarolinaCourseDto();
+                    courseDto.courseCode = course["courseCode"];
+                    courseDto.courseTitle = course["courseTitle"];
+                    courseDto.grade = course["grade"];
+                    courseDto.creditEarned = course["creditEarned"];
+                    courseDto.courseWeight = course["courseWeight"];
+                    courseDto.UncRequirement = course["UncRequirement"];
 
+                    termDto.courses.push(courseDto);
+                }
+
+                transcript.terms.push(termDto);
             }
+            return transcript;
         }
         return null;
     }

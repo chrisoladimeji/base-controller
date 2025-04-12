@@ -5,8 +5,8 @@ import { PdfLoaderService } from './pdfLoader.service';
 
 const sisLoaderService = {
     provide: SisLoaderService,
-    // useClass: TestLoaderService
-    useClass: PdfLoaderService //TODO Get service from env  
+    useClass: TestLoaderService
+    // useClass: PdfLoaderService //TODO Get service from env  
 };
 
 @Module({

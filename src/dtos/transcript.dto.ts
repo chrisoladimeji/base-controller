@@ -31,14 +31,14 @@ export class TranscriptDto {
     gpa: number; // Weighted GPA for High Schools
 
     // Term Information
-    terms: TermDto[];
+    terms: TermDto[] | string;
 }
 
 export class HighSchoolTranscriptDto extends TranscriptDto {
 
     // Grade and Credit Information
     gpaUnweighted: number;
-    studentClassRank: string;
+    classRank: string;
 
     attemptedCredits: number;
     earnedCredits: number;
@@ -58,7 +58,7 @@ export class CollegeTranscriptDto extends TranscriptDto {
 
 export class TermDto {
     // Term Information
-    studentGradeLevel: string;
+    termGradeLevel: string;
     termYear: string;
     termSchoolName: string;
 
