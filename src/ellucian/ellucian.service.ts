@@ -31,7 +31,7 @@ export class EllucianService extends SisLoaderService {
   // Ellucian had not specified a load procedure
   async load(): Promise<void> {}
 
-  
+
   async getAccessToken(): Promise<void> {
     const tokenKey = 'accessToken';
     const expiryKey = 'tokenExpiry';
@@ -169,7 +169,7 @@ export class EllucianService extends SisLoaderService {
 
     studentId.studentFullName = person[0].names[0]?.fullName ?? null;
     studentId.studentNumber = person[0].studentsId?.studentsId ?? null;
-    studentId.studentContactEmail = person[0].emails.find(e => e.preference === "primary")?.address ?? null;
+    studentId.studentEmail = person[0].emails.find(e => e.preference === "primary")?.address ?? null;
     return studentId;
   }
 

@@ -1,6 +1,4 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import { Student } from './students/student.entity';
-import { StudentsService } from './students/students.service';
+import { Injectable } from '@nestjs/common';
 import { SisLoaderService } from './loaders/sisLoader.service';
 import { ConfigService } from '@nestjs/config';
 import { HighSchoolTranscriptDto } from '../dtos/transcript.dto';
@@ -17,22 +15,19 @@ export class SisService {
   ) {};
 
   async load() {
+    console.log("Loading SIS data")
     this.loaderService.load();
+    console.log("Loading SIS data finished");
   }
 
   async getStudentId(studentNumber: string): Promise<StudentIdDto> {
     console.log(`Getting student id: ${studentNumber}`);
-
-    console.log(typeof( this.loaderService ));
-
     let studentId = await this.loaderService.getStudentId(studentNumber);
 
     if (!studentId) {
         console.log(`StudentNumber was not found: ${studentNumber}`);
         return null;
     }
-
-    studentId.schoolName = this.configService.get('SCHOOL');
     studentId.expiration = this.configService.get('STUDENTID_EXPIRATION');
 
     try {
@@ -42,7 +37,7 @@ export class SisService {
       console.log(`StudentId did not have required fields: ${error}`);
       return null;
     }
-
+    console.log(`StudentID successfully generated for ${studentNumber}`);
     return studentId;
   }
 

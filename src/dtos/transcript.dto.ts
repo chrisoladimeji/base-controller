@@ -1,50 +1,49 @@
 
 
 export class TranscriptDto {
+        // Raw transcript data, may be a PDF, XML, etc.
+        originalTranscript: string;
 
+        transcriptDate: string;
+    
+        // Student Information
+        studentId: string;
+        studentFullName: string;
+        studentBirthDate: string;
+        studentAddress: string;
+        studentPhone: string;
+        studentSsn: string;
+        emergencyContactName: string;
+        emergencyContactPhone: string;
+        studentGraduationDate: string;
+        studentProgram: string;
+    
+        // Grade and Credit Information
+        gpa: number;
+        weightedGpa: number;
+        studentClassRank: string;
+        totalPoints: number;
+        weightedTotalPoints: number;
+        totalCredits: number;
+        potentialCredits: number;
+    
+        // School Information
+        schoolName: string;
+        schoolAddress: string;
+        schoolContactName: string;
+        schoolContactPhone: string;
+        schoolDistrict: string;
+        schoolId: string;
+        schoolGradeLevels: string;
+    
+        // Term Information
+        terms: TermDto[];
+    
+        other: any;
 }
 
 export class HighSchoolTranscriptDto extends TranscriptDto {
     
-    // Raw transcript data, may be a PDF, XML, etc.
-    originalTranscript: string;
-
-    transcriptDate: string;
-
-    // Student Information
-    studentId: string;
-    studentFullName: string;
-    studentBirthDate: string;
-    studentAddress: string;
-    studentPhone: string;
-    studentSsn: string;
-    emergencyContactName: string;
-    emergencyContactPhone: string;
-    studentGraduationDate: string;
-    studentProgram: string;
-
-    // Grade and Credit Information
-    gpa: number;
-    weightedGpa: number;
-    studentClassRank: string;
-    totalPoints: number;
-    weightedTotalPoints: number;
-    totalCredits: number;
-    potentialCredits: number;
-
-    // School Information
-    schoolName: string;
-    schoolAddress: string;
-    schoolContactName: string;
-    schoolContactPhone: string;
-    schoolDistrict: string;
-    schoolId: string;
-    schoolGradeLevels: string;
-
-    // Term Information
-    terms: TermDto[];
-
-    other: any;
 }
 
 export class CollegeTranscriptDto extends TranscriptDto {
