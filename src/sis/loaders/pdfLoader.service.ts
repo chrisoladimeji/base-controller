@@ -3,7 +3,7 @@
 import { Injectable } from "@nestjs/common";
 import { SisLoaderService } from "./sisLoader.service";
 import { StudentIdDto } from "../../dtos/studentId.dto";
-import { HighSchoolTranscriptDto, TranscriptDto } from "../../dtos/transcript.dto";
+import { HighSchoolCourseDto, HighSchoolTermDto, HighSchoolTranscriptDto, TranscriptDto } from "../../dtos/transcript.dto";
 import { ConfigService } from "@nestjs/config";
 import * as Zip from 'adm-zip';
 import * as Pdf from 'pdf-parse'
@@ -92,10 +92,130 @@ export class PdfLoaderService extends SisLoaderService {
         transcript.gpa = parseFloat(pdfText.filter(str => str.startsWith("Cumulative GPA"))[0].match(/\d\.\d+/)[0]);
         // transcript.earnedCredits
         transcript.gpaUnweighted = parseFloat(pdfText.filter(str => str.startsWith("Cumulative GPA"))[1].match(/\d\.\d+/)[0]);
+        transcript.classRank = pdfText.filter(str => str.startsWith("Class Rank"))[0]?.substring(10);
+        // transcript.attemptedCredits
+        // transcript.requiredCredits
+        // transcript.remainingCredits
 
-        console.log(studentId);
-        console.log(transcript);
+        transcript.schoolDistrict = this.stringAfterColon(pdfText, "District Name");
+        transcript.schoolAccreditation = this.stringAfterColon(pdfText, "Accreditation")
+        transcript.schoolCeebCode = this.stringAfterColon(pdfText, "School CEEB Code");
+        transcript.schoolPrincipal = this.stringAfterColon(pdfText, "Principal");
+
+        const termBlocks: string[][] = this.splitByTerms(pdfText);
+        transcript.terms = termBlocks.map(this.parseTerm.bind(this));
+
+        // console.log(studentId);
+        // console.log(transcript);
+
 
         return [studentId, transcript];
-    }    
+    }
+
+    splitByTerms(pdfText: string[]): string[][] {
+        let termBlocks: string[][] = [];
+        let currentBlock = -1;
+        let isAfterCredit = false;
+        for (const str of pdfText) {
+            if (str.match(/\d{4}-\d{4}/) !== null) {
+                currentBlock += 1;
+                termBlocks.push([]);
+                isAfterCredit = false;
+            }
+
+            if (currentBlock >= 0 && !isAfterCredit) {
+                termBlocks[currentBlock].push(str);
+            }
+
+            if (str.startsWith("Credit:")) {
+                isAfterCredit = true;
+            }
+        }
+        return termBlocks;
+    }
+
+    parseTerm(termBlock: string[]): HighSchoolTermDto {
+        let term = new HighSchoolTermDto();
+
+        term.termGradeLevel = termBlock.filter(str => str.startsWith("Grade"))[0].match(/\d+/)[0];
+        term.termYear = termBlock[0];
+        term.termSchoolName = termBlock.filter(str => str.startsWith("#"))[0].split(/#\w+\s+/)[1];
+        const creditLine: number[] = termBlock.filter(str => str.startsWith("Credit"))[0].match(/[\d\.]+/g).map(Number);
+        term.termCredit = creditLine[0];
+        term.termGpa = creditLine[1];
+        term.termUnweightedGpa = creditLine[2];
+
+        const courseBlocks: string[][] = this.splitByCourses(termBlock);
+        term.courses = courseBlocks.map(this.parseCourse.bind(this));
+        console.log(term);
+        return term;
+    }
+
+    splitByCourses(termBlock: string[]): string[][] {
+        let courseBlocks: string[][] = [];
+        let currentBlock = -1;
+        let isAfterCredit = false;
+        for (const str of termBlock) {
+            if (str.match(/\d+[A-Z]+\w+/)) { // If a course code is in the string
+                currentBlock++;
+                courseBlocks.push([]);
+                isAfterCredit = false;
+            }
+
+            if (str.startsWith("Credit")) { // If we get to the credit/gpa line, we're too far
+                isAfterCredit = true;
+            }
+
+            if (currentBlock >= 0 && !isAfterCredit) {
+                courseBlocks[currentBlock].push(str);
+            }
+
+            
+        }
+        return courseBlocks;
+    }
+
+    parseCourse(courseBlock: string[]): HighSchoolCourseDto {
+        let course = new HighSchoolCourseDto();
+        course.courseCode = courseBlock[0].split(/\s+/)[0];
+
+        const indexUncRec: number = courseBlock.indexOf("UNC Minimum Requirement")
+
+        const firstTitleLine = courseBlock[0].match(/\s+(.*)/)[1]
+        let followingTitleLines = "";
+        for (let i = 1; i < courseBlock.length; i++) {
+            // If the line is a UNC requirement or only numbers (grades), we're done
+            if (i === indexUncRec || !/[a-zA-Z]+/.test(courseBlock[i])) {
+                break;
+            }
+            followingTitleLines += " " + courseBlock[i];
+            
+        } 
+        course.courseTitle = firstTitleLine + followingTitleLines;
+        course.flags = indexUncRec !== -1 ? ["UNC Minimum Requirement"] : [];
+
+        const creditLine = courseBlock[courseBlock.length - 1].split(/\s+/);
+        if (creditLine.length === 3) {
+            course.grade = creditLine[0];
+            course.creditEarned = parseFloat(creditLine[2]);
+            course.courseWeight = parseFloat(creditLine[1]);
+        }
+        else if (creditLine.length == 2) {
+            course.grade = courseBlock[courseBlock.length - 2];
+            course.creditEarned = parseFloat(creditLine[1]);
+            course.courseWeight = parseFloat(creditLine[0]);
+        }
+
+        return course;
+    }
+
+    stringAfterColon(pdfText: string[], fieldName: string): string {
+        const fullSnippet: string = pdfText.filter(str => str.startsWith(fieldName))[0]
+        if (!fullSnippet) {
+            return null;
+        }
+        const selection = fullSnippet.split(/:\s*/)[1]?.trim();
+        
+        return selection ? selection : null;
+    }
 }

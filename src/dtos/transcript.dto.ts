@@ -68,8 +68,8 @@ export class TermDto {
 
 export class HighSchoolTermDto extends TermDto {
     termCredit: number;
-    cumulativeGpa: number;
-    cumulativeUnweightedGpa: number;
+    termGpa: number;
+    termUnweightedGpa: number;
 }
 
 export class CollegeTermDto extends TermDto {

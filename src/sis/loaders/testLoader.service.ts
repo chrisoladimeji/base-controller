@@ -172,8 +172,8 @@ export class TestLoaderService extends SisLoaderService {
                 termDto.termYear = term["termYear"];
                 termDto.termSchoolName = term["termSchoolName"];
                 termDto.termCredit = term["termCredit"];
-                termDto.cumulativeGpa = term["cumulativeGpa"];
-                termDto.cumulativeUnweightedGpa = term["cumulativeUnweightedGpa"];
+                termDto.termGpa = term["cumulativeGpa"];
+                termDto.termUnweightedGpa = term["cumulativeUnweightedGpa"];
 
                 termDto.courses = [];
                 for (const course of term.courses) {
