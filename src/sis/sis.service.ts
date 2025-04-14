@@ -1,56 +1,66 @@
-import { Injectable, OnModuleInit } from '@nestjs/common';
-import { Student } from './students/student.entity';
-import { StudentsService } from './students/students.service';
+import { Injectable } from '@nestjs/common';
 import { SisLoaderService } from './loaders/sisLoader.service';
 import { ConfigService } from '@nestjs/config';
+import { HighSchoolTranscriptDto, TranscriptDto } from '../dtos/transcript.dto';
+import { StudentIdDto } from '../dtos/studentId.dto';
+import { validate } from 'class-validator';
+
 
 @Injectable()
-export class SisService implements OnModuleInit {
- 
+export class SisService {
+
   constructor(
-    private studentsService: StudentsService,
     private loaderService: SisLoaderService,
     private configService: ConfigService
   ) {};
 
-
-  async onModuleInit() {
-    this.loaderService.load();
+  async load() {
+    console.log("Loading SIS data")
+    await this.loaderService.load();
+    console.log("Loading SIS data finished");
   }
 
-  async getStudentId(studentNumber: string) {
-    console.log(`Getting student id: ${studentNumber}`);
-    let student: Student = await this.studentsService.getStudent(studentNumber);
-    if (student) console.log(`Student found: ${student.fullName}`);
-    else console.log('Student not found');
+  async getStudentId(studentNumber: string): Promise<StudentIdDto> {
+    console.log(`Getting StudentId for student: ${studentNumber}`);
+    let studentId = await this.loaderService.getStudentId(studentNumber);
 
+    if (!studentId) {
+        console.log(`StudentNumber was not found: ${studentNumber}`);
+        return null;
+    }
+    studentId.expiration = this.configService.get('STUDENTID_EXPIRATION');
 
-    let studentId = {
-      // Student ID fields
-      studentNumber: student.id,
-      studentFullName: student.fullName,
-      studentBirthDate: student.birthDate ? student.birthDate.toString(): null,
-  
-      studentContactName: student.contactName,
-      studentContactPhone: student.contactPhone,
-  
-      // Student registration fields
-      program: student.program,
-      gradeLevel: null,
-      graduationDate: student.graduationDate,
-  
-      // School ID fields
-      schoolName: this.configService.get('SCHOOL'),
-      schoolContact: null,
-      schoolPhone: null,
-
-      // Dave's additional fields
-      expiration: null,
-      barcodeType: null,
-      barcode: null,
-      qrCode: null,
-    };
-
+    try {
+      validate(studentId);
+    }
+    catch (error) {
+      console.log(`StudentId did not have required fields: ${error}`);
+      return null;
+    }
+    console.log(`StudentID successfully generated for ${studentNumber}`);
     return studentId;
+  }
+
+  async getStudentTranscript(studentNumber: string): Promise<TranscriptDto> {
+    console.log(`Getting transcript for student: ${studentNumber}`);
+    let transcript = await this.loaderService.getStudentTranscript(studentNumber);
+
+    if (!transcript) {
+      console.log(`Transcript was not found: ${studentNumber}`);
+      return null;
+    }
+
+    try {
+      validate(transcript);
+    }
+    catch (error) {
+      console.log(`Transcript did not have required fields: ${error}`);
+      return null;
+    }
+
+    // Convert terms into a json string for flat structure
+    transcript.terms = JSON.stringify(transcript.terms);
+
+    return transcript;
   }
 }

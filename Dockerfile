@@ -1,5 +1,5 @@
 # Use official Node.js image
-FROM node:lts
+FROM node:lts-slim
 
 # Set the working directory
 WORKDIR /usr/src/app
@@ -8,7 +8,7 @@ WORKDIR /usr/src/app
 COPY package*.json ./
 
 # Install dependencies
-RUN npm install
+RUN yarn install
 
 # Copy the rest of the application
 COPY . .
@@ -17,4 +17,4 @@ COPY . .
 EXPOSE 3000
 
 # Start the NestJS app
-CMD ["npm", "run", "start"]
+CMD ["yarn", "run", "start"]
