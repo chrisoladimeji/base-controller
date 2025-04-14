@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { SisLoaderService } from "./sisLoader.service";
 import { StudentIdDto } from "../../dtos/studentId.dto";
-import { HighSchoolTermDto, HighSchoolTranscriptDto, NorthCarolinaCourseDto, TranscriptDto } from "../../dtos/transcript.dto";
+import { HighSchoolTermDto, HighSchoolTranscriptDto, HighSchoolCourseDto, TranscriptDto } from "../../dtos/transcript.dto";
 import * as sharp from 'sharp'
 
 
@@ -177,13 +177,13 @@ export class TestLoaderService extends SisLoaderService {
 
                 termDto.courses = [];
                 for (const course of term.courses) {
-                    let courseDto = new NorthCarolinaCourseDto();
+                    let courseDto = new HighSchoolCourseDto();
                     courseDto.courseCode = course["courseCode"];
                     courseDto.courseTitle = course["courseTitle"];
                     courseDto.grade = course["grade"];
                     courseDto.creditEarned = course["creditEarned"];
                     courseDto.courseWeight = course["courseWeight"];
-                    courseDto.UncRequirement = course["UncRequirement"];
+                    if (course["UncRequirement"]) courseDto.flags.push("UNC Minimum Requirement");
 
                     termDto.courses.push(courseDto);
                 }

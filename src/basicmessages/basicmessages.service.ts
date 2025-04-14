@@ -2,7 +2,6 @@ import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { parse } from '@veridid/workflow-parser';
 import { AcaPyService } from '../services/acapy.service';
-import { EllucianController } from 'src/ellucian/ellucian.controller';
 import { SisService } from 'src/sis/sis.service';
 
 @Injectable()
@@ -55,132 +54,10 @@ export class BasicMessagesService {
             if (agentItem.process === 'verification') {
               await this.acapyService.sendProofRequest(connectionId, agentItem.data);
             } else if (agentItem.process === 'issuance') {
-              if (agentItem.data.cred_def_id === this.configService.get<string>('NEW_ORIENTATION_CRED_DEF_ID')) {
-                //get metadata of the connection
-                const result = await this.acapyService.getMetadataByConnectionId(connectionId);
-                // get data for send offer
-                const credentialOfferBody = {
-                  "auto_issue": true,
-                  "connection_id": connectionId,
-                  "cred_def_id": agentItem.data.cred_def_id,
-                  "credential_preview": {
-                    "@type": "issue-credential/1.0/credential-preview",
-                    "attributes": [
-                      {
-                        "name": "Title",
-                        "value": agentItem.data.title
-                      },
-                      {
-                        "name": "Student ID No",
-                        "value": result.student_id
-                      },
-                      {
-                        "name": "Last Name",
-                        "value": result.last_name
-                      },
-                      {
-                        "name": "First Name",
-                        "value": result.first_name
-                      },
-                      {
-                        "name": "Session",
-                        "value": agentItem.data.session
-                      }
-                    ]
-                  }
-                }
-                this.acapyService.sendCredOffer(credentialOfferBody);
-              }
+              this.issueStudentId(agentItem, connectionId);
             } else if (agentItem.process === 'connection') {
               if (agentItem.data?.actionRequested === 'getTranscript') {
-                //get metadata by connection id 
-                const metadata = await this.acapyService.getMetadataByConnectionId(connectionId);
-                if (metadata.student_id) {
-                  //send basic message while waiting
-                  await this.acapyService.sendMessage(connectionId, JSON.stringify(response));
-                  //get student transcript info from Ellucian
-                  let studentId;
-                  try {
-                    studentId = await this.sisService.getStudentId(metadata.student_id);
-                  } catch (error: any) {
-                    console.log("Error retrieving from SIS", error);
-                    //invoke workflow parse
-                    const action = { workflowID: 'RequestTranscript', actionID: 'metadataNotFound', data: {} };
-                    await this.invokeWorkflowParser(connectionId, action);
-                    return;
-                  }
-                  if (!studentId?.courseTranscript || studentId?.courseTranscript.length < 1) {
-                    console.log("Unable to retrieve any transcript data ");
-                    const action = { workflowID: 'RequestTranscript', actionID: 'metadataNotFound', data: {} };
-                    await this.invokeWorkflowParser(connectionId, action);
-                    return;
-                  }
-                  // send transcript offer to student
-                  const courseTranscripts = JSON.stringify(studentId?.courseTranscript);
-                  const credentialOfferBody = {
-                    "auto_issue": true,
-                    "connection_id": connectionId,
-                    "cred_def_id": `${this.configService.get<string>('TRANSCRIPT_CREDENTIAL_DEFINITION_ID')}`,
-                    "credential_preview": {
-                      "@type": "issue-credential/1.0/credential-preview",
-                      "attributes": [
-                        {
-                          "name": "Last",
-                          "value": `${studentId.studentId[0]?.lastName}`
-                        },
-
-                        {
-                          "name": "First",
-                          "value": `${studentId.studentId[0]?.firstName}`
-                        },
-                        {
-                          "name": "Expiration",
-                          "value": `${this.configService.get<string>('STUDENTID_EXPIRATION')}`
-                        },
-                        {
-                          "name": "StudentID",
-                          "value": `${studentId.studentId[0]?.studentID}`
-                        },
-                        {
-                          "name": "Middle",
-                          "value": `${studentId.studentId[0]?.middleName}`
-                        },
-                        {
-                          "name": "Transcript",
-                          "value": `${courseTranscripts}`
-                        },
-                        {
-                          "name": "School",
-                          "value": `${this.configService.get<string>('SCHOOL')}`
-                        },
-                        {
-                          "name": "GPA",
-                          "value": `${studentId.studentCumulativeTranscript[0].cumulativeGradePointAverage}`
-                        },
-
-                      ]
-                    }
-                  }
-                  try {
-                    
-                     this.acapyService.sendCredOffer(credentialOfferBody);
-                  } catch (error: any) {
-                    console.log("Error sending transcripts", error);
-                    const action = { workflowID: 'RequestTranscript', actionID: 'metadataNotFound', data: {} };
-                    await this.invokeWorkflowParser(connectionId, action);
-                    return;
-                  }
-                  //invoke workflow parse
-                  const action = { workflowID: 'RequestTranscript', actionID: 'metadataFound', data: {} };
-                  await this.invokeWorkflowParser(connectionId, action);
-                  return;
-                } else {
-                  console.log("No Student Metadata");
-                  //invoke workflow parse
-                  const action = { workflowID: 'RequestTranscript', actionID: 'metadataNotFound', data: {} };
-                  await this.invokeWorkflowParser(connectionId, action);
-                  return;
-                }
+                this.issueTranscript(response, connectionId)
               }
             }
           }
@@ -232,6 +109,136 @@ export class BasicMessagesService {
       await this.acapyService.sendMessage(connectionId, JSON.stringify(response));
     } else {
       await this.acapyService.sendMessage(connectionId, "Action Menu Feature Not Available For this Connection!");
+    }
+  }
+
+  private async issueStudentId(agentItem, connectionId) {
+    if (agentItem.data.cred_def_id === this.configService.get<string>('NEW_ORIENTATION_CRED_DEF_ID')) {
+      //get metadata of the connection
+      const result = await this.acapyService.getMetadataByConnectionId(connectionId);
+      // get data for send offer
+      const credentialOfferBody = {
+        "auto_issue": true,
+        "connection_id": connectionId,
+        "cred_def_id": agentItem.data.cred_def_id,
+        "credential_preview": {
+          "@type": "issue-credential/1.0/credential-preview",
+          "attributes": [
+            {
+              "name": "Title",
+              "value": agentItem.data.title
+            },
+            {
+              "name": "Student ID No",
+              "value": result.student_id
+            },
+            {
+              "name": "Last Name",
+              "value": result.last_name
+            },
+            {
+              "name": "First Name",
+              "value": result.first_name
+            },
+            {
+              "name": "Session",
+              "value": agentItem.data.session
+            }
+          ]
+        }
+      }
+      this.acapyService.sendCredOffer(credentialOfferBody);
+    }
+  }
+
+  private async issueTranscript(response, connectionId) {
+    //get metadata by connection id 
+    const metadata = await this.acapyService.getMetadataByConnectionId(connectionId);
+    if (metadata.student_id) {
+      //send basic message while waiting
+      await this.acapyService.sendMessage(connectionId, JSON.stringify(response));
+      //get student transcript info from Ellucian
+      let studentId;
+      try {
+        studentId = await this.sisService.getStudentTranscript(metadata.student_id);
+      } catch (error: any) {
+        console.log("Error retrieving from SIS", error);
+        //invoke workflow parse
+        const action = { workflowID: 'RequestTranscript', actionID: 'metadataNotFound', data: {} };
+        await this.invokeWorkflowParser(connectionId, action);
+        return;
+      }
+      if (!studentId?.courseTranscript || studentId?.courseTranscript.length < 1) {
+        console.log("Unable to retrieve any transcript data ");
+        const action = { workflowID: 'RequestTranscript', actionID: 'metadataNotFound', data: {} };
+        await this.invokeWorkflowParser(connectionId, action);
+        return;
+      }
+      // send transcript offer to student
+      const courseTranscripts = JSON.stringify(studentId?.courseTranscript);
+      const credentialOfferBody = {
+        "auto_issue": true,
+        "connection_id": connectionId,
+        "cred_def_id": `${this.configService.get<string>('TRANSCRIPT_CREDENTIAL_DEFINITION_ID')}`,
+        "credential_preview": {
+          "@type": "issue-credential/1.0/credential-preview",
+          "attributes": [
+            {
+              "name": "Last",
+              "value": `${studentId.studentId[0]?.lastName}`
+            },
+
+            {
+              "name": "First",
+              "value": `${studentId.studentId[0]?.firstName}`
+            },
+            {
+              "name": "Expiration",
+              "value": `${this.configService.get<string>('STUDENTID_EXPIRATION')}`
+            },
+            {
+              "name": "StudentID",
+              "value": `${studentId.studentId[0]?.studentID}`
+            },
+            {
+              "name": "Middle",
+              "value": `${studentId.studentId[0]?.middleName}`
+            },
+            {
+              "name": "Transcript",
+              "value": `${courseTranscripts}`
+            },
+            {
+              "name": "School",
+              "value": `${this.configService.get<string>('SCHOOL')}`
+            },
+            {
+              "name": "GPA",
+              "value": `${studentId.studentCumulativeTranscript[0].cumulativeGradePointAverage}`
+            },
+
+          ]
+        }
+      }
+      try {
+        
+        this.acapyService.sendCredOffer(credentialOfferBody);
+      } catch (error: any) {
+        console.log("Error sending transcripts", error);
+        const action = { workflowID: 'RequestTranscript', actionID: 'metadataNotFound', data: {} };
+        await this.invokeWorkflowParser(connectionId, action);
+        return;
+      }
+      //invoke workflow parse
+      const action = { workflowID: 'RequestTranscript', actionID: 'metadataFound', data: {} };
+      await this.invokeWorkflowParser(connectionId, action);
+      return;
+    } else {
+      console.log("No Student Metadata");
+      //invoke workflow parse
+      const action = { workflowID: 'RequestTranscript', actionID: 'metadataNotFound', data: {} };
+      await this.invokeWorkflowParser(connectionId, action);
+      return;
     }
   }
 }

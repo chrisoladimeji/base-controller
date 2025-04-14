@@ -29,6 +29,7 @@ export class TranscriptDto {
 
     // Grade information
     gpa: number; // Weighted GPA for High Schools
+    earnedCredits: number;
 
     // Term Information
     terms: TermDto[] | string;
@@ -41,7 +42,6 @@ export class HighSchoolTranscriptDto extends TranscriptDto {
     classRank: string;
 
     attemptedCredits: number;
-    earnedCredits: number;
     requiredCredits: number;
     remainingCredits: number;
 
@@ -72,7 +72,7 @@ export class HighSchoolTermDto extends TermDto {
     cumulativeUnweightedGpa: number;
 }
 
-export class CollegeTermDto {
+export class CollegeTermDto extends TermDto {
     termSeason: string;
     academicStanding: string;
 }
@@ -84,11 +84,11 @@ export class CourseDto {
     grade: string; // Also displayed as "Mark" on some transcripts
 
     creditEarned: number;
+    flags: string[];
 }
 
-export class NorthCarolinaCourseDto extends CourseDto {
+export class HighSchoolCourseDto extends CourseDto {
     courseWeight: number;
-    UncRequirement: boolean;
 }
 
 export class CollegeCourseDto extends CourseDto {
