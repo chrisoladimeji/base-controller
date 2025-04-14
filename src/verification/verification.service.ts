@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { MetadataService } from '../metadata/metadata.service';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { lastValueFrom, firstValueFrom, map } from 'rxjs';
-import { parse, getWorkflowInstanceByID, updateWorkflowInstanceByID } from '@veridid/workflow-parser';
+//import { WorkflowService } from 'src/workflow/workflow.service';
 
 
 @Injectable()
@@ -13,9 +13,10 @@ export class VerificationService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
     private readonly metadataService: MetadataService,
+    //private readonly workflowService: WorkflowService
   ) { }
 
-  // Helper method to send a message
+/*   // Helper method to send a message
   private async sendMessage(connectionId: string, messageDisplayed: string): Promise<void> {
     const messageUrl = `${this.configService.get<string>('API_BASE_URL')}:8032/connections/${connectionId}/send-message`;
     const requestConfig: AxiosRequestConfig = {
@@ -34,7 +35,7 @@ export class VerificationService {
       console.error('Error sending message:', error);
     }
   }
-
+ */
 
   async verify(connectionData: any): Promise<boolean> {
     const WORKFLOW_ID = 'NewStudentOrientation';
@@ -43,7 +44,7 @@ export class VerificationService {
     console.log("Verfication data from request-sent state", connectionData);
     //Add threadId into workflow instance ID 
     const threadId = connectionData?.thread_id;
-    const response = await getWorkflowInstanceByID(`${connectionId}`, `${WORKFLOW_ID}`)
+/*     const response = await getWorkflowInstanceByID(`${connectionId}`, `${WORKFLOW_ID}`)
     console.log("response from verify section", response);
     const instanceID = response?.instanceID;
     const instance = {
@@ -53,7 +54,7 @@ export class VerificationService {
       currentState: `${CURRENT_STATE}`,
       stateData: { "threadId": `${threadId}` }
     }
-    await updateWorkflowInstanceByID(`${instanceID}`, instance)
+    await updateWorkflowInstanceByID(`${instanceID}`, instance) */
     //------------------------------------------------------------------
 
 
@@ -157,7 +158,7 @@ export class VerificationService {
     const ACTIONID_VERFIED = 'verified';
     const connectionId = data?.connection_id;
     const threadId = data?.thread_id;
-    console.log("verified Data from verified state: ", data)
+/*     console.log("verified Data from verified state: ", data)
     const response = await getWorkflowInstanceByID(`${connectionId}`, `${WORKFLOW_ID}`)
     console.log("response from verified state", response);
 
@@ -174,15 +175,16 @@ export class VerificationService {
         console.error('Error parsing workflow:', error.message);
       }
       // Send workflow response message as it is
-      await this.sendMessage(connectionId, JSON.stringify(resultOfParse));
+      await this.sendMessage(connectionId, JSON.stringify(resultOfParse)); 
     }
+*/
   }
 
   async handleAbandonedState(connectionData: any): Promise<void> {
     const WORKFLOW_ID = 'NewStudentOrientation';
     const connectionId = connectionData?.connection_id;
     const threadId = connectionData?.thread_id;
-    const response = await getWorkflowInstanceByID(`${connectionId}`, `${WORKFLOW_ID}`)
+/*     const response = await getWorkflowInstanceByID(`${connectionId}`, `${WORKFLOW_ID}`)
     console.log("response from abandoned state", response);
 
     if (response && response.stateData?.threadId === `${threadId}`) {
@@ -190,7 +192,7 @@ export class VerificationService {
       const message = this.configService.get<string>('REQUEST_STUDENT_ID_VERIFICATION_MESSAGE')
       await this.sendMessage(connectionId, message);
     }
-  }
+ */  }
 
   private async fetchVerificationRecord(
     presentationExchangeId: string,

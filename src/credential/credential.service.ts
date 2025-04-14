@@ -1,9 +1,8 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { parse, getWorkflowInstances, updateWorkflowInstanceByID, getWorkflowInstanceByID } from '@veridid/workflow-parser';
 import { MetadataService } from '../metadata/metadata.service';
 import { AcaPyService } from '../services/acapy.service';
 import { EventsGateway } from '../events/events.gateway';
-
+import { WorkflowService } from 'src/workflow/workflow.service';
 
 interface CredentialData {
   credential_exchange_id: string;
@@ -22,17 +21,18 @@ export class CredentialService {
     private readonly metadataService: MetadataService,
     private readonly acapyService: AcaPyService,
     private readonly eventsGateway: EventsGateway,
+    private readonly workflowService: WorkflowService
   ) { }
 
   async handleCredential(credentialData: CredentialData): Promise<void> {
     const { credential_exchange_id, connection_id, state } = credentialData;
 
-    if (state === 'offer_sent') {
+/*     if (state === 'offer_sent') {
       this.logger.log('Credential Offer sent...');
       this.emitEvent(credentialData);
       await this.handleStateOfferSentWorkflow(credentialData);
     }
-
+ */
     if (state === 'credential_acked') {
       this.logger.log('Credential Accepted ...');
       this.logger.log('Fetching detailed record using credential_exchange_id:', credential_exchange_id);
@@ -86,11 +86,12 @@ export class CredentialService {
   //   }
   // }
 
-  private async handleStateOfferSentWorkflow(credentialData: CredentialData): Promise<boolean> {
+/*   private async handleStateOfferSentWorkflow(credentialData: CredentialData): Promise<boolean> {
     const WORKFLOW_ID = 'NewStudentOrientation';
     const connectionId = credentialData.connection_id;
     const threadId = credentialData.thread_id;
 
+    let instance = await this.workflowService.getInstanceByID(connectionId, )
     try {
       const response = await getWorkflowInstanceByID(connectionId, WORKFLOW_ID);
       const instanceID = response?.instanceID;
@@ -108,45 +109,21 @@ export class CredentialService {
       this.logger.error('Error handling state offer sent:', error.message);
       return false;
     }
-  }
+  } */
 
   private async handleStateCredAckWorkflow(credentialData: CredentialData): Promise<void> {
     const connectionId = credentialData.connection_id;
     const threadId = credentialData.thread_id;
-    const existAnyInstances = await getWorkflowInstanceByID(connectionId);
-    if (existAnyInstances.length === 0) {
-      const action = { workflowID: 'root-menu', actionID: '', data: {} };
-      let response: any;
-    
-      try {
-        response = await parse(connectionId, action);
-      } catch (error) {
-        console.error('Error parsing workflow:', error.message);
-        return;
-      }
-    
-      if (response.displayData) {
-        await this.acapyService.sendMessage(connectionId, JSON.stringify(response));
-      } else {
-        await this.acapyService.sendMessage(connectionId, "Action Menu Feature Not Available For this Connection!");
-      }
-    }
+    const instance = await this.workflowService.getInstanceByData(connectionId, {threadID: threadId});
+    if(instance?.client_id===connectionId) {
+      const action = {
+        workflowID: instance.workflow_id,
+        actionID: "credential-issued",
+        data: {}
+      };           
+      const displayData = await this.workflowService.parser.parse(connectionId, action);
+      await this.workflowService.sendWorkflow(connectionId, displayData);
 
-    const WORKFLOW_ID = 'NewStudentOrientation';
-    const ACTION_ID_ISSUED = 'accepted';
-    try {
-      const response = await getWorkflowInstanceByID(connectionId, WORKFLOW_ID);
-      if (response && response.stateData?.threadId === threadId) {
-        const action = {
-          workflowID: WORKFLOW_ID,
-          actionID: ACTION_ID_ISSUED,
-          data: {},
-        };
-        const resultOfParse = await parse(connectionId, action);
-        await this.acapyService.sendMessage(connectionId, JSON.stringify(resultOfParse));
-      }
-    } catch (error) {
-      this.logger.error('Error handling state credential acknowledged:', error.message);
     }
   }
 

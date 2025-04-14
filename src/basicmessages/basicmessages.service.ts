@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { parse } from '@veridid/workflow-parser';
 import { AcaPyService } from '../services/acapy.service';
 import { EllucianController } from 'src/ellucian/ellucian.controller';
 import { SisService } from 'src/sis/sis.service';
+import { WorkflowService } from '../workflow/workflow.service';
 
 @Injectable()
 export class BasicMessagesService {
@@ -11,7 +11,8 @@ export class BasicMessagesService {
   constructor(
     private readonly configService: ConfigService,
     private readonly acapyService: AcaPyService,
-    private readonly sisService: SisService
+    private readonly sisService: SisService,
+    private readonly workflowService: WorkflowService
   ) { }
 
   // Method to validate JSON format
@@ -41,12 +42,15 @@ export class BasicMessagesService {
       };
 
       try {
-        response = await parse(connectionId, action);
+        let displayData = await this.workflowService.parser.parse(connectionId, action);
+        console.log("About to send=", displayData);
+        this.workflowService.sendWorkflow(connectionId, displayData);
       } catch (error) {
         console.error('Error parsing workflow:', error.message);
         return;
       }
-
+    }
+/* 
       if (response.displayData) {
         const hasAgentType = response.displayData.some((item: any) => item.type === 'agent');
         if (hasAgentType) {
@@ -199,27 +203,15 @@ export class BasicMessagesService {
         await this.acapyService.sendMessage(connectionId, "Action Menu Feature Not Available For this Connection!");
       }
     }
-
+ */
     // Handle home menu (root menu) requests
     if (messageData.content === ':menu') {
-      const action = { workflowID: 'root-menu', actionID: '', data: {} };
-      let response: any;
-
-      try {
-        response = await parse(connectionId, action);
-      } catch (error) {
-        console.error('Error parsing workflow:', error.message);
-        return;
-      }
-      if (response.displayData) {
-        await this.acapyService.sendMessage(connectionId, JSON.stringify(response));
-      } else {
-        await this.acapyService.sendMessage(connectionId, "Action Menu Feature Not Available For this Connection!");
-      }
+      await this.workflowService.forceDefaultWorkflow(connectionId);
     }
-  }
 
-  private async invokeWorkflowParser(connectionId: string, action: object): Promise<void> {
+
+
+/*   private async invokeWorkflowParser(connectionId: string, action: object): Promise<void> {
     let response: any;
 
     try {
@@ -233,5 +225,8 @@ export class BasicMessagesService {
     } else {
       await this.acapyService.sendMessage(connectionId, "Action Menu Feature Not Available For this Connection!");
     }
+  }
+
+*/
   }
 }
