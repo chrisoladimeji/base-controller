@@ -63,20 +63,20 @@ export class PdfLoaderService extends SisLoaderService {
             .map(str => String(str).trim())
             .filter(str => str);
 
-        console.log(pdfText);
+        const termBlocks: string[][] = this.splitByTerms(pdfText);
+        transcript.terms = termBlocks.map(this.parseTerm.bind(this));
 
-        // "Student Number: ########"
-        studentId.studentNumber = pdfText.filter(str => str.startsWith("Student Number:"))[0]?.match(/\d+/)[0];
-        studentId.studentFullName = pdfText[8];
-        studentId.studentBirthDate = pdfText.filter(str => str.startsWith("Birthdate:"))[0].match(/\d+\/\d+\/\d+/)[0];
-        studentId.studentPhone = pdfText.filter(str => str.startsWith("Tel:"))[1]?.split(": ")[1];
-        studentId.gradeLevel = pdfText.filter(str => str.startsWith("Grade:"))[0]?.split(": ")[1];
+        studentId.studentNumber = this.stringAfterField(pdfText, "Student Number");
+        studentId.studentFullName = pdfText[8]; // Assuming this index is correct, no need to change
+        studentId.studentBirthDate = this.stringAfterField(pdfText, "Birthdate").match(/[\d\/]+/)[0];
+        studentId.studentPhone = this.stringAfterField(pdfText, "Tel", 1);
+        studentId.gradeLevel = this.stringAfterField(pdfText, "Grade");
         studentId.graduationDate = pdfText[pdfText.indexOf("Graduation Year:") + 1];
         studentId.schoolName = pdfText[1].substring(0, pdfText[1].indexOf(" Official Transcript"));
-        studentId.schoolPhone = pdfText.filter(str => str.startsWith("Tel:"))[0]?.split(": ")[1];
+        studentId.schoolPhone = this.stringAfterField(pdfText, "Tel",);
 
-        transcript.transcriptDate = pdfText.filter(str => str.startsWith("Generated on"))[0]?.match(/\d+\/\d+\/\d+/)[0];
-        // transcript.transcriptComments
+        transcript.transcriptDate = this.stringAfterField(pdfText, "Generated on");
+        transcript.transcriptComments = pdfText.slice(pdfText.indexOf("Comments"), pdfText.length - 1).join(" ");
         transcript.studentNumber = studentId.studentNumber;
         transcript.studentFullName = studentId.studentFullName;
         transcript.studentBirthDate = studentId.studentBirthDate;
@@ -87,27 +87,21 @@ export class PdfLoaderService extends SisLoaderService {
         transcript.schoolName = studentId.schoolName;
         transcript.schoolPhone = studentId.schoolPhone;
         transcript.schoolAddress = pdfText[7];
-        transcript.schoolFax = pdfText.filter(str => str.startsWith("Fax:"))[0]?.split(": ")[1];
-        transcript.schoolCode = pdfText.filter(str => str.startsWith("School Code:"))[0]?.split(": ")[1];
-        transcript.gpa = parseFloat(pdfText.filter(str => str.startsWith("Cumulative GPA"))[0].match(/\d\.\d+/)[0]);
-        // transcript.earnedCredits
-        transcript.gpaUnweighted = parseFloat(pdfText.filter(str => str.startsWith("Cumulative GPA"))[1].match(/\d\.\d+/)[0]);
-        transcript.classRank = pdfText.filter(str => str.startsWith("Class Rank"))[0]?.substring(10);
-        // transcript.attemptedCredits
-        // transcript.requiredCredits
-        // transcript.remainingCredits
+        transcript.schoolFax = this.stringAfterField(pdfText, "Fax");
+        transcript.schoolCode = this.stringAfterField(pdfText, "School Code");
+        transcript.gpa = parseFloat(this.stringAfterField(pdfText, "Cumulative GPA").match(/[\d\.]+/)[0]);
+        const creditTotals: string[] = pdfText.filter(str => str.startsWith("Total"))[0]?.match(/\d+\.\d{3}/g) || [];
+        transcript.earnedCredits = parseFloat(creditTotals[1]);
+        transcript.gpaUnweighted = parseFloat(this.stringAfterField(pdfText, "Cumulative GPA", 1).match(/[\d\.]+/)[0]);
+        transcript.classRank = this.stringAfterField(pdfText, "Class Rank");
+        transcript.attemptedCredits = parseFloat(creditTotals[0]);
+        transcript.requiredCredits = parseFloat(creditTotals[2]);
+        transcript.remainingCredits = parseFloat(creditTotals[3]);
 
-        transcript.schoolDistrict = this.stringAfterColon(pdfText, "District Name");
-        transcript.schoolAccreditation = this.stringAfterColon(pdfText, "Accreditation")
-        transcript.schoolCeebCode = this.stringAfterColon(pdfText, "School CEEB Code");
-        transcript.schoolPrincipal = this.stringAfterColon(pdfText, "Principal");
-
-        const termBlocks: string[][] = this.splitByTerms(pdfText);
-        transcript.terms = termBlocks.map(this.parseTerm.bind(this));
-
-        // console.log(studentId);
-        // console.log(transcript);
-
+        transcript.schoolDistrict = this.stringAfterField(pdfText, "District Name");
+        transcript.schoolAccreditation = this.stringAfterField(pdfText, "Accreditation");
+        transcript.schoolCeebCode = this.stringAfterField(pdfText, "School CEEB Code");
+        transcript.schoolPrincipal = this.stringAfterField(pdfText, "Principal");
 
         return [studentId, transcript];
     }
@@ -136,18 +130,23 @@ export class PdfLoaderService extends SisLoaderService {
 
     parseTerm(termBlock: string[]): HighSchoolTermDto {
         let term = new HighSchoolTermDto();
+        try {
+            const courseBlocks: string[][] = this.splitByCourses(termBlock);
+            term.courses = courseBlocks.map(this.parseCourse.bind(this));
 
-        term.termGradeLevel = termBlock.filter(str => str.startsWith("Grade"))[0].match(/\d+/)[0];
-        term.termYear = termBlock[0];
-        term.termSchoolName = termBlock.filter(str => str.startsWith("#"))[0].split(/#\w+\s+/)[1];
-        const creditLine: number[] = termBlock.filter(str => str.startsWith("Credit"))[0].match(/[\d\.]+/g).map(Number);
-        term.termCredit = creditLine[0];
-        term.termGpa = creditLine[1];
-        term.termUnweightedGpa = creditLine[2];
-
-        const courseBlocks: string[][] = this.splitByCourses(termBlock);
-        term.courses = courseBlocks.map(this.parseCourse.bind(this));
-        console.log(term);
+            term.termGradeLevel = this.stringAfterField(termBlock, "Grade");
+            term.termYear = termBlock[0];
+            term.termSchoolName = this.stringAfterField(termBlock, "#").split(" ").slice(1).join(" ");
+            const creditLine: number[] = termBlock.filter(str => str.startsWith("Credit"))[0]?.match(/[\d\.]+/g).map(Number) || [];
+            if (creditLine) {
+                term.termCredit = creditLine[0];
+                term.termGpa = creditLine[1];
+                term.termUnweightedGpa = creditLine[2];
+            }
+        }
+        catch (err) {
+            console.error("Error parsing term block: ", err);
+        }
         return term;
     }
 
@@ -169,53 +168,73 @@ export class PdfLoaderService extends SisLoaderService {
             if (currentBlock >= 0 && !isAfterCredit) {
                 courseBlocks[currentBlock].push(str);
             }
-
-            
         }
         return courseBlocks;
     }
 
     parseCourse(courseBlock: string[]): HighSchoolCourseDto {
         let course = new HighSchoolCourseDto();
-        course.courseCode = courseBlock[0].split(/\s+/)[0];
+        try {
+            course.courseCode = courseBlock[0].split(/\s+/)[0];
 
-        const indexUncRec: number = courseBlock.indexOf("UNC Minimum Requirement")
+            const indexUncRec: number = courseBlock.indexOf("UNC Minimum Requirement")
 
-        const firstTitleLine = courseBlock[0].match(/\s+(.*)/)[1]
-        let followingTitleLines = "";
-        for (let i = 1; i < courseBlock.length; i++) {
-            // If the line is a UNC requirement or only numbers (grades), we're done
-            if (i === indexUncRec || !/[a-zA-Z]+/.test(courseBlock[i])) {
-                break;
+            const firstTitleLine = courseBlock[0].match(/\s+(.*)/)[1]
+            let followingTitleLines = "";
+            for (let i = 1; i < courseBlock.length; i++) {
+                // If the line is a UNC requirement or only numbers (grades), we're done
+                if (i === indexUncRec || !/[a-zA-Z]+/.test(courseBlock[i])) {
+                    break;
+                }
+                followingTitleLines += " " + courseBlock[i];
+                
+            } 
+            course.courseTitle = firstTitleLine + followingTitleLines;
+            course.flags = indexUncRec !== -1 ? ["UNC Minimum Requirement"] : [];
+
+            const creditLine = courseBlock[courseBlock.length - 1].split(/\s+/);
+            if (creditLine.length === 3) {
+                course.grade = creditLine[0];
+                course.creditEarned = parseFloat(creditLine[2]);
+                course.courseWeight = parseFloat(creditLine[1]);
             }
-            followingTitleLines += " " + courseBlock[i];
-            
-        } 
-        course.courseTitle = firstTitleLine + followingTitleLines;
-        course.flags = indexUncRec !== -1 ? ["UNC Minimum Requirement"] : [];
-
-        const creditLine = courseBlock[courseBlock.length - 1].split(/\s+/);
-        if (creditLine.length === 3) {
-            course.grade = creditLine[0];
-            course.creditEarned = parseFloat(creditLine[2]);
-            course.courseWeight = parseFloat(creditLine[1]);
+            else if (creditLine.length == 2) {
+                course.grade = courseBlock[courseBlock.length - 2];
+                course.creditEarned = parseFloat(creditLine[1]);
+                course.courseWeight = parseFloat(creditLine[0]);
+            }
         }
-        else if (creditLine.length == 2) {
-            course.grade = courseBlock[courseBlock.length - 2];
-            course.creditEarned = parseFloat(creditLine[1]);
-            course.courseWeight = parseFloat(creditLine[0]);
+        catch (err) {
+            console.error("Error parsing course: ", err);
         }
 
         return course;
     }
 
-    stringAfterColon(pdfText: string[], fieldName: string): string {
-        const fullSnippet: string = pdfText.filter(str => str.startsWith(fieldName))[0]
-        if (!fullSnippet) {
-            return null;
-        }
-        const selection = fullSnippet.split(/:\s*/)[1]?.trim();
+    stringAfterField(pdfText: string[], fieldName: string, occurrence: number = 0): string | null {
+        let count = 0;
         
-        return selection ? selection : null;
+        // Loop through the array to find the field
+        for (const str of pdfText) {
+            if (str.startsWith(fieldName)) {
+                // If we are skipping the first occurrence, we skip it
+                if (count < occurrence) {
+                    count++;
+                    continue;
+                }
+                
+                // If this is not the first match (or skipFirst is false), handle the value extraction
+                const match = str.match(new RegExp(`${fieldName}\\s*[:\\s]*([\\s\\S]*)`));
+    
+                if (match) {
+                    const value = match[1].trim();
+                    // Return null if the value is empty (or just a colon)
+                    return value === "" ? null : value;
+                }
+            }
+        }
+    
+        // If the field is not found or there's no value, return null
+        return null;
     }
 }
