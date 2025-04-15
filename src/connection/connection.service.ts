@@ -20,7 +20,7 @@ export class ConnectionService {
       console.log('Current status is request.');
       this.emitEvent(connectionData, null, null);
     } else if (connectionData.state === 'active') {
-      console.log('Connection is active.');
+      console.log('Connection is active.', connectionData);
       await this.workflowService.initiateDefaultWorkflow(connectionData.connection_id);
     }
   }
@@ -34,19 +34,12 @@ export class ConnectionService {
     }
 
     const studentNumber = this.extractStudentNumber(alias);
-    if (!studentNumber) {
-      console.error('Student number is undefined');
-      await this.acapyService.sendWelcomeMessage(connectionData);
-      return;
-    }
-
     console.log('Extracted studentNumber:', studentNumber);
 
     let attributes: any;
 
     try {
-      const studentIdCred =
-        await this.sisService.getStudentId(studentNumber);
+      const studentIdCred = await this.sisService.getStudentId(studentNumber);
       console.log('studentIdCred at ConnectionController', studentIdCred);
 
       if (studentIdCred) {
@@ -61,10 +54,6 @@ export class ConnectionService {
             "attributes": attributes
           }
         }
-/*
-Send 
- */
-        //this.acapyService.sendCredOffer(credentialOfferBody);
       } else {
         console.error(
           'Unable to obtain Student info from Student Information System',

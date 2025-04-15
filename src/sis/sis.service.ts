@@ -29,6 +29,7 @@ export class SisService implements OnModuleInit {
       // Student ID fields
       studentNumber: student.id,
       studentFullName: student.fullName,
+      fullName: student.fullName,
       studentBirthDate: student.birthDate ? student.birthDate.toString(): null,
   
       studentContactName: student.contactName,
@@ -51,6 +52,6 @@ export class SisService implements OnModuleInit {
       qrCode: null,
     };
 
-    return studentId;
+    return {studentIdCred: studentId};
   }
 }

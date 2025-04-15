@@ -120,6 +120,11 @@
                   "actionID": "extensionButton"
               },
               {
+                "type": "button",
+                "label": "Request Student ID",
+                "actionID": "studentIDButton"
+              },
+              {
                   "type": "button",
                   "label": "Go back",
                   "actionID": "backButton"
@@ -139,6 +144,12 @@
                   "value": {"extended": true }
               },
               {
+                "action_id": "studentIDButton",
+                "type": "issuecredential",
+                "condition": "true",
+                "value": {"type": "studentID", "cred_def": "SPzYuN9ZALqXi2Rpm2VmX2:3:CL:100:DigiCred College Student ID" }
+              },
+              {
                   "action_id": "saveButton",
                   "type": "saveData",
                   "condition": "true",
@@ -152,7 +163,15 @@
                   "state_id": "menu",
                   "workflow_id": "",
                   "condition": "actionInput.actionID=='backButton'"
+              },
+              {
+                "transition_id": "credential-issued",
+                "type": "stateTransition",
+                "state_id": "menu",
+                "workflow_id": "",
+                "condition": "true"
               }
+
           ]
       }
   ]

@@ -11,6 +11,7 @@ import { AcaPyService } from '../services/acapy.service';
 import { InstanceWrapper } from "@nestjs/core/injector/instance-wrapper";
 import { InjectRepository } from "@nestjs/typeorm";
 import { Repository } from "typeorm";
+import { SisService } from "src/sis/sis.service";
 
 
 @Injectable()
@@ -34,7 +35,8 @@ export class WorkflowService implements OnModuleInit {
     constructor(
         private readonly acapyService: AcaPyService,
         @InjectRepository(Workflows)
-        private workflowsRepository: Repository<Workflows>,       
+        private workflowsRepository: Repository<Workflows>,
+              
     ) {}
 
 

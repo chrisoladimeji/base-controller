@@ -162,6 +162,22 @@ export class AcaPyService {
         }
     }
 
+
+    async getConnectionById(connectionId: string): Promise<any> {
+        const connectionByIDFetchUrl = `${this.configService.get<string>('API_BASE_URL')}:8032/connections/${connectionId}`;
+        const connectionByIDFetchConfig: AxiosRequestConfig = this.getRequestConfig();
+        try {
+            const response = await lastValueFrom(
+                this.httpService.get(connectionByIDFetchUrl, connectionByIDFetchConfig).pipe(map((resp) => resp.data))
+            );
+            this.logger.log('Connection data request sent successfully');
+            return response;            
+        } catch (error) {
+            this.logger.error('Error sending connection data request:', error.message);
+            throw new Error('Failed to send connection data request');
+        }
+    }
+
     async getMetadataByConnectionId(connectionId: string): Promise<any> {
         const metadataFetchUrl = `${this.configService.get<string>('API_BASE_URL')}:8032/connections/${connectionId}/metadata`;
         const metadataFetchConfig: AxiosRequestConfig = this.getRequestConfig();
