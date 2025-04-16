@@ -1,55 +1,15 @@
-import { ConfigService } from "@nestjs/config";
 import { IActionExtension, Transition, Instance } from "@veridid/workflow-parser";
 import { AcaPyService } from "src/services/acapy.service";
-import { SisService } from "src/sis/sis.service";
-import { WorkflowService } from "../workflow.service";
-import { HttpService } from "@nestjs/axios";
-import { StudentsService } from "src/sis/students/students.service";
-import { SisLoaderService } from "src/sis/loaders/sisLoader.service";
-import { TestLoaderService } from "src/sis/loaders/testLoader.service";
-import { EnrollmentsService } from "src/sis/enrollments/enrollments.service";
-import { Student } from "src/sis/students/student.entity";
-import { Repository } from "typeorm";
-import { Enrollment } from "src/sis/enrollments/enrollment.entity";
-import { throws } from "assert";
 import { Injectable } from "@nestjs/common";
-import { Client } from 'pg';
+import { SisService } from "src/sis/sis.service";
 
 @Injectable()
 export class ExtendedAction implements IActionExtension {
 
-    private acapyService: AcaPyService;
-    private httpService: HttpService;
-    private configService: ConfigService;
-    //private sisService: SisService;
-    private studentsService: StudentsService;
-    private loaderService: TestLoaderService;
-    private enrollmentsService: EnrollmentsService;
-    private studentsRepository: Repository<Student>; 
-    private enrollmentRepository: Repository<Enrollment>;   
-
-    public dbClient: Client; 
-
-    constructor() {
-        this.httpService = new HttpService();
-        this.configService = new ConfigService();
-        this.acapyService = new AcaPyService(this.httpService, this.configService);
-
-        let dbClient = {
-            user: this.configService.get<string>('WORKFLOW_DB_USER', 'postgres'),
-            password: this.configService.get<string>('WORKFLOW_DB_PASSWORD', 'password123'),
-            host: this.configService.get<string>('WORKFLOW_DB_HOST', 'localhost'),
-            port: this.configService.get<number>('WORKFLOW_DB_PORT', 5435),
-            database: this.configService.get<string>('WORKFLOW_DB_NAME', 'postgres'),
-        }
-        this.dbClient = new Client(dbClient);
-        this.connectDB();
-    }
-
-    async connectDB() {
-        await this.dbClient.connect();
-        console.log("Database connected");
-    }
+    constructor(
+      private readonly acapyService: AcaPyService,
+      private readonly sisService: SisService
+    ) {}
 
     async actions(actionInput: any, instance: Instance, action: any, transition: Transition): Promise<Transition>{
         console.log("^^^ Extension -> actions");
@@ -88,7 +48,7 @@ export class ExtendedAction implements IActionExtension {
         console.log("ConnectionData=", connectionData);
         const studentID = this.extractStudentNumber(connectionData?.alias).trim();
         console.log("Student ID=", studentID);
-        const studentInfo = await this.dbClient.query('SELECT * FROM student WHERE "id" = $1', [studentID]);
+        const studentInfo = await this.sisService.getStudentId(studentID);
         console.log("studentInfo", studentInfo.rows[0]);
         // get data for send offer
         const credentialOfferBody = {

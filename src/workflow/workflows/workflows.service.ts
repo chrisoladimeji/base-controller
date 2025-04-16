@@ -8,7 +8,8 @@ export class WorkflowsService {
     constructor(
         @InjectRepository(Workflows)
         private workflowsRepository: Repository<Workflows>,
-      ) {}
+    ) {}
+
     async save(workflows: Workflows[]) {
         await this.workflowsRepository.save(workflows);
     }  
@@ -20,5 +21,4 @@ export class WorkflowsService {
     async getWorkflowByID(workflowID: string): Promise<Workflows> {
         return await this.workflowsRepository.findOneBy({workflow_id: workflowID});
     }
-
 }
