@@ -3,17 +3,20 @@ import { WorkflowController } from './workflow.controller';
 import { WorkflowsModule } from './workflows/workflows.module'
 import { InstancesModule } from './instances/instances.module'
 import { WorkflowService } from './workflow.service';
-import { WorkflowsService } from './workflows/workflows.service';
-import { DatabaseModule } from 'src/database/database.module';
-import { TypeOrmModule } from '@nestjs/typeorm';
-import { Workflows } from './workflows/workflows.entity';
 import { AcaPyService } from 'src/services/acapy.service';
-import { HttpModule, HttpService } from '@nestjs/axios';
+import { HttpModule } from '@nestjs/axios';
+import { ExtendedAction } from './extensions/action.extension';
+import { SisModule } from 'src/sis/sis.module';
 
 @Module({
-  imports: [WorkflowsModule, InstancesModule, HttpModule, TypeOrmModule.forFeature([Workflows])],
+  imports: [
+    WorkflowsModule,
+    InstancesModule,
+    HttpModule,
+    SisModule
+  ],
   controllers: [WorkflowController],
-  providers: [WorkflowService, WorkflowsService, AcaPyService],
+  providers: [WorkflowService, AcaPyService, ExtendedAction],
   exports: [WorkflowService]
 
 })

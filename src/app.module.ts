@@ -21,10 +21,6 @@ import { SvgService } from './svg/svg.service';
 import { SvgModule } from './svg/svg.module';
 import { SisModule } from './sis/sis.module';
 import { WorkflowsModule } from './workflow/workflows/workflows.module';
-import { DatabaseModule } from './database/database.module';
-import { WorkflowsService } from './workflow/workflows/workflows.service';
-import { DataSource } from 'typeorm';
-import { Workflows } from './workflow/workflows/workflows.entity';
 
 @Module({
   imports: [
@@ -39,7 +35,6 @@ import { Workflows } from './workflow/workflows/workflows.entity';
     PingModule,
     EllucianModule,
     BasicMessagesModule,
-    DatabaseModule,
     WorkflowModule,
     WorkflowsModule,
     MetadataModule,

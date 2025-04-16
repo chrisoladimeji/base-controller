@@ -1,43 +1,45 @@
-import { ConsoleLogger, Inject, Injectable, OnModuleInit } from "@nestjs/common";
+import { Injectable, OnModuleInit } from "@nestjs/common";
 import { WorkflowsService } from "./workflows/workflows.service";
 import * as defaultWorkflow from './default_workflow.json'
 import { Workflows } from "./workflows/workflows.entity";
 import { WorkflowParser, DefaultWorkflow, DefaultAction, DefaultDisplay, Workflow, Instance } from '@veridid/workflow-parser';
-import { Client } from 'pg';
 import { ConfigService } from "@nestjs/config";
 import { ExtendedAction } from './extensions/action.extension';
 import { ExtendedDisplay } from './extensions/display.extension';
 import { AcaPyService } from '../services/acapy.service';
-import { InstanceWrapper } from "@nestjs/core/injector/instance-wrapper";
-import { InjectRepository } from "@nestjs/typeorm";
-import { Repository } from "typeorm";
-import { SisService } from "src/sis/sis.service";
 
 
 @Injectable()
 export class WorkflowService implements OnModuleInit {
-    private configService = new ConfigService();
-    public controllerClient = {
-        user: this.configService.get<string>('WORKFLOW_DB_USER', 'postgres'),
-        password: this.configService.get<string>('WORKFLOW_DB_PASSWORD', 'password123'),
-        host: this.configService.get<string>('WORKFLOW_DB_HOST', 'localhost'),
-        port: this.configService.get<number>('WORKFLOW_DB_PORT', 5435),
-        database: this.configService.get<string>('WORKFLOW_DB_NAME', 'postgres'),
-    }
-    private defaultWorkflow = new DefaultWorkflow(this.controllerClient);
-    private actionExtension = new ExtendedAction();
-    private defaultAction = new DefaultAction(this.actionExtension);
-    private displayExtenion = new ExtendedDisplay();
-    private defaultDisplay = new DefaultDisplay(this.displayExtenion);
-    public parser = new WorkflowParser(this.defaultDisplay, this.defaultAction, this.defaultWorkflow);
-    private workflowsService = new WorkflowsService(this.workflowsRepository);
+
+    public controllerClient: any;
+    defaultWorkflow: DefaultWorkflow;
+    defaultAction: DefaultAction;
+    displayExtension: ExtendedDisplay;
+    defaultDisplay: DefaultDisplay;
+    parser: WorkflowParser;
 
     constructor(
+        private readonly configService: ConfigService,
         private readonly acapyService: AcaPyService,
-        @InjectRepository(Workflows)
-        private workflowsRepository: Repository<Workflows>,
-              
-    ) {}
+        private readonly actionExtension: ExtendedAction,
+        private readonly workflowsService: WorkflowsService,
+    ) {
+        this.controllerClient = {
+            user: this.configService.get<string>('WORKFLOW_DB_USER', 'postgres'),
+            password: this.configService.get<string>('WORKFLOW_DB_PASSWORD', 'password123'),
+            host: this.configService.get<string>('WORKFLOW_DB_HOST', 'localhost'),
+            port: this.configService.get<number>('WORKFLOW_DB_PORT', 5435),
+            database: this.configService.get<string>('WORKFLOW_DB_NAME', 'postgres'),
+        }
+        this.defaultWorkflow = new DefaultWorkflow(this.controllerClient);
+        this.defaultAction = new DefaultAction(this.actionExtension);
+        this.displayExtension = new ExtendedDisplay();
+        this.defaultDisplay = new DefaultDisplay(this.displayExtension);
+        this.parser = new WorkflowParser(this.defaultDisplay, this.defaultAction, this.defaultWorkflow);
+    }
+
+    
 
 
     async getWorkflowById(workflowID: string ): Promise<Workflow> {
