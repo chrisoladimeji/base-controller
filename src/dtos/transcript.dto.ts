@@ -84,6 +84,8 @@ export class CourseDto {
     grade: string; // Also displayed as "Mark" on some transcripts
 
     creditEarned: number;
+    transfer: boolean;
+    inProgress: boolean;
     flags: string[];
 }
 

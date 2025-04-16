@@ -27,6 +27,8 @@ export class PdfLoaderService extends SisLoaderService {
         const pdfBuffers = await this.getPdfBuffersFromZip(zipPath);
         for (const pdfBuffer of pdfBuffers) {
             let studentId, transcript = await this.parsePdfPender(pdfBuffer);
+            console.log(studentId);
+            console.log(transcript);
         }
     };
 
@@ -90,13 +92,16 @@ export class PdfLoaderService extends SisLoaderService {
         transcript.schoolFax = this.stringAfterField(pdfText, "Fax");
         transcript.schoolCode = this.stringAfterField(pdfText, "School Code");
         transcript.gpa = parseFloat(this.stringAfterField(pdfText, "Cumulative GPA").match(/[\d\.]+/)[0]);
-        const creditTotals: string[] = pdfText.filter(str => str.startsWith("Total"))[0]?.match(/\d+\.\d{3}/g) || [];
-        transcript.earnedCredits = parseFloat(creditTotals[1]);
         transcript.gpaUnweighted = parseFloat(this.stringAfterField(pdfText, "Cumulative GPA", 1).match(/[\d\.]+/)[0]);
         transcript.classRank = this.stringAfterField(pdfText, "Class Rank");
-        transcript.attemptedCredits = parseFloat(creditTotals[0]);
-        transcript.requiredCredits = parseFloat(creditTotals[2]);
-        transcript.remainingCredits = parseFloat(creditTotals[3]);
+
+        const creditTotals: string[] = pdfText.filter(str => str.startsWith("Total"))[0]?.match(/\d+\.\d{3}/g) || [];
+        if (creditTotals.length === 4) {
+            transcript.earnedCredits = parseFloat(creditTotals[1]);
+            transcript.attemptedCredits = parseFloat(creditTotals[0]);
+            transcript.requiredCredits = parseFloat(creditTotals[2]);
+            transcript.remainingCredits = parseFloat(creditTotals[3]);
+        }
 
         transcript.schoolDistrict = this.stringAfterField(pdfText, "District Name");
         transcript.schoolAccreditation = this.stringAfterField(pdfText, "Accreditation");
@@ -108,17 +113,20 @@ export class PdfLoaderService extends SisLoaderService {
 
     splitByTerms(pdfText: string[]): string[][] {
         let termBlocks: string[][] = [];
-        let currentBlock = -1;
+        let termIndex = -1;
         let isAfterCredit = false;
+
+        // Iterate through text looking for year (ie 2021-2022)
+        // Add text to current term
         for (const str of pdfText) {
             if (str.match(/\d{4}-\d{4}/) !== null) {
-                currentBlock += 1;
+                termIndex += 1;
                 termBlocks.push([]);
                 isAfterCredit = false;
             }
 
-            if (currentBlock >= 0 && !isAfterCredit) {
-                termBlocks[currentBlock].push(str);
+            if (termIndex >= 0 && !isAfterCredit) {
+                termBlocks[termIndex].push(str);
             }
 
             if (str.startsWith("Credit:")) {
@@ -155,13 +163,13 @@ export class PdfLoaderService extends SisLoaderService {
         let currentBlock = -1;
         let isAfterCredit = false;
         for (const str of termBlock) {
-            if (str.match(/\d+[A-Z]+\w+/)) { // If a course code is in the string
+            if (str.match(/\d+[A-Z]+\w+/)) { // The course code begins the string "1234X0 "
                 currentBlock++;
                 courseBlocks.push([]);
                 isAfterCredit = false;
             }
 
-            if (str.startsWith("Credit")) { // If we get to the credit/gpa line, we're too far
+            if (str.startsWith("Credit")) { // The credit/gpa line is the first non-course element
                 isAfterCredit = true;
             }
 
@@ -225,7 +233,7 @@ export class PdfLoaderService extends SisLoaderService {
                 
                 // If this is not the first match (or skipFirst is false), handle the value extraction
                 const match = str.match(new RegExp(`${fieldName}\\s*[:\\s]*([\\s\\S]*)`));
-    
+
                 if (match) {
                     const value = match[1].trim();
                     // Return null if the value is empty (or just a colon)

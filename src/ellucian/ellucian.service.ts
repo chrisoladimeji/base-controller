@@ -166,10 +166,14 @@ export class EllucianService extends SisLoaderService {
     console.log(person);
 
     let studentId = new StudentIdDto();
-
-    studentId.studentFullName = person[0].names[0]?.fullName ?? null;
     studentId.studentNumber = person[0].studentsId?.studentsId ?? null;
+    studentId.studentFullName = person[0].names[0]?.fullName ?? null;
+    studentId.studentBirthDate = person[0].dateOfBirth ?? null;
+    studentId.studentPhone = person[0].phones[0]?.number ?? null;
     studentId.studentEmail = person[0].emails.find(e => e.preference === "primary")?.address ?? null;
+
+    // student.photo = getStudentPhoto();
+
     return studentId;
   }
 
