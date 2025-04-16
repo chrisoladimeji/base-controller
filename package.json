@@ -27,7 +27,6 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@nas-veridid/workflow-parser": "^0.3.3",
     "@nestjs/axios": "^3.0.2",
     "@nestjs/common": "^10.3.8",
     "@nestjs/config": "^3.2.2",
@@ -38,7 +37,7 @@
     "@nestjs/typeorm": "^10.0.2",
     "@nestjs/websockets": "^10.3.8",
     "@types/pdf-parse": "^1.1.5",
-    "@veridid/workflow-parser": "^0.3.2",
+    "@veridid/workflow-parser": "^0.4.16",
     "adm-zip": "^0.5.16",
     "axios": "^1.7.9",
     "class-transformer": "^0.5.1",

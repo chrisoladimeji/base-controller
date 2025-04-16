@@ -20,6 +20,11 @@ import { RedisService } from './services/redis.service';
 import { SvgService } from './svg/svg.service';
 import { SvgModule } from './svg/svg.module';
 import { SisModule } from './sis/sis.module';
+import { WorkflowsModule } from './workflow/workflows/workflows.module';
+import { DatabaseModule } from './database/database.module';
+import { WorkflowsService } from './workflow/workflows/workflows.service';
+import { DataSource } from 'typeorm';
+import { Workflows } from './workflow/workflows/workflows.entity';
 
 @Module({
   imports: [
@@ -34,7 +39,12 @@ import { SisModule } from './sis/sis.module';
     PingModule,
     EllucianModule,
     BasicMessagesModule,
+    DatabaseModule,
     WorkflowModule,
+    WorkflowsModule,
+    MetadataModule,
+    SvgModule,
+    SisModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -91,16 +101,13 @@ import { SisModule } from './sis/sis.module';
         },
       ],
     ),
-    MetadataModule,
-    SvgModule,
-    SisModule,
   ],
   providers: [
     AppService,
     EventsGateway,
     PostgresService,
     RedisService,
-    SvgService,
+    SvgService
   ],
   controllers: [AppController],
 })

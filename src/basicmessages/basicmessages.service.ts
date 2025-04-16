@@ -1,8 +1,8 @@
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
-import { parse } from '@veridid/workflow-parser';
 import { AcaPyService } from '../services/acapy.service';
 import { SisService } from 'src/sis/sis.service';
+import { WorkflowService } from '../workflow/workflow.service';
 
 @Injectable()
 export class BasicMessagesService {
@@ -10,7 +10,8 @@ export class BasicMessagesService {
   constructor(
     private readonly configService: ConfigService,
     private readonly acapyService: AcaPyService,
-    private readonly sisService: SisService
+    private readonly sisService: SisService,
+    private readonly workflowService: WorkflowService
   ) { }
 
   // Method to validate JSON format
@@ -40,12 +41,15 @@ export class BasicMessagesService {
       };
 
       try {
-        response = await parse(connectionId, action);
+        let displayData = await this.workflowService.parser.parse(connectionId, action);
+        console.log("About to send=", displayData);
+        this.workflowService.sendWorkflow(connectionId, displayData);
       } catch (error) {
         console.error('Error parsing workflow:', error.message);
         return;
       }
-
+    }
+/* 
       if (response.displayData) {
         const hasAgentType = response.displayData.some((item: any) => item.type === 'agent');
         if (hasAgentType) {
@@ -217,28 +221,71 @@ export class BasicMessagesService {
               "value": `${studentId.studentCumulativeTranscript[0].cumulativeGradePointAverage}`
             },
 
-          ]
+                      ]
+                    }
+                  }
+                  try {
+                    
+                     this.acapyService.sendCredOffer(credentialOfferBody);
+                  } catch (error: any) {
+                    console.log("Error sending transcripts", error);
+                    const action = { workflowID: 'RequestTranscript', actionID: 'metadataNotFound', data: {} };
+                    await this.invokeWorkflowParser(connectionId, action);
+                    return;
+                  }
+                  //invoke workflow parse
+                  const action = { workflowID: 'RequestTranscript', actionID: 'metadataFound', data: {} };
+                  await this.invokeWorkflowParser(connectionId, action);
+                  return;
+                } else {
+                  console.log("No Student Metadata");
+                  //invoke workflow parse
+                  const action = { workflowID: 'RequestTranscript', actionID: 'metadataNotFound', data: {} };
+                  await this.invokeWorkflowParser(connectionId, action);
+                  return;
+                }
+              }
+            }
+          }
+          // Filter out the content with type 'agent'
+          const filteredDisplayData = response.displayData.filter((item: any) => item.type !== 'agent');
+          // Construct modified response
+          const modifiedResponse = { ...response, displayData: filteredDisplayData };
+          // Send workflow response message with filtered displayData
+          await this.acapyService.sendMessage(connectionId, JSON.stringify(modifiedResponse));
+        } else {
+          // Send workflow response message as it is
+          await this.acapyService.sendMessage(connectionId, JSON.stringify(response));
         }
+      } else {
+        // Default message if no displayData
+        await this.acapyService.sendMessage(connectionId, "Action Menu Feature Not Available For this Connection!");
       }
-      try {
-        
-        this.acapyService.sendCredOffer(credentialOfferBody);
-      } catch (error: any) {
-        console.log("Error sending transcripts", error);
-        const action = { workflowID: 'RequestTranscript', actionID: 'metadataNotFound', data: {} };
-        await this.invokeWorkflowParser(connectionId, action);
-        return;
-      }
-      //invoke workflow parse
-      const action = { workflowID: 'RequestTranscript', actionID: 'metadataFound', data: {} };
-      await this.invokeWorkflowParser(connectionId, action);
-      return;
-    } else {
-      console.log("No Student Metadata");
-      //invoke workflow parse
-      const action = { workflowID: 'RequestTranscript', actionID: 'metadataNotFound', data: {} };
-      await this.invokeWorkflowParser(connectionId, action);
+    }
+ */
+    // Handle home menu (root menu) requests
+    if (messageData.content === ':menu') {
+      await this.workflowService.forceDefaultWorkflow(connectionId);
+    }
+
+
+
+/*   private async invokeWorkflowParser(connectionId: string, action: object): Promise<void> {
+    let response: any;
+
+    try {
+      response = await parse(connectionId, action);
+    } catch (error) {
+      console.error('Error parsing workflow:', error.message);
       return;
     }
+    if (response.displayData) {
+      await this.acapyService.sendMessage(connectionId, JSON.stringify(response));
+    } else {
+      await this.acapyService.sendMessage(connectionId, "Action Menu Feature Not Available For this Connection!");
+    }
+  }
+
+*/
   }
 }

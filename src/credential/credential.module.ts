@@ -9,10 +9,13 @@ import { ConnectionService } from '../connection/connection.service';
 import { EllucianModule } from '../ellucian/ellucian.module';
 import { AcaPyService } from '../services/acapy.service';
 import { SisModule } from 'src/sis/sis.module';
+import { WorkflowService } from 'src/workflow/workflow.service';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { Workflows } from 'src/workflow/workflows/workflows.entity';
 
 
 @Module({
-  imports: [HttpModule, MetadataModule, EllucianModule, SisModule],
+  imports: [HttpModule, MetadataModule, EllucianModule, SisModule, TypeOrmModule.forFeature([Workflows])],
   controllers: [CredentialController],
   providers: [
     CredentialService,
@@ -20,6 +23,7 @@ import { SisModule } from 'src/sis/sis.module';
     EventsGateway,
     ConnectionService,
     AcaPyService,
+    WorkflowService
   ],
 })
 export class CredentialModule {}

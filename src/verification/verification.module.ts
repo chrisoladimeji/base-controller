@@ -5,6 +5,7 @@ import { VerificationService } from './verification.service';
 import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { MetadataModule } from '../metadata/metadata.module'; // Import MetadataModule
+import { WorkflowsService } from 'src/workflow/workflows/workflows.service';
 
 @Module({
   imports: [HttpModule, ConfigModule, MetadataModule], // Add MetadataModule here

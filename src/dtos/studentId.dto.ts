@@ -9,6 +9,8 @@ export class StudentIdDto {
     @IsNotEmpty()
     studentFullName: string;
 
+    fullName: string;
+
     studentBirthDate: string; 
     studentPhone: string;
     studentEmail: string;

@@ -1,7 +1,6 @@
 // src/workflow/workflow.controller.ts
 import { Controller, Post, Body} from '@nestjs/common';
 import { ApiTags, ApiResponse,ApiBody } from '@nestjs/swagger';
-import { parse } from '@veridid/workflow-parser';
 
 @ApiTags('Workflow')
 @Controller()
@@ -47,12 +46,14 @@ export class WorkflowController {
     @Body() body: { connectionID: string; action: { workflowID: string; actionID: string; data?: any } }
   ) {
     const { connectionID, action } = body;
-    try {
+
+/*     try {
       const displayData = await parse(connectionID, action);
       return { success: true, displayData };
     } catch (error) {
       console.error('Error parsing workflow:', error.message);
       return { success: false, error: error.message };
     }
+ */
   }
 }

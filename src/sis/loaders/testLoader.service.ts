@@ -11,6 +11,7 @@ export class TestLoaderService extends SisLoaderService {
     exampleStudent = {
         studentNumber: "0023",
         studentFullName: "Michael Jordan",
+        fullName: "Michael Jordan Full",
         studentBirthDate: "01/01/2000",
         studentPhone: "(555)-555-5555",
         studentEmail: "mj@digicred.com",
@@ -23,9 +24,9 @@ export class TestLoaderService extends SisLoaderService {
 
         gradeLevel: "12",
         graduationDate: "2025",
-        program: "Geography",
+        program: "Mathematics",
 
-        schoolName: "DigiCred High School",
+        schoolName: "DigiCred College",
         schoolAddress: "14328 NC Hwy 210, Rocky Point, NC 28457",
         schoolPhone: "(555)-555-5555",
         schoolFax: "(555)-555-5555",
@@ -104,26 +105,25 @@ export class TestLoaderService extends SisLoaderService {
 
     async load(): Promise<void> {};
 
-    async getStudentId(studentNumber: string): Promise<StudentIdDto> {
+    async getStudentId(studentNumber: string): Promise<any> {
         if (studentNumber === this.exampleStudent["studentNumber"]) {
-            let studentId = new StudentIdDto();
-
-            studentId.studentNumber = this.exampleStudent["studentNumber"];
-            studentId.studentFullName = this.exampleStudent["studentFullName"];
-            studentId.schoolName = this.exampleStudent["schoolName"];            
-
-            studentId.studentBirthDate = this.exampleStudent["studentBirthDate"];
-            studentId.studentPhone = this.exampleStudent["studentPhone"];
-            studentId.studentEmail = this.exampleStudent["studentEmail"];
-            studentId.guardianName = this.exampleStudent["guardianName"];
-            studentId.guardianPhone = this.exampleStudent["guardianPhone"];
-            studentId.guardianEmail = this.exampleStudent["guardianEmail"];
-            studentId.program = this.exampleStudent["program"];
-            studentId.gradeLevel = this.exampleStudent["gradeLevel"];
-            studentId.graduationDate = this.exampleStudent["graduationDate"];
-
-            studentId.schoolPhone = this.exampleStudent["schoolPhone"];
-
+            let studentId = {
+                studentNumber: this.exampleStudent["studentNumber"],
+                studentFullName: this.exampleStudent["studentFullName"],
+                fullName: this.exampleStudent["fullName"],
+                schoolName: this.exampleStudent["schoolName"],
+                studentBirthDate: this.exampleStudent["studentBirthDate"],
+                studentPhone: this.exampleStudent["studentPhone"],
+                studentEmail: this.exampleStudent["studentEmail"],
+                guardianName: this.exampleStudent["guardianName"],
+                guardianPhone: this.exampleStudent["guardianPhone"],
+                guardianEmail: this.exampleStudent["guardianEmail"],
+                program: this.exampleStudent["program"],
+                gradeLevel: this.exampleStudent["gradeLevel"],
+                graduationDate: this.exampleStudent["graduationDate"],
+                schoolPhone: this.exampleStudent["schoolPhone"],
+                studentPhoto: ""
+            }
             try{ 
                 let photoBuffer = await sharp(this.photoURL).jpeg({quality: 3, force: true}).toBuffer();
                 studentId.studentPhoto = photoBuffer.toString("base64");
@@ -133,6 +133,7 @@ export class TestLoaderService extends SisLoaderService {
                 console.log(`StudentID photo could not be loaded: ${err}`);
             }
 
+            console.log("Student record=", studentId);
             return studentId;
         }
         return null;
