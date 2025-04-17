@@ -1,11 +1,14 @@
 // src/workflow/workflow.controller.ts
 import { Controller, Post, Body, Get, HttpStatus} from '@nestjs/common';
 import { ApiTags, ApiResponse,ApiBody, ApiCreatedResponse } from '@nestjs/swagger';
-import { parse,getWorkflows,loadWorkflowsFromJson,updateWorkflowByID } from '@veridid/workflow-parser'
+import { WorkflowsService } from "./workflows/workflows.service";
+import { Workflows } from './workflows/workflows.entity';
+// import { getWorkflows,loadWorkflowsFromJson,updateWorkflowByID } from '@veridid/workflow-parser'
 
 @ApiTags('Workflow')
 @Controller()
 export class WorkflowController {
+constructor(private readonly workflowsService:WorkflowsService){};
 
   @Post('parse')
   @ApiBody({
@@ -63,7 +66,7 @@ export class WorkflowController {
   async getWorkflows() {
     let workflows;
     try{
-      workflows = await getWorkflows();
+      workflows = await this.workflowsService.getWorkflows();
       return workflows;
     } catch(error){
       console.error('Error getting workflows:', error.message);
@@ -73,13 +76,11 @@ export class WorkflowController {
 
   @Post('set-workflow')
   @ApiBody({ schema: { type: 'array', items: { type: 'object'} }, required: true, description: "Array of JSON objects" })
-  @ApiCreatedResponse({status:HttpStatus.OK,description:"Added Workflow Successfully"})
+  @ApiCreatedResponse()
   async setWorkflow(@Body() workflow) {
     try{
-      const workflowString = JSON.stringify(workflow);
-      await loadWorkflowsFromJson(workflowString);
-      return {success:true, message:"Workflows loaded successfully"};
-
+      await this.workflowsService.save(workflow);
+      return {success:true, message:"Workflows added successfully"};
     } catch(error){
       console.error('Error adding workflows:', error.message);
       return {success:false, error:error.message };
@@ -88,10 +89,10 @@ export class WorkflowController {
 
   @Post('update-workflow')
   @ApiBody({ schema: { type: 'array', items: { type: 'object'} }, required: true, description: "Array of JSON objects" })
-  @ApiCreatedResponse({status:HttpStatus.OK,description:"Updated Workflow Successfully"})
+  @ApiCreatedResponse()
   async updateWorkflow(@Body() workflow) {
     try{
-      await updateWorkflowByID(workflow.id, workflow);
+      await this.workflowsService.updateWorkflow(workflow);
       return {success:true, message:"Workflows updated successfully"};
 
     } catch(error){

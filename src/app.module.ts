@@ -17,11 +17,6 @@ import { BasicMessagesModule } from './basicmessages/basicmessages.module';
 import { WorkflowModule } from './workflow/workflow.module';
 import { PostgresService } from './services/postgres.service';
 import { RedisService } from './services/redis.service';
-import {
-  initDb,
-  loadWorkflowsFromFile,
-  getWorkflows,
-} from '@veridid/workflow-parser';
 import * as path from 'path';
 import { readFileSync } from 'fs';
 import { SvgService } from './svg/svg.service';

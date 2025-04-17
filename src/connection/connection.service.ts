@@ -3,7 +3,6 @@ import { ConfigService } from '@nestjs/config';
 import { EventsGateway } from '../events/events.gateway';
 import { SisService } from '../sis/sis.service';
 import { AcaPyService } from '../services/acapy.service';
-import { parse, getWorkflows,getWorkflowById, getWorkflowInstance, updateWorkflowInstanceByID } from '@veridid/workflow-parser';
 
 import { WorkflowService } from '../workflow/workflow.service';
 

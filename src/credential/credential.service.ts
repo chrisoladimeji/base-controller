@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { parse, getWorkflowInstance, updateWorkflowInstanceByID, getWorkflowInstanceByConnectionID } from '@veridid/workflow-parser';
 import { MetadataService } from '../metadata/metadata.service';
 import { AcaPyService } from '../services/acapy.service';
 import { EventsGateway } from '../events/events.gateway';
