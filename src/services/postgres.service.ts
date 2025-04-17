@@ -7,7 +7,6 @@ export class PostgresService implements OnModuleInit, OnModuleDestroy {
   private pool: Pool;
 
   constructor(private configService: ConfigService) {
-    console.log('PostgresService constructor');
     this.pool = new Pool({
       host: this.configService.get<string>('WORKFLOW_DB_HOST', 'localhost'),
       port: this.configService.get<number>('WORKFLOW_DB_PORT', 5435),
@@ -27,6 +26,7 @@ export class PostgresService implements OnModuleInit, OnModuleDestroy {
   }
 
   async onModuleDestroy() {
+    console.log("Disconnecting from PostgresSQL");
     await this.pool.end();
   }
 

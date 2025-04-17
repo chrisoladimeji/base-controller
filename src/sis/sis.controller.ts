@@ -1,39 +1,63 @@
-import { Controller, Get, HttpException, HttpStatus, Query } from '@nestjs/common';
+import { Controller, Get, HttpException, HttpStatus, Post, Query, Res } from '@nestjs/common';
 import { SisService } from './sis.service';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { StudentIdDto } from 'src/dtos/studentId.dto';
+import { TranscriptDto } from 'src/dtos/transcript.dto';
+
 
 @ApiTags('SIS')
 @Controller()
 export class SisController {
   constructor(private readonly sisService: SisService) {}
 
+  @Post('load')
+  @ApiOperation({summary: 'Batch load the SIS data to initialize credential transfer'})
+  @ApiResponse({ status: 200, description: 'The student name' })
+  async load(): Promise<void> {
+    try {
+      this.sisService.load();
+    }
+    catch (error) {
+      console.log(error);
+      throw new HttpException('Failed to load SIS information', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+  }
+
   @Get('student-id')
-  @ApiOperation({ summary: 'Retrieve student name by student number' })
+  @ApiOperation({ summary: 'Retrieve student id information by student number' })
   @ApiQuery({ name: 'studentNumber', required: true, type: String, description: 'The student number' })
   @ApiResponse({ status: 200, description: 'The student name' })
   @ApiResponse({ status: 404, description: 'Student not found' })
-  async getStudentDetails(@Query('studentNumber') studentNumber: string) {
-      let studentIdCred={}
+  async getStudentId(@Query('studentNumber') studentNumber: string): Promise<StudentIdDto> {
+    let studentId;
       try {
-          studentIdCred=await this.sisService.getStudentDetails(studentNumber);
+          studentId = await this.sisService.getStudentId(studentNumber);
       } catch (error) {
           throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
       }
-      return studentIdCred;
+    return studentId;
   }
+
+  @Post('student-photo')
+  @ApiOperation({summary: 'Retrieve student photo by student number'})
+  @ApiQuery({ name: 'studentNumber', required: true, type: String, description: 'The student number'})
+  async getStudentPhoto(@Query('studentNumber') studentNumber: string) {
+    return null
+  }
+
 
   @Get('student-transcript')
   @ApiOperation({ summary: 'Retrieve student transcript by student number' })
   @ApiQuery({ name: 'studentNumber', required: true, type: String, description: 'The student number' })
-  @ApiResponse({ status: 200, description: 'The student transcript' })
+  @ApiResponse({ status: 200, description: 'Student Transcript Found' })
   @ApiResponse({ status: 404, description: 'Student not found' })
-  async getTranscript(@Query('studentNumber') studentNumber: string) {
-      let transcript={}
-      try {
-          transcript=this.sisService.getCourseTranscripts(studentNumber);
-      } catch (error) {
-          throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
-      }
-      return transcript;
+  async getStudentTranscript(@Query('studentNumber') studentNumber: string): Promise<TranscriptDto> {
+  let studentTranscript;
+    try {
+        studentTranscript = await this.sisService.getStudentTranscript(studentNumber);
+    } catch (error) {
+        throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+    return studentTranscript;
   }
 }

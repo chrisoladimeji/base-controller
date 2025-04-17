@@ -1,0 +1,178 @@
+{
+  "name": "Test Workflow Display Name",
+  "workflow_id": "root-menu",
+  "initial_state": "menu",
+  "render": [
+      { }
+  ],
+  "states": [
+      {
+          "name": "Test Workflow menu",
+          "state_id": "menu",
+          "display_data": [
+              {
+                  "type": "image",
+                  "url": "https://images.squarespace-cdn.com/content/v1/67bc7581e3aeec063c6ed1ce/767927f3-b0cf-444c-88fb-97db73c92e54/DigiCred-Banner-Primary-Light%403x.png"
+              },
+              {
+                  "type": "text",
+                  "display": "title",
+                  "text": "This is the test title for workflow"
+              },
+              {
+                  "type": "text",
+                  "text": "First time showing this page",
+                  "condition": "instance?.state_data?.first==undefined"
+              },
+              {
+                  "type": "button",
+                  "label": "Next button",
+                  "actionID": "nextButton"
+              },
+              {
+                  "type": "button",
+                  "label": "Data button",
+                  "actionID": "dataButton"
+              }
+          ],
+          "actions": [
+              {
+                  "action_id": "nextButton",
+                  "type": "saveData",
+                  "condition": "true",
+                  "value": {"first": true }
+              }                        
+          ],
+          "transitions": [
+              {
+                  "transition_id": "nextButton",
+                  "type": "stateTransition",
+                  "state_id": "page1",
+                  "workflow_id": "",
+                  "condition": "actionInput.actionID=='nextButton'"
+              },
+              {
+                  "transition_id": "dataButton",
+                  "type": "stateTransition",
+                  "state_id": "page2",
+                  "workflow_id": "",
+                  "condition": "actionInput.actionID=='dataButton'"
+              }
+          ]
+      },
+      {
+          "name": "Test Workflow page 1",
+          "state_id": "page1",
+          "display_data": [
+              {
+                  "type": "text",
+                  "text": "This is the page for testing state transitions."
+              },
+              {
+                  "type": "button",
+                  "label": "Go back",
+                  "actionID": "backButton"
+              }
+          ],
+          "actions": [
+          ],
+          "transitions": [
+              {
+                  "transition_id": "backButton",
+                  "type": "stateTransition",
+                  "state_id": "menu",
+                  "workflow_id": "",
+                  "condition": "actionInput.actionID=='backButton'"
+              }
+          ]
+      },
+      {
+          "name": "Test Workflow page 2 data test",
+          "state_id": "page2",
+          "display_data": [
+              {
+                  "type": "text",
+                  "display": "title",
+                  "text": "This is the page for testing data."
+              },
+              {
+                  "type": "text",
+                  "text": "Date={Date}",
+                  "condition": "instance?.state_data?.Date!=undefined"
+              },
+              {
+                  "type": "extended",
+                  "text": "Extended text"
+              },
+              {
+                  "type": "button",
+                  "label": "Save Data",
+                  "actionID": "saveButton"
+              },
+              {
+                  "type": "button",
+                  "label": "State Data",
+                  "actionID": "stateButton"
+              },
+              {
+                  "type": "button",
+                  "label": "Extension",
+                  "actionID": "extensionButton"
+              },
+              {
+                "type": "button",
+                "label": "Request Student ID",
+                "actionID": "studentIDButton"
+              },
+              {
+                  "type": "button",
+                  "label": "Go back",
+                  "actionID": "backButton"
+              }
+          ],
+          "actions": [
+              {
+                  "action_id": "stateButton",
+                  "type": "stateData",
+                  "condition": "true",
+                  "value": "action.data"
+              },
+              {
+                  "action_id": "extensionButton",
+                  "type": "extension",
+                  "condition": "true",
+                  "value": {"extended": true }
+              },
+              {
+                "action_id": "studentIDButton",
+                "type": "issuecredential",
+                "condition": "true",
+                "value": {"type": "studentID", "cred_def": "SPzYuN9ZALqXi2Rpm2VmX2:3:CL:100:DigiCred College Student ID" }
+              },
+              {
+                  "action_id": "saveButton",
+                  "type": "saveData",
+                  "condition": "true",
+                  "value": {"data": "Hello"}
+              }
+          ],
+          "transitions": [
+              {
+                  "transition_id": "backButton",
+                  "type": "stateTransition",
+                  "state_id": "menu",
+                  "workflow_id": "",
+                  "condition": "actionInput.actionID=='backButton'"
+              },
+              {
+                "transition_id": "credential-issued",
+                "type": "stateTransition",
+                "state_id": "menu",
+                "workflow_id": "",
+                "condition": "true"
+              }
+
+          ]
+      }
+  ]
+}

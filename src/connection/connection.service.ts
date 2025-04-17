@@ -5,6 +5,7 @@ import { SisService } from '../sis/sis.service';
 import { AcaPyService } from '../services/acapy.service';
 import { parse, getWorkflows,getWorkflowById, getWorkflowInstance, updateWorkflowInstanceByID } from '@veridid/workflow-parser';
 
+import { WorkflowService } from '../workflow/workflow.service';
 
 @Injectable()
 export class ConnectionService {
@@ -13,6 +14,7 @@ export class ConnectionService {
     private readonly eventsGateway: EventsGateway,
     private readonly sisService: SisService,
     private readonly acapyService: AcaPyService,
+    private readonly workflowService: WorkflowService
   ) {}
 
   async handleConnection(connectionData: any): Promise<void> {
@@ -20,33 +22,10 @@ export class ConnectionService {
       console.log('Current status is request.');
       this.emitEvent(connectionData, null, null);
     } else if (connectionData.state === 'active') {
-      console.log('Connection is active.');
-      await this.handleActiveStateWorklow(connectionData,"root-menu");
+      console.log('Connection is active.', connectionData);
+      await this.workflowService.initiateDefaultWorkflow(connectionData.connection_id);
     }
   }
-
-  private async handleActiveStateWorklow(connectionData: any, workflowId: string) {
-        const workflow = await getWorkflowById(workflowId);
-        console.log("workflow data", workflow);
-        const CURRENT_STATE = 'ConnectionActive'
-        const connectionId = connectionData.connection_id;
-        console.log("Verfication data from request-sent state", connectionData);
-        //Add threadId into workflow instance ID 
-        const threadId = connectionData?.thread_id;
-        const response = await getWorkflowInstance(`${connectionId}`, `${workflowId}`)
-        console.log("response from verify section", response);
-        const instanceID = response?.instanceID;
-        const instance = {
-          instanceID: `${instanceID}`,
-          workflowID: `${workflowId}`,
-          connectionID: `${connectionId}`,
-          currentState: `${CURRENT_STATE}`,
-          stateData: { "threadId": `${threadId}` }
-        }
-        await updateWorkflowInstanceByID(`${instanceID}`, instance)
-        await this.acapyService.sendMessage(connectionData.connection_id,workflowId)
-        
-    }
 
   private async handleActiveState(connectionData: any) {
     const alias = connectionData.alias;
@@ -57,19 +36,12 @@ export class ConnectionService {
     }
 
     const studentNumber = this.extractStudentNumber(alias);
-    if (!studentNumber) {
-      console.error('Student number is undefined');
-      await this.acapyService.sendWelcomeMessage(connectionData);
-      return;
-    }
-
     console.log('Extracted studentNumber:', studentNumber);
 
     let attributes: any;
 
     try {
-      const studentIdCred =
-        await this.sisService.getStudentDetails(studentNumber);
+      const studentIdCred = await this.sisService.getStudentId(studentNumber);
       console.log('studentIdCred at ConnectionController', studentIdCred);
 
       if (studentIdCred) {
@@ -84,10 +56,6 @@ export class ConnectionService {
             "attributes": attributes
           }
         }
-/*
-Send 
- */
-        //this.acapyService.sendCredOffer(credentialOfferBody);
       } else {
         console.error(
           'Unable to obtain Student info from Student Information System',
@@ -115,9 +83,9 @@ Send
         console.log("Verfication data from request-sent state", connectionData);
         //Add threadId into workflow instance ID 
         const threadId = connectionData?.thread_id;
-        const response = await getWorkflowInstance(`${connectionId}`, `${WORKFLOW_ID}`)
+        const response = await this.workflowService.getInstanceByID(`${connectionId}`, `${WORKFLOW_ID}`)
         console.log("response from verify section", response);
-        const instanceID = response?.instanceID;
+        const instanceID = response?.instance_id;
         const instance = {
           instanceID: `${instanceID}`,
           workflowID: `${WORKFLOW_ID}`,
@@ -125,7 +93,7 @@ Send
           currentState: `${CURRENT_STATE}`,
           stateData: { "threadId": `${threadId}` }
         }
-        await updateWorkflowInstanceByID(`${instanceID}`, instance)
+        await this.workflowService.updateInstanceByID(connectionId, WORKFLOW_ID, CURRENT_STATE, {threadId: threadId});
         await this.acapyService.sendMessage(connectionData.connection_id,instance.workflowID)
   }
   

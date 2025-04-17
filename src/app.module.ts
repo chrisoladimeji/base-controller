@@ -1,4 +1,4 @@
-import { Module, OnModuleInit } from '@nestjs/common';
+import { Module } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { RouterModule } from '@nestjs/core';
@@ -27,6 +27,7 @@ import { readFileSync } from 'fs';
 import { SvgService } from './svg/svg.service';
 import { SvgModule } from './svg/svg.module';
 import { SisModule } from './sis/sis.module';
+import { WorkflowsModule } from './workflow/workflows/workflows.module';
 
 @Module({
   imports: [
@@ -42,6 +43,10 @@ import { SisModule } from './sis/sis.module';
     EllucianModule,
     BasicMessagesModule,
     WorkflowModule,
+    WorkflowsModule,
+    MetadataModule,
+    SvgModule,
+    SisModule,
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -53,106 +58,59 @@ import { SisModule } from './sis/sis.module';
         password: configService.get<string>('WORKFLOW_DB_PASSWORD'),
         database: configService.get<string>('WORKFLOW_DB_NAME'),
         autoLoadEntities: true,
-        synchronize: true,
+        synchronize: true, // TODO: Disable this in production
       }),
     }),
-    RouterModule.register([
-      {
-        path: 'topic',
-        module: AppModule,
-        children: [
-          {
-            path: 'ping',
-            module: PingModule,
-          },
-          {
-            path: 'connections',
-            module: ConnectionModule,
-          },
-          {
-            path: 'out_of_band',
-            module: OutOfBandModule,
-          },
-          {
-            path: 'issue_credential',
-            module: CredentialModule,
-          },
-          {
-            path: 'present_proof',
-            module: VerificationModule,
-          },
-          {
-            path: 'basicmessages',
-            module: BasicMessagesModule,
-          },
-        ],
-      },
-      {
-        path: 'sis',
-        module: SisModule,
-        children: [
-          {
-            path: '',
-            module: SisModule,
-          },
-        ],        
-      },
-      {
-        path: 'workflow',
-        module: WorkflowModule,
-        children: [
-          {
-            path: '',
-            module: WorkflowModule,
-          },
-        ],
-      },
-    ]),
-    MetadataModule,
-    SvgModule,
-    SisModule,
+    RouterModule.register(
+      [
+        {
+          path: 'topic',
+          module: AppModule,
+          children: [
+            {
+              path: 'ping',
+              module: PingModule,
+            },
+            {
+              path: 'connections',
+              module: ConnectionModule,
+            },
+            {
+              path: 'out_of_band',
+              module: OutOfBandModule,
+            },
+            {
+              path: 'issue_credential',
+              module: CredentialModule,
+            },
+            {
+              path: 'present_proof',
+              module: VerificationModule,
+            },
+            {
+              path: 'basicmessages',
+              module: BasicMessagesModule,
+            },
+          ]
+        },
+        {
+          path: 'sis',
+          module: SisModule,        
+        },
+        {
+          path: 'workflow',
+          module: WorkflowModule,
+        },
+      ],
+    ),
   ],
   providers: [
     AppService,
     EventsGateway,
     PostgresService,
     RedisService,
-    SvgService,
+    SvgService
   ],
   controllers: [AppController],
 })
-export class AppModule implements OnModuleInit {
-  constructor(private configService: ConfigService) {}
-
-  async onModuleInit() {
-    try {
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-      await initDb();
-
-      // Adding delay after initializing the database
-      await new Promise((resolve) => setTimeout(resolve, 3000));
-
-      // Load workflows from the JSON file if exists
-      const workflowsFilePath = path.join(__dirname, '..', 'workflows.json');
-      await loadWorkflowsFromFile(workflowsFilePath);
-
-      // Validate workflows
-      const workflowsFromFile = JSON.parse(
-        readFileSync(workflowsFilePath, 'utf-8'),
-      );
-      const workflowsFromDb = await getWorkflows();
-
-      if (workflowsFromFile.length === workflowsFromDb.length) {
-        console.log(
-          'No.of workflows in workflows.json and No.of workflows in workflow_db table workflows matches! Good ',
-        );
-      } else {
-        console.error(
-          'Error loading workflows: Mismatch in number of workflows.',
-        );
-      }
-    } catch (error) {
-      console.error('Error initializing workflows:', error.message);
-    }
-  }
-}
+export class AppModule {}
