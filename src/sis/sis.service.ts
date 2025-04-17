@@ -37,7 +37,7 @@ export class SisService {
       console.log(`StudentId did not have required fields: ${error}`);
       return null;
     }
-    console.log(`StudentID successfully generated for ${studentNumber}`);
+    console.log(`StudentID successfully fetched for ${studentNumber}`);
     return { studentIdCred: studentId};
   }
 

@@ -10,7 +10,7 @@ import { TranscriptDto } from 'src/dtos/transcript.dto';
 export class SisController {
   constructor(private readonly sisService: SisService) {}
 
-  @Post('load')
+  @Get('load')
   @ApiOperation({summary: 'Batch load the SIS data to initialize credential transfer'})
   @ApiResponse({ status: 200, description: 'The student name' })
   async load(): Promise<void> {
