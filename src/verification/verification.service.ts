@@ -4,7 +4,7 @@ import { ConfigService } from '@nestjs/config';
 import { MetadataService } from '../metadata/metadata.service';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { lastValueFrom, firstValueFrom, map } from 'rxjs';
-import { parse, getWorkflowInstance, updateWorkflowInstanceByID } from '@nas-veridid/workflow-parser';
+import { parse, getWorkflowInstance, updateWorkflowInstanceByID } from '@veridid/workflow-parser';
 
 
 @Injectable()

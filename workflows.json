@@ -4,6 +4,7 @@
     "workflowID": "root-menu",
     "formatVersion": "0.0.1",
     "initialState": "MenuDisplayed",
+    "status": "active",
     "render": [
       {
         "stylesID": "",
@@ -21,7 +22,7 @@
         "displayData": [
           {
             "type": "image",
-            "url": ""
+            "url": "https://cfcc.edu/wp-content/uploads/2019/06/cfcc-logo-rev.png"
           },
           {
             "type": "title",
@@ -171,7 +172,7 @@
         "displayData": [
           {
             "type": "image",
-            "url": "https://cfcc.edu/wp-content/uploads/2019/06/cfcc-logo.png"
+            "url": "https://cfcc.edu/wp-content/uploads/2019/06/cfcc-logo-rev.png"
           },
           {
             "type": "title",
@@ -509,7 +510,7 @@
         "displayData": [
           {
             "type": "image",
-            "url": "https://cfcc.edu/wp-content/uploads/2019/06/cfcc-logo.png"
+            "url": "https://cfcc.edu/wp-content/uploads/2019/06/cfcc-logo-rev.png"
           },
           {
             "type": "title",
@@ -559,7 +560,7 @@
         "displayData": [
           {
             "type": "image",
-            "url": "https://cfcc.edu/wp-content/uploads/2019/06/cfcc-logo.png"
+            "url": "https://cfcc.edu/wp-content/uploads/2019/06/cfcc-logo-rev.png"
           },
           {
             "type": "title",

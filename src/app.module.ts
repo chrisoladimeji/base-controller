@@ -21,7 +21,7 @@ import {
   initDb,
   loadWorkflowsFromFile,
   getWorkflows,
-} from '@nas-veridid/workflow-parser';
+} from '@veridid/workflow-parser';
 import * as path from 'path';
 import { readFileSync } from 'fs';
 import { SvgService } from './svg/svg.service';
