@@ -6,10 +6,11 @@ import { RedisService } from '../../services/redis.service';
 import { CsvLoaderService } from './csvLoader.service';
 
 const sisLoaderService = {
+    //TODO Get service from env
     provide: SisLoaderService,
     // useClass: TestLoaderService
-    // useClass: PdfLoaderService //TODO Get service from env
-    useClass: CsvLoaderService  
+    useClass: PdfLoaderService
+    // useClass: CsvLoaderService
 };
 
 @Module({
