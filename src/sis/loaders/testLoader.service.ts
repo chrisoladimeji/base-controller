@@ -183,8 +183,10 @@ export class TestLoaderService extends SisLoaderService {
                     courseDto.grade = course["grade"];
                     courseDto.creditEarned = course["creditEarned"];
                     courseDto.courseWeight = course["courseWeight"];
-                    if (course["UncRequirement"]) courseDto.flags.push("UNC Minimum Requirement");
-
+                    if (course["UncRequirement"]) {
+                        if (!courseDto.flags) courseDto.flags = [];
+                        courseDto.flags.push("UNC Minimum Requirement");
+                    }
                     termDto.courses.push(courseDto);
                 }
 
