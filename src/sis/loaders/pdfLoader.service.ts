@@ -143,9 +143,9 @@ export class PdfLoaderService extends SisLoaderService {
         const creditTotals: string[] = pdfText.filter(str => str.startsWith("Total"))[0]?.match(/\d+\.\d{3}/g) || [];
         if (creditTotals.length === 4) {
             transcript.earnedCredits = parseFloat(creditTotals[1]);
-            transcript.attemptedCredits = parseFloat(creditTotals[0]);
-            transcript.requiredCredits = parseFloat(creditTotals[2]);
-            transcript.remainingCredits = parseFloat(creditTotals[3]);
+            // transcript.attemptedCredits = parseFloat(creditTotals[0]);
+            // transcript.requiredCredits = parseFloat(creditTotals[2]);
+            // transcript.remainingCredits = parseFloat(creditTotals[3]);
         }
 
         transcript.schoolDistrict = this.stringAfterField(pdfText, "District Name");
