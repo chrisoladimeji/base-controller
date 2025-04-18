@@ -2,11 +2,13 @@ import { IActionExtension, Transition, Instance } from "@veridid/workflow-parser
 import { AcaPyService } from "src/services/acapy.service";
 import { Injectable } from "@nestjs/common";
 import { SisService } from "src/sis/sis.service";
+import { ConfigService } from "@nestjs/config";
 
 @Injectable()
 export class ExtendedAction implements IActionExtension {
 
     constructor(
+      private readonly configService: ConfigService,
       private readonly acapyService: AcaPyService,
       private readonly sisService: SisService
     ) {}
@@ -49,7 +51,7 @@ export class ExtendedAction implements IActionExtension {
         const studentID = this.extractStudentNumber(connectionData?.alias).trim();
         console.log("Student ID=", studentID);
         const studentInfo = await this.sisService.getStudentId(studentID);
-        console.log("studentInfo", studentInfo.rows[0]);
+        console.log("studentInfo", studentInfo);
         // get data for send offer
         const credentialOfferBody = {
           "auto_issue": true,
@@ -60,7 +62,7 @@ export class ExtendedAction implements IActionExtension {
             "attributes": [
               {
                 "name": "First",
-                "value": studentInfo.rows[0].fullName
+                "value": studentInfo.fullName
               },
               {
                 "name": "Last",
@@ -72,11 +74,11 @@ export class ExtendedAction implements IActionExtension {
               },
               {
                 "name": "School",
-                "value": "DigiCred College"
+                "value": this.configService.get("SCHOOL")
               },
               {
                 "name": "StudentID",
-                "value": studentInfo.rows[0].id
+                "value": studentInfo.studentNumber
               },
               {
                 "name": "Expiration",

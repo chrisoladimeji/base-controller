@@ -133,7 +133,6 @@ export class TestLoaderService extends SisLoaderService {
                 console.log(`StudentID photo could not be loaded: ${err}`);
             }
 
-            console.log("Student record=", studentId);
             return studentId;
         }
         return null;

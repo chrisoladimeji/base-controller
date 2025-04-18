@@ -10,7 +10,7 @@ import { TranscriptDto } from 'src/dtos/transcript.dto';
 export class SisController {
   constructor(private readonly sisService: SisService) {}
 
-  @Post('load')
+  @Get('load')
   @ApiOperation({summary: 'Batch load the SIS data to initialize credential transfer'})
   @ApiResponse({ status: 200, description: 'The student name' })
   async load(): Promise<void> {
@@ -28,14 +28,14 @@ export class SisController {
   @ApiQuery({ name: 'studentNumber', required: true, type: String, description: 'The student number' })
   @ApiResponse({ status: 200, description: 'The student name' })
   @ApiResponse({ status: 404, description: 'Student not found' })
-  async getStudentId(@Query('studentNumber') studentNumber: string): Promise<StudentIdDto> {
+  async getStudentId(@Query('studentNumber') studentNumber: string): Promise<any> {
     let studentId;
       try {
           studentId = await this.sisService.getStudentId(studentNumber);
       } catch (error) {
           throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
       }
-    return studentId;
+    return {studentIdCred: studentId};
   }
 
   @Post('student-photo')

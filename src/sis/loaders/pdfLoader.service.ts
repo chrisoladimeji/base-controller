@@ -4,9 +4,11 @@ import { Injectable } from "@nestjs/common";
 import { SisLoaderService } from "./sisLoader.service";
 import { StudentIdDto } from "../../dtos/studentId.dto";
 import { HighSchoolCourseDto, HighSchoolTermDto, HighSchoolTranscriptDto, TranscriptDto } from "../../dtos/transcript.dto";
-import { ConfigService } from "@nestjs/config";
 import * as Zip from 'adm-zip';
-import * as Pdf from 'pdf-parse'
+import * as Pdf from 'pdf-parse';
+import * as fs from 'fs';
+import * as path from "path";
+import { RedisService } from "src/services/redis.service";
 
 @Injectable()
 export class PdfLoaderService extends SisLoaderService {
@@ -14,30 +16,73 @@ export class PdfLoaderService extends SisLoaderService {
     studentIds = {};
     transcripts = {};
 
+    private readonly uploadDir = './uploads' // The docker volume where uploads should go
+
     constructor(
-        private configService: ConfigService
+        private readonly redisService: RedisService
     ) {
         super();
     };
 
     async load(): Promise<void> {
-        console.log("Loading SIS system using PDFLoader");
-        const zipPath = this.configService.get("PDF_ZIP");
+        
+        const files = fs.readdirSync(this.uploadDir);
+        const zipFile = files.find((file) => file.endsWith('.zip'));
 
-        const pdfBuffers = await this.getPdfBuffersFromZip(zipPath);
-        for (const pdfBuffer of pdfBuffers) {
-            let studentId, transcript = await this.parsePdfPender(pdfBuffer);
-            console.log(studentId);
-            console.log(transcript);
+        if (!zipFile) {
+          console.error('No zip file found in the uploads directory');
+          return;
+        }
+        console.log("Loading SIS data from zip file using PDFLoader: ", zipFile)
+    
+        const zipPath = path.join(this.uploadDir, zipFile);
+
+        let zip = new Zip(zipPath);
+        let zipEntries = zip.getEntries();
+
+        let successes = 0;
+        let failures = 0;
+        for (const zipEntry of zipEntries) {
+            if (!zipEntry.entryName.endsWith(".pdf")) {
+                continue;
+            }
+
+            console.log(`Loading PDF: ${zipEntry.entryName}`);
+
+            const pdfBuffer = await zipEntry.getData();
+            let studentId: StudentIdDto;
+            let transcript: TranscriptDto;
+            try {
+                [studentId, transcript] = await this.parsePdfPender(pdfBuffer);
+            }
+            catch (err) {
+                console.error("Error parsing data out of PDF: ", zipEntry.entryName);
+                failures++;
+                continue;
+            }
+            try {
+                this.redisService.set(`${studentId.studentNumber}:studentId`, JSON.stringify(studentId));
+                this.redisService.set(`${studentId.studentNumber}:transcript`, JSON.stringify(transcript));
+                console.log("Saved data for student: ", studentId.studentNumber);
+                successes++
+            }
+            catch (err) {
+                console.error("Error saving data for student: ", studentId.studentNumber);
+                console.error(err);
+                failures++;
+                continue;
+            }
         }
     };
 
     async getStudentId(studentNumber: string): Promise<StudentIdDto> {
-        return null;
+        const studentIdString = JSON.parse(await this.redisService.get(`${studentNumber}:studentId`));
+        return studentIdString;
     }
 
     async getStudentTranscript(studentNumber: string): Promise<TranscriptDto> {
-        return null;
+        const studentIdString = JSON.parse(await this.redisService.get(`${studentNumber}:transcript`));
+        return studentIdString;
     }
 
     async getPdfBuffersFromZip(zipPath) {
@@ -46,11 +91,11 @@ export class PdfLoaderService extends SisLoaderService {
         let zip = new Zip(zipPath);
         let zipEntries = zip.getEntries();
 
-        let pdfBuffers = [];
+        let pdfBuffers: Promise<Buffer>[] = [];
         for (const zipEntry of zipEntries) {
             if (zipEntry.entryName.endsWith(".pdf")) {
                 console.log(`Loading PDF: ${zipEntry.entryName}`);
-                pdfBuffers.push(await zipEntry.getData());
+                pdfBuffers.push(zipEntry.getData());
             }
         };
 
