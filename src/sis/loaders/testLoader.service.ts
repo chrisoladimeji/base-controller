@@ -11,7 +11,7 @@ export class TestLoaderService extends SisLoaderService {
     exampleStudent = {
         studentNumber: "0023",
         studentFullName: "Michael Jordan",
-        fullName: "Michael Jordan Full",
+        fullName: "Michael Jordan",
         studentBirthDate: "01/01/2000",
         studentPhone: "(555)-555-5555",
         studentEmail: "mj@digicred.com",
@@ -183,11 +183,11 @@ export class TestLoaderService extends SisLoaderService {
                     courseDto.grade = course["grade"];
                     courseDto.creditEarned = course["creditEarned"];
                     courseDto.courseWeight = course["courseWeight"];
+                    courseDto.flags = [];
                     if (course["UncRequirement"]) courseDto.flags.push("UNC Minimum Requirement");
 
                     termDto.courses.push(courseDto);
                 }
-
                 transcript.terms.push(termDto);
             }
             return transcript;
