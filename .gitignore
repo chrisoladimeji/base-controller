@@ -93,6 +93,9 @@ out
 .nuxt
 dist
 
+# Upload files that are being provided by High Schools
+uploads
+
 # Gatsby files
 .cache/
 # Comment in the public line in if your project uses Gatsby and not Next.js

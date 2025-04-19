@@ -12,12 +12,13 @@ export class TranscriptDto {
     studentPhone: string;
     studentEmail: string;
     studentAddress: string;
+    studentSex: string;
     studentSsn: string;
+    studentContacts: string;
 
     gradeLevel: string;
     graduationDate: string;
     program: string;
-
 
     // School Information
     schoolName: string;
@@ -37,19 +38,33 @@ export class TranscriptDto {
 
 export class HighSchoolTranscriptDto extends TranscriptDto {
 
+    studentStateId: string;
+
     // Grade and Credit Information
     gpaUnweighted: number;
+    totalPoints: string;
+    totalPointsUnweighted: string;
     classRank: string;
-
-    attemptedCredits: number;
-    requiredCredits: number;
-    remainingCredits: number;
 
     // High School Information
     schoolDistrict: string;
+    schoolDistrictPhone: string;
     schoolAccreditation: string;
     schoolCeebCode: string;
     schoolPrincipal: string;
+    schoolPrincipalPhone: string;
+
+    endorsements: string;
+    mathRigor: string;
+
+    cirriculumProgram: string;
+    reqirementsRemaining: string;
+    workExperience: string;
+    achievements: string;
+
+    tests: TestDto[];
+    creditSummary: CreditRequirementDto[];
+    ctePrograms: CteProgramDto[];
 }
 
 export class CollegeTranscriptDto extends TranscriptDto {
@@ -84,6 +99,8 @@ export class CourseDto {
     grade: string; // Also displayed as "Mark" on some transcripts
 
     creditEarned: number;
+    gradePoints: string;
+
     transfer: boolean;
     inProgress: boolean;
     flags: string[];
@@ -91,6 +108,7 @@ export class CourseDto {
 
 export class HighSchoolCourseDto extends CourseDto {
     courseWeight: number;
+    gradePointsUnweighted: string;
 }
 
 export class CollegeCourseDto extends CourseDto {
@@ -98,4 +116,23 @@ export class CollegeCourseDto extends CourseDto {
     hoursEarned: number;
 
     repeat: boolean;
+}
+
+export class TestDto {
+    testTitle: string;
+    testScore: string;
+    testDate: string;
+}
+
+export class CreditRequirementDto {
+    creditSubject: string;
+    creditAttempted: string;
+    creditEarned: string;
+    creditRequired: string;
+    creditRemaining: string;
+}
+
+export class CteProgramDto {
+    programTitle: string;
+    studentStatus: string;
 }
