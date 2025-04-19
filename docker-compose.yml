@@ -29,23 +29,23 @@ services:
     volumes:
       - redis-data:/data
 
-  # node:
-  #   build: 
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   container_name: crms-controller-app
-  #   ports:
-  #     - "3000:3000"
-  #   working_dir: /usr/src/app
-  #   command: yarn run start
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     - DATABASE_URL=postgres://${WORKFLOW_DB_USER}:${WORKFLOW_DB_PASSWORD}@postgres:5432/${WORKFLOW_DB_NAME}
-  #     - REDIS_HOST=redis
-  #   depends_on:
-  #     - postgres
-  #     - redis
+  node:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: crms-controller-app
+    ports:
+      - "3000:3000"
+    working_dir: /usr/src/app
+    command: yarn run start
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgres://${WORKFLOW_DB_USER}:${WORKFLOW_DB_PASSWORD}@postgres:5432/${WORKFLOW_DB_NAME}
+      - REDIS_HOST=redis
+    depends_on:
+      - postgres
+      - redis
 
 volumes:
   postgres-data:
