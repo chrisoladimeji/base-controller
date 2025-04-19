@@ -18,6 +18,11 @@ services:
       - ./pg_hba.conf:/etc/postgresql/pg_hba.conf
     command: ["postgres", "-c", "config_file=/etc/postgresql/postgresql.conf",
                 "-c", "hba_file=/etc/postgresql/pg_hba.conf",]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${WORKFLOW_DB_USER} -d ${WORKFLOW_DB_NAME}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
   redis:
     image: redis:alpine
@@ -28,25 +33,35 @@ services:
       - .env
     volumes:
       - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
 
-  # node:
-  #   build: 
-  #     context: .
-  #     dockerfile: Dockerfile
-  #   container_name: crms-controller-app
-  #   ports:
-  #     - "3000:3000"
-  #   working_dir: /usr/src/app
-  #   command: yarn run start
-  #   env_file:
-  #     - .env
-  #   environment:
-  #     - DATABASE_URL=postgres://${WORKFLOW_DB_USER}:${WORKFLOW_DB_PASSWORD}@postgres:5432/${WORKFLOW_DB_NAME}
-  #     - REDIS_HOST=redis
-  #   depends_on:
-  #     - postgres
-  #     - redis
+  node:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: crms-controller-app
+    ports:
+      - "3000:3000"
+    working_dir: /usr/src/app
+    env_file:
+      - .env
+    environment:
+      - NODE_ENV=production
+      - REDIS_HOST=redis
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    restart: on-failure
+    volumes:
+      - sis-upload-data:/usr/src/app/uploads
 
 volumes:
   postgres-data:
   redis-data:
+  sis-upload-data:
