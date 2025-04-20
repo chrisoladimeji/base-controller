@@ -1,13 +1,12 @@
 import { Injectable } from "@nestjs/common";
 import { SisLoaderService } from "./sisLoader.service";
-import { RedisService } from "src/services/redis.service";
-import { TranscriptDto } from "src/dtos/transcript.dto";
-import { StudentIdDto } from "src/dtos/studentId.dto";
+import { RedisService } from "../../services/redis.service";
+import { TranscriptDto } from "../../dtos/transcript.dto";
+import { StudentIdDto } from "../../dtos/studentId.dto";
 import * as path from "path";
 import * as fs from "fs";
 import * as csv from "csv-parser";
 import { validate } from "class-validator";
-import { isNull } from "util";
 
 @Injectable()
 export class CsvLoaderService extends SisLoaderService {
