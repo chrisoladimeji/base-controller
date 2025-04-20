@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { EventsGateway } from '../events/events.gateway';
 import { SisService } from '../sis/sis.service';
 import { AcaPyService } from '../services/acapy.service';
+
 import { WorkflowService } from '../workflow/workflow.service';
 
 @Injectable()

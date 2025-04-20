@@ -1,10 +1,13 @@
 // src/workflow/workflow.controller.ts
-import { Controller, Post, Body} from '@nestjs/common';
-import { ApiTags, ApiResponse,ApiBody } from '@nestjs/swagger';
+import { Controller, Post, Body, Get, HttpStatus, Put} from '@nestjs/common';
+import { ApiTags, ApiResponse,ApiBody, ApiCreatedResponse } from '@nestjs/swagger';
+import { WorkflowsService } from "./workflows/workflows.service";
 
 @ApiTags('Workflow')
 @Controller()
 export class WorkflowController {
+constructor(private readonly workflowsService:WorkflowsService){};
+
   @Post('parse')
   @ApiBody({
     schema: {
@@ -55,5 +58,44 @@ export class WorkflowController {
       return { success: false, error: error.message };
     }
  */
+  }
+  @Get('get-workflows')
+  @ApiResponse({status:HttpStatus.OK,description:"Traction workflows"})
+  async getWorkflows() {
+    let workflows;
+    try{
+      workflows = await this.workflowsService.getWorkflows();
+      return workflows;
+    } catch(error){
+      console.error('Error getting workflows:', error.message);
+      return {success:false, error:error.message };
+    }
+  }
+
+  @Post('set-workflow')
+  @ApiBody({required: true, description: "Array of JSON objects" })
+  @ApiCreatedResponse()
+  async setWorkflow(@Body() workflow) {
+    try{
+      await this.workflowsService.save(workflow);
+      return {success:true, message:"Workflows added successfully"};
+    } catch(error){
+      console.error('Error adding workflows:', error.message);
+      return {success:false, error:error.message };
+    }
+  }
+
+  @Put('update-workflow')
+  @ApiBody({ required: true, description: "Array of JSON objects" })
+  @ApiCreatedResponse()
+  async updateWorkflow(@Body() workflow) {
+    try{
+      await this.workflowsService.updateWorkflow(workflow);
+      return {success:true, message:"Workflows updated successfully"};
+
+    } catch(error){
+      console.error('Error adding workflows:', error.message);
+      return {success:false, error:error.message };
+    }
   }
 }

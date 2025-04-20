@@ -17,6 +17,8 @@ import { BasicMessagesModule } from './basicmessages/basicmessages.module';
 import { WorkflowModule } from './workflow/workflow.module';
 import { PostgresService } from './services/postgres.service';
 import { RedisService } from './services/redis.service';
+import * as path from 'path';
+import { readFileSync } from 'fs';
 import { SvgService } from './svg/svg.service';
 import { SvgModule } from './svg/svg.module';
 import { SisModule } from './sis/sis.module';
