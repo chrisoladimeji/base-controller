@@ -1,9 +1,7 @@
 // src/workflow/workflow.controller.ts
-import { Controller, Post, Body, Get, HttpStatus} from '@nestjs/common';
+import { Controller, Post, Body, Get, HttpStatus, Put} from '@nestjs/common';
 import { ApiTags, ApiResponse,ApiBody, ApiCreatedResponse } from '@nestjs/swagger';
 import { WorkflowsService } from "./workflows/workflows.service";
-import { Workflows } from './workflows/workflows.entity';
-// import { getWorkflows,loadWorkflowsFromJson,updateWorkflowByID } from '@veridid/workflow-parser'
 
 @ApiTags('Workflow')
 @Controller()
@@ -87,7 +85,7 @@ constructor(private readonly workflowsService:WorkflowsService){};
     }
   }
 
-  @Post('update-workflow')
+  @Put('update-workflow')
   @ApiBody({ schema: { type: 'array', items: { type: 'object'} }, required: true, description: "Array of JSON objects" })
   @ApiCreatedResponse()
   async updateWorkflow(@Body() workflow) {
