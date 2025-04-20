@@ -62,7 +62,7 @@ export class ExtendedAction implements IActionExtension {
             "attributes": [
               {
                 "name": "First",
-                "value": studentInfo.fullName
+                "value": studentInfo.studentFullName,
               },
               {
                 "name": "Last",

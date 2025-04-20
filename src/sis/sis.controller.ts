@@ -30,12 +30,16 @@ export class SisController {
   @ApiResponse({ status: 404, description: 'Student not found' })
   async getStudentId(@Query('studentNumber') studentNumber: string): Promise<any> {
     let studentId;
-      try {
-          studentId = await this.sisService.getStudentId(studentNumber);
-      } catch (error) {
-          throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
-      }
-    return {studentIdCred: studentId};
+    try {
+        studentId = await this.sisService.getStudentId(studentNumber);
+    } catch (error) {
+        throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    let response = {studentIdCred: studentId};
+    response["studentIdCred"]["fullName"] = studentId.studentFullName;
+    
+    return response;
   }
 
   @Post('student-photo')

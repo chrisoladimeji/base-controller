@@ -110,7 +110,6 @@ export class TestLoaderService extends SisLoaderService {
             let studentId = {
                 studentNumber: this.exampleStudent["studentNumber"],
                 studentFullName: this.exampleStudent["studentFullName"],
-                fullName: this.exampleStudent["fullName"],
                 schoolName: this.exampleStudent["schoolName"],
                 studentBirthDate: this.exampleStudent["studentBirthDate"],
                 studentPhone: this.exampleStudent["studentPhone"],

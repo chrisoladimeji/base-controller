@@ -116,7 +116,7 @@ export class CsvLoaderService extends SisLoaderService {
     parseStudentId(data: any): StudentIdDto {
         let studentId = new StudentIdDto();
         studentId.studentNumber = data["Student_Number"] ?? null;
-        studentId.fullName = `${data["First_Name"]??""} ${data["Last_Name"]??""}`;
+        studentId.studentFullName = `${data["First_Name"]??""} ${data["Last_Name"]??""}`;
         studentId.schoolName = this.schoolCodes[data["SchoolID"] ?? null] ?? null;
         studentId.graduationDate = data["StudentCoreFields.graduation_year"] ?? null;
         return studentId;
