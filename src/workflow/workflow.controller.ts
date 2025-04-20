@@ -73,7 +73,7 @@ constructor(private readonly workflowsService:WorkflowsService){};
   }
 
   @Post('set-workflow')
-  @ApiBody({ schema: { type: 'array', items: { type: 'object'} }, required: true, description: "Array of JSON objects" })
+  @ApiBody({required: true, description: "Array of JSON objects" })
   @ApiCreatedResponse()
   async setWorkflow(@Body() workflow) {
     try{
@@ -86,7 +86,7 @@ constructor(private readonly workflowsService:WorkflowsService){};
   }
 
   @Put('update-workflow')
-  @ApiBody({ schema: { type: 'array', items: { type: 'object'} }, required: true, description: "Array of JSON objects" })
+  @ApiBody({ required: true, description: "Array of JSON objects" })
   @ApiCreatedResponse()
   async updateWorkflow(@Body() workflow) {
     try{

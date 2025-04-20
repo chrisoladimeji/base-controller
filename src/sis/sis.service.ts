@@ -20,7 +20,7 @@ export class SisService {
     console.log("Loading SIS data finished");
   }
 
-  async getStudentId(studentNumber: string): Promise<any> {
+  async getStudentId(studentNumber: string): Promise<StudentIdDto> {
     console.log(`Getting StudentId for student: ${studentNumber}`);
     let studentId = await this.loaderService.getStudentId(studentNumber);
 
@@ -38,7 +38,7 @@ export class SisService {
       return null;
     }
     console.log(`StudentID successfully generated for ${studentNumber}`);
-    return { studentIdCred: studentId};
+    return studentId;
   }
 
   async getStudentTranscript(studentNumber: string): Promise<TranscriptDto> {
