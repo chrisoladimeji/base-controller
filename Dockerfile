@@ -40,8 +40,9 @@ ENV NODE_ENV production
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nodejs
 
-# Copy production dependencies
-COPY --from=deps /usr/src/app/package*.json ./
+# Copy production dependencies and lock file
+COPY --from=deps /usr/src/app/package.json /usr/src/app/yarn.lock* /usr/src/app/package-lock.json* /usr/src/app/pnpm-lock.yaml* ./
+
 RUN \
   if [ -f yarn.lock ]; then yarn install --production --frozen-lockfile; \
   elif [ -f package-lock.json ]; then npm ci --only=production; \
