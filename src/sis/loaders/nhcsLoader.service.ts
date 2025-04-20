@@ -101,7 +101,8 @@ export class NhcsLoaderService extends SisLoaderService {
         let courseText = this.filterCourseText(pdfText);
         const courseBlocks = this.splitCourses(courseText);
         const courses: HighSchoolCourseDto[] = courseBlocks.map(block => this.parseCourse(block));
-        console.log(courseBlocks.length);
+        // console.log(courseBlocks);
+        console.log(courses);
 
         transcript.transcriptDate = pdfText.filter(str => /^\d{2}\/\d{2}\/\d{4}$/.test(str))[0] ?? null;
         //transcript.transcriptComments = pdfText.slice(pdfText.indexOf("Comments"), pdfText.length - 1).join(" ");
@@ -199,9 +200,82 @@ export class NhcsLoaderService extends SisLoaderService {
 
     parseCourse(courseBlock: string[]): HighSchoolCourseDto {
         let course = new HighSchoolCourseDto();
+        let workingString = courseBlock.join(' ').replace(/\s+/g, ' ').trim();
 
-        
+        // Match the course code: 7 characters (including letters, digits), skipping leading number if present
+        const courseCodeMatch = workingString.match(/^(([A-Z0-9]\s*){7})\s+.+/);
+        course.courseCode = courseCodeMatch ? courseCodeMatch[1].replace(/\s/, "") : null;
+
+        // Remove course code from remaining parse
+        if (courseCodeMatch) workingString = workingString.replace(courseCodeMatch[1], "").trim();
+
+        // Extract credit/grade at the end of the string (numbers, decimals, and optional flags)
+        const creditLine = this.extractCreditValues(course, workingString);
+
+        // Remove credit line from remaining parse, and we should only have the title
+        course.courseTitle = workingString.replace(creditLine, '').trim();
 
         return course;
+    }
+
+    extractCreditValues(course: HighSchoolCourseDto, courseString: string): string {
+        const tokens: string[] = courseString.trim().split(/\s+/);
+        let creditTokens: string[] = [];
+        let hasFlags: boolean = false;
+
+        // Work backwards from the end of the string searching for numeric values: 96, 1.000
+        // The last token in the string can also be flags: EU, U
+        for (let i = tokens.length - 1; i >= 0; i--) {
+            if (i === tokens.length - 1 && /[A-Z]+/.test(tokens[i])) {
+                creditTokens.unshift(tokens[i]);
+                course.flags = tokens[i].split("");
+                hasFlags = true;
+            }
+            else if (/[\d\.]/.test(tokens[i])) {
+                creditTokens.unshift(tokens[i]);
+            }
+            else {
+                break;
+            }
+        }
+
+        // Some courses end in a number "NC Math 1"
+        // GPA courses have 4 fields and optional flags
+        // Non-GPA courses have 2 fields and optional flags
+        // Therefore: flagged courses are either 3 or 5 values and non-flagged courses are either 2 or 4 values
+        // So we need to remove the first element if we have too many
+        if (hasFlags) {
+            if (creditTokens.length === 4 || creditTokens.length === 6) creditTokens.shift();
+            
+            if (creditTokens.length === 3) {
+                course.grade = creditTokens[0];
+                course.creditEarned = creditTokens[1];
+                course.flags = creditTokens[2].split("");
+            }
+            else if (creditTokens.length === 5) {
+                course.grade = creditTokens[0];
+                course.gradePoints = creditTokens[1];
+                course.gradePointsUnweighted = creditTokens[2];
+                course.creditEarned = creditTokens[3];
+                course.flags = creditTokens[4].split("");
+            }
+        }
+        else {
+            if (creditTokens.length === 3 || creditTokens.length === 5) creditTokens.shift();
+
+            if (creditTokens.length === 2) {
+                course.grade = creditTokens[0];
+                course.creditEarned = creditTokens[1];
+            }
+            else if (creditTokens.length === 4) {
+                course.grade = creditTokens[0];
+                course.gradePoints = creditTokens[1];
+                course.gradePointsUnweighted = creditTokens[2];
+                course.creditEarned = creditTokens[3];
+            }
+        }
+
+        // Return the raw course string so that we can remove it from the workingString
+        return courseString.slice(courseString.indexOf(creditTokens[0]));
     }
 }
