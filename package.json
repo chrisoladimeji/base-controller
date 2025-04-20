@@ -1,6 +1,7 @@
 {
   "name": "digicred-aca-py-controller",
   "version": "0.0.4",
+  "type": "module",
   "description": "A backend data API for a Credential Management System (CrMS)",
   "authors": [
     "Nas Til",
@@ -48,6 +49,7 @@
     "jwt-decode": "^4.0.0",
     "path": "^0.12.7",
     "pdf-parse": "^1.1.1",
+    "pdf2json": "^3.1.5",
     "pdfkit": "^0.16.0",
     "pg": "^8.11.5",
     "reflect-metadata": "^0.1.13",

@@ -1,14 +1,17 @@
 import { Injectable } from "@nestjs/common";
 import { SisLoaderService } from "./sisLoader.service";
 import { RedisService } from "../../services/redis.service";
-import { HighSchoolCourseDto, HighSchoolTranscriptDto, TranscriptDto } from "../../dtos/transcript.dto";
+import { HighSchoolCourseDto, HighSchoolTermDto, HighSchoolTranscriptDto, TranscriptDto } from "../../dtos/transcript.dto";
 import { StudentIdDto } from "../../dtos/studentId.dto";
+import { CsvLoaderService } from "./csvLoader.service";
+import { PdfLoaderService } from "./pdfLoader.service";
 import * as path from "path";
 import * as Pdf from 'pdf-parse';
 import * as fs from "fs";
 import * as Zip from 'adm-zip';
-import { CsvLoaderService } from "./csvLoader.service";
-import { PdfLoaderService } from "./pdfLoader.service";
+
+process.env.PDF2JSON_DISABLE_LOGS = '1';
+const PDFParser = require('pdf2json');
 
 @Injectable()
 export class NhcsLoaderService extends SisLoaderService {
@@ -57,11 +60,11 @@ export class NhcsLoaderService extends SisLoaderService {
             }
             catch (err) {
                 console.error("Error parsing data out of PDF: ", zipEntry.entryName);
+                console.error(err);
                 failures++;
                 continue;
             }
             try {
-                this.redisService.set(`${transcript.studentNumber}:studentId`, JSON.stringify(transcript));
                 this.redisService.set(`${transcript.studentNumber}:transcript`, JSON.stringify(transcript));
                 console.log("Saved data for student: ", transcript.studentNumber);
                 successes++;
@@ -88,21 +91,26 @@ export class NhcsLoaderService extends SisLoaderService {
 
     async parsePdfNhcs(pdfBuffer: Buffer): Promise<HighSchoolTranscriptDto> {
         let transcript = new HighSchoolTranscriptDto();
+      
+        // TODO: parse the grouped text into transcript data
+        // transcript.terms = groupByYCoordinate(allTextItems);
+        
         let pdfParser = await Pdf(pdfBuffer);
         const pdfText = pdfParser.text.split("\n")
             .map(str => str.trim())
             .filter(str => str);
 
-        console.log(pdfText);
-
-        // const termBlocks: string[][] = this.splitByTerms(pdfText);
-        // transcript.terms = termBlocks.map(this.parseTerm.bind(this));
+        // console.log(pdfText);
 
         let courseText = this.filterCourseText(pdfText);
         const courseBlocks = this.splitCourses(courseText);
         const courses: HighSchoolCourseDto[] = courseBlocks.map(block => this.parseCourse(block));
-        // console.log(courseBlocks);
-        console.log(courses);
+
+        transcript.terms = this.parseTerms(pdfText);
+        console.log(transcript.terms);
+
+        const positionalData = await this.parsePositionalData(pdfBuffer);
+        // console.log(positionalData);
 
         transcript.transcriptDate = pdfText.filter(str => /^\d{2}\/\d{2}\/\d{4}$/.test(str))[0] ?? null;
         //transcript.transcriptComments = pdfText.slice(pdfText.indexOf("Comments"), pdfText.length - 1).join(" ");
@@ -149,6 +157,60 @@ export class NhcsLoaderService extends SisLoaderService {
         return transcript;
     }
 
+    parseTerms(pdfText: string[]): HighSchoolTermDto[] {
+        let terms = [];
+        let foundAllTerms: boolean = false;
+        let termIndex = 0;
+        while (!foundAllTerms) {
+            let term = new HighSchoolTermDto();
+            const termInfo = this.pdfLoaderService.stringAfterField(pdfText, "Grade", termIndex);
+            if (termInfo) {
+                term.termYear = termInfo.slice(-7);
+                term.termGradeLevel = termInfo.replace(term.termYear, "");
+                terms.push(term);
+            }
+            else {
+                break;
+            }
+            termIndex++;
+        }
+        return terms;
+    }
+
+    async parsePositionalData(pdfBuffer: Buffer): Promise<any> {
+        const parser = new PDFParser();
+
+        if (parser?.pdf2json?.p2jwarn) {
+            parser.pdf2json.p2jwarn = () => {};
+        }
+
+        return new Promise((resolve) => {
+            parser.on("pdfParser_dataReady", (pdfData) => {
+                const textItems = [];
+
+                const pages = pdfData?.Pages || [];
+
+                pages.forEach((page, pageIndex) => {
+                    const gradeLevelFilter = page.Texts.filter(textObj => decodeURIComponent(textObj.R[0].T) === "Grade:");
+
+                    gradeLevelFilter.forEach(textObj => {
+                        const text = decodeURIComponent(textObj.R[0].T);
+                        textItems.push({
+                            text,
+                            x: textObj.x,
+                            y: textObj.y,
+                            page: pageIndex + 1,
+                        });
+                    });
+                });
+
+                resolve(textItems);
+            });
+
+            parser.parseBuffer(pdfBuffer);
+        });
+    }
+
     filterCourseText(lines: string[]): string[] {
         let courseLines: string[] = [];
         const startKey = "Flags";
@@ -182,12 +244,10 @@ export class NhcsLoaderService extends SisLoaderService {
     
         for (const line of lines) {
             const courseStart: boolean = courseStartRegex.test(line);
-    
             if (courseStart && currentCourse.length > 0) {
                 courses.push(currentCourse);
                 currentCourse = [];
             }
-    
             currentCourse.push(line);
         }
     
