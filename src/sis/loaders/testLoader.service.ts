@@ -11,7 +11,7 @@ export class TestLoaderService extends SisLoaderService {
     exampleStudent = {
         studentNumber: "0023",
         studentFullName: "Michael Jordan",
-        fullName: "Michael Jordan Full",
+        fullName: "Michael Jordan",
         studentBirthDate: "01/01/2000",
         studentPhone: "(555)-555-5555",
         studentEmail: "mj@digicred.com",
@@ -97,7 +97,7 @@ export class TestLoaderService extends SisLoaderService {
 
     }
 
-    photoURL = "test/sis/sample-id-photo.png";
+    photoURL = "../../../test/sis/sample-id-photo.png";
 
     constructor() {
         super();
@@ -188,7 +188,6 @@ export class TestLoaderService extends SisLoaderService {
                     }
                     termDto.courses.push(courseDto);
                 }
-
                 transcript.terms.push(termDto);
             }
             return transcript;

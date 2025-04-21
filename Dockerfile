@@ -1,34 +1,64 @@
-# Use official Node.js image
-FROM node:lts-slim AS builder
+# syntax=docker.io/docker/dockerfile:1
 
-# Set the working directory
+# 1. Base image
+FROM node:18-alpine AS base
 WORKDIR /usr/src/app
 
-# Copy package.json and yarn.lock
-COPY package*.json ./
+# 2. Install dependencies
+FROM base AS deps
+# Install OS dependencies required for node-gyp, etc.
+RUN apk add --no-cache libc6-compat python3 make g++
+# Install dependencies based on the preferred package manager
+COPY package.json yarn.lock* package-lock.json* pnpm-lock.yaml* ./
+RUN \
+  if [ -f yarn.lock ]; then yarn install --frozen-lockfile; \
+  elif [ -f package-lock.json ]; then npm ci; \
+  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --frozen-lockfile; \
+  else echo "Lockfile not found." && exit 1; \
+  fi
 
-# Install dependencies
-RUN yarn install
-
-# Copy the rest of the application
+# 3. Build the application
+FROM base AS builder
+WORKDIR /usr/src/app
+COPY --from=deps /usr/src/app/node_modules ./node_modules
 COPY . .
+# Build based on the preferred package manager
+RUN \
+  if [ -f yarn.lock ]; then yarn run build; \
+  elif [ -f package-lock.json ]; then npm run build; \
+  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm run build; \
+  else echo "Lockfile not found." && exit 1; \
+  fi
 
-# Build the application
-RUN yarn run build
-
-# Use a smaller base image for the final production build
-FROM node:lts-slim AS production
-
-# Set the working directory
+# 4. Production image
+FROM base AS runner
 WORKDIR /usr/src/app
 
-# Copy only the production dependencies and compiled app from the builder stage
-COPY --from=builder /usr/src/app/package*.json ./
-RUN yarn install --only=production
-COPY --from=builder /usr/src/app/dist ./dist
+ENV NODE_ENV production
+
+# Create non-root user
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nodejs
+
+# Copy production dependencies and lock file
+COPY --from=deps /usr/src/app/package.json /usr/src/app/yarn.lock* /usr/src/app/package-lock.json* /usr/src/app/pnpm-lock.yaml* ./
+
+RUN \
+  if [ -f yarn.lock ]; then yarn install --production --frozen-lockfile; \
+  elif [ -f package-lock.json ]; then npm ci --only=production; \
+  elif [ -f pnpm-lock.yaml ]; then corepack enable pnpm && pnpm i --prod --frozen-lockfile; \
+  else echo "Lockfile not found." && exit 1; \
+  fi
+
+# Copy compiled application code
+COPY --from=builder --chown=nodejs:nodejs /usr/src/app/dist ./dist
+
+# Set user
+USER nodejs
 
 # Expose the port the app runs on
 EXPOSE 3000
-
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 # Start the NestJS app
 CMD ["node", "dist/main"]
