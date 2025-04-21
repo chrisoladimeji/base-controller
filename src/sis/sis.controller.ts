@@ -35,6 +35,10 @@ export class SisController {
       } catch (error) {
           throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
       }
+      // Traction expects to see fullName
+      if(studentId.fullName==undefined)
+        studentId.fullName = studentId.studentFullName;
+
     return {studentIdCred: studentId};
   }
 

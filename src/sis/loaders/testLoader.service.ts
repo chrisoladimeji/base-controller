@@ -97,7 +97,7 @@ export class TestLoaderService extends SisLoaderService {
 
     }
 
-    photoURL = "test/sis/sample-id-photo.png";
+    photoURL = "../../../test/sis/sample-id-photo.png";
 
     constructor() {
         super();

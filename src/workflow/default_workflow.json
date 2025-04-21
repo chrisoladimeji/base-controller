@@ -261,13 +261,13 @@
               "action_id": "studentTranscriptButtonNHCS",
               "type": "issuecredential-Transcript",
               "condition": "true",
-              "value": {"type": "transcript", "cred_def": "64zTt4edLTprWQTUkrYhZJ:3:CL:1475:NHCS Transcript" }
+              "value": {"type": "transcript", "cred_def": "64zTt4edLTprWQTUkrYhZJ:3:CL:1518:NHCS Transcript" }
             },
             {
               "action_id": "studentTranscriptButtonPCS",
               "type": "issuecredential-Transcript",
               "condition": "true",
-              "value": {"type": "transcript", "cred_def": "64zTt4edLTprWQTUkrYhZJ:3:CL:1475:PCS Transcript" }
+              "value": {"type": "transcript", "cred_def": "64zTt4edLTprWQTUkrYhZJ:3:CL:1518:PCS Transcript" }
             }
         ],
         "transitions": [

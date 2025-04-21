@@ -8,7 +8,7 @@ import { CsvLoaderService } from './csvLoader.service';
 const sisLoaderService = {
     //TODO Get service from env
     provide: SisLoaderService,
-    // useClass: TestLoaderService
+    //useClass: TestLoaderService
     useClass: PdfLoaderService
     // useClass: CsvLoaderService
 };
