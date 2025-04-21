@@ -1,7 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import { SisLoaderService } from './loaders/sisLoader.service';
 import { ConfigService } from '@nestjs/config';
-import { HighSchoolTranscriptDto, TranscriptDto } from '../dtos/transcript.dto';
+import { TranscriptDto } from '../dtos/transcript.dto';
 import { StudentIdDto } from '../dtos/studentId.dto';
 import { validate } from 'class-validator';
 
