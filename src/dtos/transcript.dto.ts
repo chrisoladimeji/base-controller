@@ -29,8 +29,8 @@ export class TranscriptDto {
     schoolGradeLevels: string;
 
     // Grade information
-    gpa: number; // Weighted GPA for High Schools
-    earnedCredits: number;
+    gpa: string; // Weighted GPA for High Schools
+    earnedCredits: string;
 
     // Term Information
     terms: TermDto[] | string;
@@ -41,7 +41,7 @@ export class HighSchoolTranscriptDto extends TranscriptDto {
     studentStateId: string;
 
     // Grade and Credit Information
-    gpaUnweighted: number;
+    gpaUnweighted: string;
     totalPoints: string;
     totalPointsUnweighted: string;
     classRank: string;
@@ -62,9 +62,9 @@ export class HighSchoolTranscriptDto extends TranscriptDto {
     workExperience: string;
     achievements: string;
 
-    tests: TestDto[];
-    creditSummary: CreditRequirementDto[];
-    ctePrograms: CteProgramDto[];
+    tests: TestDto[] | string;
+    creditSummary: CreditRequirementDto[] | string;
+    ctePrograms: CteProgramDto[] | string;
 }
 
 export class CollegeTranscriptDto extends TranscriptDto {
@@ -78,13 +78,13 @@ export class TermDto {
     termSchoolName: string;
 
     // Course Information
-    courses: CourseDto[];
+    courses: CourseDto[] | string;
 }
 
 export class HighSchoolTermDto extends TermDto {
-    termCredit: number;
-    termGpa: number;
-    termUnweightedGpa: number;
+    termCredit: string;
+    termGpa: string;
+    termUnweightedGpa: string;
 }
 
 export class CollegeTermDto extends TermDto {
@@ -98,7 +98,7 @@ export class CourseDto {
 
     grade: string; // Also displayed as "Mark" on some transcripts
 
-    creditEarned: number;
+    creditEarned: string;
     gradePoints: string;
 
     transfer: boolean;
@@ -107,13 +107,13 @@ export class CourseDto {
 }
 
 export class HighSchoolCourseDto extends CourseDto {
-    courseWeight: number;
+    courseWeight: string;
     gradePointsUnweighted: string;
 }
 
 export class CollegeCourseDto extends CourseDto {
-    hoursPossible: number;
-    hoursEarned: number;
+    hoursPossible: string;
+    hoursEarned: string;
 
     repeat: boolean;
 }

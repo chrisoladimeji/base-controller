@@ -8,7 +8,7 @@ import * as Zip from 'adm-zip';
 import * as Pdf from 'pdf-parse';
 import * as fs from 'fs';
 import * as path from "path";
-import { RedisService } from "src/services/redis.service";
+import { RedisService } from "../../services/redis.service";
 
 @Injectable()
 export class PdfLoaderService extends SisLoaderService {
@@ -136,13 +136,13 @@ export class PdfLoaderService extends SisLoaderService {
         transcript.schoolAddress = pdfText[7];
         transcript.schoolFax = this.stringAfterField(pdfText, "Fax");
         transcript.schoolCode = this.stringAfterField(pdfText, "School Code");
-        transcript.gpa = parseFloat(this.stringAfterField(pdfText, "Cumulative GPA").match(/[\d\.]+/)[0]);
-        transcript.gpaUnweighted = parseFloat(this.stringAfterField(pdfText, "Cumulative GPA", 1).match(/[\d\.]+/)[0]);
+        transcript.gpa = this.stringAfterField(pdfText, "Cumulative GPA").match(/[\d\.]+/)[0];
+        transcript.gpaUnweighted = this.stringAfterField(pdfText, "Cumulative GPA", 1).match(/[\d\.]+/)[0];
         transcript.classRank = this.stringAfterField(pdfText, "Class Rank");
 
         const creditTotals: string[] = pdfText.filter(str => str.startsWith("Total"))[0]?.match(/\d+\.\d{3}/g) || [];
         if (creditTotals.length === 4) {
-            transcript.earnedCredits = parseFloat(creditTotals[1]);
+            transcript.earnedCredits = creditTotals[1];
             // transcript.attemptedCredits = parseFloat(creditTotals[0]);
             // transcript.requiredCredits = parseFloat(creditTotals[2]);
             // transcript.remainingCredits = parseFloat(creditTotals[3]);
@@ -190,7 +190,7 @@ export class PdfLoaderService extends SisLoaderService {
             term.termGradeLevel = this.stringAfterField(termBlock, "Grade");
             term.termYear = termBlock[0];
             term.termSchoolName = this.stringAfterField(termBlock, "#").split(" ").slice(1).join(" ");
-            const creditLine: number[] = termBlock.filter(str => str.startsWith("Credit"))[0]?.match(/[\d\.]+/g).map(Number) || [];
+            const creditLine: string[] = termBlock.filter(str => str.startsWith("Credit"))[0]?.match(/[\d\.]+/g) || [];
             if (creditLine) {
                 term.termCredit = creditLine[0];
                 term.termGpa = creditLine[1];
@@ -248,13 +248,13 @@ export class PdfLoaderService extends SisLoaderService {
             const creditLine = courseBlock[courseBlock.length - 1].split(/\s+/);
             if (creditLine.length === 3) {
                 course.grade = creditLine[0];
-                course.creditEarned = parseFloat(creditLine[2]);
-                course.courseWeight = parseFloat(creditLine[1]);
+                course.creditEarned = creditLine[2];
+                course.courseWeight = creditLine[1];
             }
             else if (creditLine.length == 2) {
                 course.grade = courseBlock[courseBlock.length - 2];
-                course.creditEarned = parseFloat(creditLine[1]);
-                course.courseWeight = parseFloat(creditLine[0]);
+                course.creditEarned = creditLine[1];
+                course.courseWeight = creditLine[0];
             }
         }
         catch (err) {

@@ -39,30 +39,30 @@ export class TestLoaderService extends SisLoaderService {
         transcriptDate: "04/12/2025",
         transcriptComments: "Not a real transcript, all grades are simulated",
         
-        gpa: 4.1,
-        gpaUnweighted: 3.8,
+        gpa: "4.1",
+        gpaUnweighted: "3.8",
         classRank: "18 of 200",
 
-        attemptedCredits: 28.0,
-        earnedCredits: 28.0,
-        requiredCredits: 22.0,
-        remainingCredits: 0.0,
+        attemptedCredits: "28.0",
+        earnedCredits: "28.0",
+        requiredCredits: "22.0",
+        remainingCredits: "0.0",
 
         terms: [
             {
                 termGradeLevel: "8",
                 termYear: "2020-2021",
                 termSchoolName: "Digital Middle School",
-                termCredit: 1.0,
-                cumulativeGpa: 0.0,
-                cumulativeUnweightedGpa: 0.0,
+                termCredit: "1.0",
+                cumulativeGpa: "0.0",
+                cumulativeUnweightedGpa: "0.0",
                 courses: [
                     {
                         courseCode: "0001Y0",
                         courseTitle: "Pre-Algebra",
                         grade: "90",
-                        courseWeight: 0.0,
-                        creditEarned: 1,
+                        courseWeight: "0.0",
+                        creditEarned: "1",
                         UncRequirement: true
                     }
                 ]
@@ -71,24 +71,24 @@ export class TestLoaderService extends SisLoaderService {
                 termGradeLevel: "9",
                 termYear: "2021-2022",
                 termSchoolName: "DigiCred High School",
-                termCredit: 2.0,
-                cumulativeGpa: 4.0,
-                cumulativeUnweightedGpa: 0.0,
+                termCredit: "2.0",
+                cumulativeGpa: "4.0",
+                cumulativeUnweightedGpa: "0.0",
                 courses: [
                     {
                         courseCode: "0001X0",
                         courseTitle: "Algebra",
                         grade: "99",
-                        courseWeight: 1.0,
-                        creditEarned: 1,
+                        courseWeight: "1.0",
+                        creditEarned: "1",
                         UncRequirement: true
                     },
                     {
                         courseCode: "0002X0",
                         courseTitle: "English I",
                         grade: "90",
-                        courseWeight: 1.0,
-                        creditEarned: 1,
+                        courseWeight: "1.0",
+                        creditEarned: "1",
                         UncRequirement: true
                     }
                 ]
@@ -110,7 +110,6 @@ export class TestLoaderService extends SisLoaderService {
             let studentId = {
                 studentNumber: this.exampleStudent["studentNumber"],
                 studentFullName: this.exampleStudent["studentFullName"],
-                fullName: this.exampleStudent["fullName"],
                 schoolName: this.exampleStudent["schoolName"],
                 studentBirthDate: this.exampleStudent["studentBirthDate"],
                 studentPhone: this.exampleStudent["studentPhone"],
@@ -183,9 +182,10 @@ export class TestLoaderService extends SisLoaderService {
                     courseDto.grade = course["grade"];
                     courseDto.creditEarned = course["creditEarned"];
                     courseDto.courseWeight = course["courseWeight"];
-                    courseDto.flags = [];
-                    if (course["UncRequirement"]) courseDto.flags.push("UNC Minimum Requirement");
-
+                    if (course["UncRequirement"]) {
+                        if (!courseDto.flags) courseDto.flags = [];
+                        courseDto.flags.push("UNC Minimum Requirement");
+                    }
                     termDto.courses.push(courseDto);
                 }
                 transcript.terms.push(termDto);

@@ -30,16 +30,19 @@ export class SisController {
   @ApiResponse({ status: 404, description: 'Student not found' })
   async getStudentId(@Query('studentNumber') studentNumber: string): Promise<any> {
     let studentId;
-      try {
-          studentId = await this.sisService.getStudentId(studentNumber);
-      } catch (error) {
-          throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
-      }
-      // Traction expects to see fullName
-      if(studentId.fullName==undefined)
-        studentId.fullName = studentId.studentFullName;
+    try {
+        studentId = await this.sisService.getStudentId(studentNumber);
+        if (!studentId) {
+          throw new Error();
+        }
+    } catch (error) {
+        throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
+    }
 
-    return {studentIdCred: studentId};
+    let response = {studentIdCred: studentId};
+    response["studentIdCred"]["fullName"] = studentId.studentFullName;
+    
+    return response;
   }
 
   @Post('student-photo')
