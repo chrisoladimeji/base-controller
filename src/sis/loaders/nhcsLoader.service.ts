@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { SisLoaderService } from "./sisLoader.service";
 import { RedisService } from "../../services/redis.service";
-import { HighSchoolCourseDto, HighSchoolTermDto, HighSchoolTranscriptDto, TranscriptDto } from "../../dtos/transcript.dto";
+import { CourseDto, HighSchoolCourseDto, HighSchoolTermDto, HighSchoolTranscriptDto, TermDto, TranscriptDto } from "../../dtos/transcript.dto";
 import { StudentIdDto } from "../../dtos/studentId.dto";
 import { CsvLoaderService } from "./csvLoader.service";
 import { PdfLoaderService } from "./pdfLoader.service";
@@ -9,9 +9,21 @@ import * as path from "path";
 import * as Pdf from 'pdf-parse';
 import * as fs from "fs";
 import * as Zip from 'adm-zip';
-
 process.env.PDF2JSON_DISABLE_LOGS = '1';
 const PDFParser = require('pdf2json');
+
+const headings = [
+    "STUDENT INFORMATION",
+    "SCHOOL INFORMATION",
+    "CREDIT HISTORY",
+    "UNIVERSITY OF NORTH CAROLINA BOARD OF GOVERNORS MINIMUM COURSE REQUIREMENTS REMAINING",
+    "PERFORMANCE INFORMATION",
+    "TESTING INFORMATION",
+    "* ENDORSEMENT DETAILS",
+    "CURRICULUM RELATED WORK EXPERIENCE",
+    "AWARD/ACHIEVEMENTS AND EXTRA-CURRICULAR ACTIVITIES",
+    "GRADING AND GPA DETAILS"
+]
 
 @Injectable()
 export class NhcsLoaderService extends SisLoaderService {
@@ -56,7 +68,7 @@ export class NhcsLoaderService extends SisLoaderService {
             let transcript: TranscriptDto;
             try {
                 transcript = await this.parsePdfNhcs(pdfBuffer);
-                // console.log(transcript);
+                console.log(transcript);
             }
             catch (err) {
                 console.error("Error parsing data out of PDF: ", zipEntry.entryName);
@@ -91,10 +103,7 @@ export class NhcsLoaderService extends SisLoaderService {
 
     async parsePdfNhcs(pdfBuffer: Buffer): Promise<HighSchoolTranscriptDto> {
         let transcript = new HighSchoolTranscriptDto();
-      
-        // TODO: parse the grouped text into transcript data
-        // transcript.terms = groupByYCoordinate(allTextItems);
-        
+
         let pdfParser = await Pdf(pdfBuffer);
         const pdfText = pdfParser.text.split("\n")
             .map(str => str.trim())
@@ -102,18 +111,25 @@ export class NhcsLoaderService extends SisLoaderService {
 
         // console.log(pdfText);
 
-        let courseText = this.filterCourseText(pdfText);
-        const courseBlocks = this.splitCourses(courseText);
+        let courseText: string[] = this.filterCourseText(pdfText);
+        const courseBlocks: string[][] = this.splitCourses(courseText);
         const courses: HighSchoolCourseDto[] = courseBlocks.map(block => this.parseCourse(block));
 
         transcript.terms = this.parseTerms(pdfText);
-        console.log(transcript.terms);
 
         const positionalData = await this.parsePositionalData(pdfBuffer);
         // console.log(positionalData);
 
+        courses.forEach(course => {
+            const courseTerm = this.sortCourse(course, transcript.terms, positionalData);
+            if (courseTerm !== null) {
+                (courseTerm.courses as CourseDto[]).push(course);
+            }
+        });
+
         transcript.transcriptDate = pdfText.filter(str => /^\d{2}\/\d{2}\/\d{4}$/.test(str))[0] ?? null;
-        //transcript.transcriptComments = pdfText.slice(pdfText.indexOf("Comments"), pdfText.length - 1).join(" ");
+
+        transcript.transcriptComments = this.filterTextByHeading(pdfText, 9).join("\n");
         transcript.studentNumber = this.pdfLoaderService.stringAfterField(pdfText, "Student No");
 
         // JSON.parse(await this.redisService.get(`${transcript.studentNumber}:studentId`)); // TODO Reference data from CSV for consistency
@@ -146,14 +162,15 @@ export class NhcsLoaderService extends SisLoaderService {
         transcript.schoolPrincipal = this.pdfLoaderService.stringAfterField(pdfText, "Principal");
         transcript.schoolPrincipalPhone = pdfText[pdfText.indexOf(pdfText.find(str => str.startsWith("Principal"))) + 1] ?? null;
 
-        // transcript.endorsements = 
+        transcript.endorsements = this.filterTextByHeading(pdfText, 6).join("\n");
         transcript.mathRigor = this.pdfLoaderService.stringAfterField(pdfText, "Math Rigor");
-        // transcript.reqirementsRemaining =
-        // transcript.workExperience = 
-        // transcript.achievements = 
-        // transcript.tests = 
-        // transcript.creditSummary = 
-        // transcript.ctePrograms = 
+        transcript.reqirementsRemaining = this.filterTextByHeading(pdfText, 3).join("\n");
+        transcript.workExperience = this.filterTextByHeading(pdfText, 7).join("\n");
+        transcript.achievements = this.filterTextByHeading(pdfText, 8).slice(0, -2).join("\n");
+        transcript.tests = this.filterTextByHeading(pdfText, 5).join("\n");
+
+        transcript.ctePrograms = pdfText.find(str => str.startsWith("CTE Concentrator**")).split(/:/)[1];
+
         return transcript;
     }
 
@@ -167,6 +184,7 @@ export class NhcsLoaderService extends SisLoaderService {
             if (termInfo) {
                 term.termYear = termInfo.slice(-7);
                 term.termGradeLevel = termInfo.replace(term.termYear, "");
+                term.courses = [];
                 terms.push(term);
             }
             else {
@@ -186,16 +204,16 @@ export class NhcsLoaderService extends SisLoaderService {
 
         return new Promise((resolve) => {
             parser.on("pdfParser_dataReady", (pdfData) => {
-                const textItems = [];
+                const allItems = [];
 
                 const pages = pdfData?.Pages || [];
 
                 pages.forEach((page, pageIndex) => {
-                    const gradeLevelFilter = page.Texts.filter(textObj => decodeURIComponent(textObj.R[0].T) === "Grade:");
+                    const pageText = page.Texts;
 
-                    gradeLevelFilter.forEach(textObj => {
+                    pageText.forEach(textObj => {
                         const text = decodeURIComponent(textObj.R[0].T);
-                        textItems.push({
+                        allItems.push({
                             text,
                             x: textObj.x,
                             y: textObj.y,
@@ -204,11 +222,75 @@ export class NhcsLoaderService extends SisLoaderService {
                     });
                 });
 
-                resolve(textItems);
+                resolve(allItems);
             });
 
             parser.parseBuffer(pdfBuffer);
         });
+    }
+
+    sortCourse(course: CourseDto, terms: any, positionalData: any): HighSchoolTermDto {
+        const termPositions = positionalData.filter(item => item["text"].startsWith("Grade:"));
+
+        for (let i = 0; i < positionalData.length - 2; i++) {
+            const courseCodeEnd: boolean = course.courseCode.endsWith(positionalData[i]["text"]);
+            const courseTitleStart: boolean = course.courseTitle.startsWith(positionalData[i+2]["text"]);
+
+            if (courseCodeEnd && courseTitleStart) {
+                const courseY = positionalData[i]["y"];
+                const coursePage = positionalData[i]["page"];
+
+                let termIndex = -1;
+                for (let j = 0; j < termPositions.length; j++) {
+                    if (
+                        coursePage > termPositions[j]["page"] 
+                        || (coursePage === termPositions[j]["page"] && courseY > termPositions[j]["y"])
+                    ) {
+                        termIndex = j;
+                    }
+                }
+
+                if (termIndex >= 0) return terms[termIndex];
+            }
+        }
+        return null;
+    }
+
+    filterTextByHeading(lines: string[], headingIndex: number): string[] {
+        let filteredLines = [];
+        const startKey = headings[headingIndex];
+        const endKey = headings[headingIndex + 1] ?? null;
+        const breakRegex = /^[A-Za-z]+ \d+, \d+$/; // Matches a date like: April 15, 2025
+        let inHeading = false;
+        let inPageBreak = false;
+        let pageBreakCouter = 0;
+        for (const line of lines) {
+            if (endKey && endKey.includes(line)) {
+                break;
+            }
+
+            if (inHeading) {
+                if (breakRegex.test(line)) {
+                    inPageBreak = true;
+                    pageBreakCouter = 1;
+                    continue;
+                }
+                else if (inPageBreak) {
+                    pageBreakCouter++;
+                    if (pageBreakCouter >= 5) inPageBreak = false;
+                    continue;
+                }
+
+                if (!startKey.includes(line)) {
+                    filteredLines.push(line);
+                }
+            }
+
+            if (startKey.includes(line)) {
+                inHeading = true;
+            }
+        }
+        return filteredLines;
     }
 
     filterCourseText(lines: string[]): string[] {
