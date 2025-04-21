@@ -11,6 +11,8 @@ import * as fs from "fs";
 import * as Zip from 'adm-zip';
 process.env.PDF2JSON_DISABLE_LOGS = '1';
 const PDFParser = require('pdf2json');
+import { PDFDocument } from 'pdf-lib';
+
 
 const headings = [
     "STUDENT INFORMATION",
@@ -58,37 +60,46 @@ export class NhcsLoaderService extends SisLoaderService {
         let successes = 0;
         let failures = 0;
         for (const zipEntry of zipEntries) {
-            if (!zipEntry.entryName.endsWith(".pdf")) {
+            if (!zipEntry.entryName.endsWith('.pdf')) {
                 continue;
             }
-
+    
             console.log(`Loading PDF: ${zipEntry.entryName}`);
-
+    
             const pdfBuffer = await zipEntry.getData();
-            let transcript: TranscriptDto;
+    
+            let transcriptBuffers: Buffer[];
+    
             try {
-                transcript = await this.parsePdfNhcs(pdfBuffer);
-                console.log(transcript);
-            }
-            catch (err) {
-                console.error("Error parsing data out of PDF: ", zipEntry.entryName);
+                transcriptBuffers = await this.splitPdfByTranscripts(pdfBuffer);
+                console.log(`Found ${transcriptBuffers.length} transcript(s) in ${zipEntry.entryName}`);
+            } catch (err) {
+                console.error("Error splitting PDF into transcripts:", zipEntry.entryName);
                 console.error(err);
-                failures++;
                 continue;
             }
-            try {
-                this.redisService.set(`${transcript.studentNumber}:transcript`, JSON.stringify(transcript));
-                console.log("Saved data for student: ", transcript.studentNumber);
-                successes++;
-            }
-            catch (err) {
-                console.error("Error saving data for student: ", transcript.studentNumber);
-                console.error(err);
-                failures++;
-                continue;
+    
+            for (const singleTranscriptBuffer of transcriptBuffers) {
+                try {
+                    const transcript = await this.parsePdfNhcs(singleTranscriptBuffer);
+                    
+                    if (!transcript.studentNumber) {
+                        throw new Error(`StudentID could not be parsed from transcript index: ${transcriptBuffers.indexOf(singleTranscriptBuffer)}`);
+                    }
+                    
+                    this.redisService.set(`${transcript.studentNumber}:transcript`, JSON.stringify(transcript));
+                    console.log(`Saved ${transcript.studentNumber}:transcript`);
+    
+                    successes++;
+                } catch (err) {
+                    console.error("Error parsing/saving transcript from PDF: ", err);
+                    failures++;
+                    continue;
+                }
             }
         }
-        return;
+    
+        console.log(`Finished loading: ${successes} success(es), ${failures} failure(s)`);
     }
 
     async getStudentId(studentNumber: string): Promise<StudentIdDto> {
@@ -101,6 +112,42 @@ export class NhcsLoaderService extends SisLoaderService {
         return transcript;
     }
 
+    async splitPdfByTranscripts(pdfBuffer: Buffer): Promise<Buffer[]> {
+        const originalPdf = await PDFDocument.load(pdfBuffer);
+        const totalPages = originalPdf.getPageCount();
+
+        const transcriptStarts: number[] = [];
+
+        for (let i = 0; i < totalPages; i++) {
+            const newPdf = await PDFDocument.create();
+            const [copiedPage] = await newPdf.copyPages(originalPdf, [i]);
+            newPdf.addPage(copiedPage);
+            const pageBytes = await newPdf.save();
+
+            const textData = await Pdf(Buffer.from(pageBytes));
+            if (textData.text.includes('Official NC Transcript')) {
+                transcriptStarts.push(i);
+            }
+        }
+
+        const transcriptBuffers: Buffer[] = [];
+
+        for (let i = 0; i < transcriptStarts.length; i++) {
+            const start = transcriptStarts[i];
+            const end = transcriptStarts[i + 1] ?? totalPages;
+
+            const newPdf = await PDFDocument.create();
+            const pageIndices = Array.from({ length: end - start }, (_, idx) => start + idx);
+            const copiedPages = await newPdf.copyPages(originalPdf, pageIndices);
+            copiedPages.forEach(p => newPdf.addPage(p));
+
+            const newPdfBytes = await newPdf.save();
+            transcriptBuffers.push(Buffer.from(newPdfBytes));
+        }
+
+        return transcriptBuffers;
+    }
+
     async parsePdfNhcs(pdfBuffer: Buffer): Promise<HighSchoolTranscriptDto> {
         let transcript = new HighSchoolTranscriptDto();
 
@@ -109,17 +156,14 @@ export class NhcsLoaderService extends SisLoaderService {
             .map(str => str.trim())
             .filter(str => str);
 
-        // console.log(pdfText);
-
         let courseText: string[] = this.filterCourseText(pdfText);
         const courseBlocks: string[][] = this.splitCourses(courseText);
         const courses: HighSchoolCourseDto[] = courseBlocks.map(block => this.parseCourse(block));
 
         transcript.terms = this.parseTerms(pdfText);
 
+        // Assign courses to terms based on y-axis positions in the document
         const positionalData = await this.parsePositionalData(pdfBuffer);
-        // console.log(positionalData);
-
         courses.forEach(course => {
             const courseTerm = this.sortCourse(course, transcript.terms, positionalData);
             if (courseTerm !== null) {
@@ -176,9 +220,8 @@ export class NhcsLoaderService extends SisLoaderService {
 
     parseTerms(pdfText: string[]): HighSchoolTermDto[] {
         let terms = [];
-        let foundAllTerms: boolean = false;
         let termIndex = 0;
-        while (!foundAllTerms) {
+        while (true) {
             let term = new HighSchoolTermDto();
             const termInfo = this.pdfLoaderService.stringAfterField(pdfText, "Grade", termIndex);
             if (termInfo) {

@@ -32,6 +32,9 @@ export class SisController {
     let studentId;
     try {
         studentId = await this.sisService.getStudentId(studentNumber);
+        if (!studentId) {
+          throw new Error();
+        }
     } catch (error) {
         throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
     }
