@@ -114,23 +114,25 @@ export class PdfLoaderService extends SisLoaderService {
         transcript.terms = termBlocks.map(this.parseTerm.bind(this));
 
         studentId.studentNumber = this.stringAfterField(pdfText, "Student Number");
-        studentId.studentFullName = pdfText[8]; // Assuming this index is correct, no need to change
-        studentId.studentBirthDate = this.stringAfterField(pdfText, "Birthdate").match(/[\d\/]+/)[0];
+        studentId.studentFullName = pdfText[8] ?? null;
+        studentId.studentBirthDate = this.stringAfterField(pdfText, "Birthdate").match(/[\d\/]+/)[0] ?? null;
         studentId.studentPhone = this.stringAfterField(pdfText, "Tel", 1);
         studentId.gradeLevel = this.stringAfterField(pdfText, "Grade");
-        studentId.graduationDate = pdfText[pdfText.indexOf("Graduation Year:") + 1];
-        studentId.schoolName = pdfText[1].substring(0, pdfText[1].indexOf(" Official Transcript"));
+        studentId.graduationDate = pdfText[pdfText.indexOf("Graduation Year:") + 1] ?? null;
+        studentId.schoolName = pdfText[1]?.substring(0, pdfText[1].indexOf(" Official Transcript"));
         studentId.schoolPhone = this.stringAfterField(pdfText, "Tel",);
 
         transcript.transcriptDate = this.stringAfterField(pdfText, "Generated on");
-        transcript.transcriptComments = pdfText.slice(pdfText.indexOf("Comments"), pdfText.length - 1).join(" ");
+        transcript.transcriptComments = pdfText.slice(pdfText.indexOf("Comments") + 1, -1).join(" ");
         transcript.studentNumber = studentId.studentNumber;
         transcript.studentFullName = studentId.studentFullName;
         transcript.studentBirthDate = studentId.studentBirthDate;
         transcript.studentPhone = studentId.studentPhone;
         transcript.studentAddress = pdfText[12];
+        transcript.studentSex = this.stringAfterField(pdfText, "Sex");
         transcript.gradeLevel = studentId.gradeLevel;
         transcript.graduationDate = studentId.graduationDate;
+        transcript.program = this.stringAfterField(pdfText, "Course of Study");
         transcript.schoolName = studentId.schoolName;
         transcript.schoolPhone = studentId.schoolPhone;
         transcript.schoolAddress = pdfText[7];

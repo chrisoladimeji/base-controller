@@ -18,6 +18,13 @@ describe('SisController', () => {
             providers: [
                 PdfLoaderService,
                 {
+                    provide: RedisService,
+                    useValue: {
+                        get: jest.fn(),
+                        set: jest.fn(),
+                    }
+                },
+                {
                     provide: ConfigService,
                     useValue: {
                         get: jest.fn((key: string) => {

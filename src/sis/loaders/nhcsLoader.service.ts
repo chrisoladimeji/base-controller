@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { SisLoaderService } from "./sisLoader.service";
 import { RedisService } from "../../services/redis.service";
-import { CourseDto, HighSchoolCourseDto, HighSchoolTermDto, HighSchoolTranscriptDto, TermDto, TranscriptDto } from "../../dtos/transcript.dto";
+import { CourseDto, HighSchoolCourseDto, HighSchoolTermDto, HighSchoolTranscriptDto, TermDto, TestDto, TranscriptDto } from "../../dtos/transcript.dto";
 import { StudentIdDto } from "../../dtos/studentId.dto";
 import { CsvLoaderService } from "./csvLoader.service";
 import { PdfLoaderService } from "./pdfLoader.service";
@@ -195,8 +195,8 @@ export class NhcsLoaderService extends SisLoaderService {
         transcript.earnedCredits = this.pdfLoaderService.stringAfterField(pdfText, "Total Credits Toward Graduation");
 
         transcript.gpaUnweighted = this.pdfLoaderService.stringAfterField(pdfText, "Cumulative GPA Unweighted");
-        transcript.totalPoints = this.pdfLoaderService.stringAfterField(pdfText, "Total Points Weighted").replace(/\s+/g, '');
-        transcript.totalPointsUnweighted = this.pdfLoaderService.stringAfterField(pdfText, "Total Points Unweighted").replace(/\s+/g, '');
+        transcript.totalPoints = this.pdfLoaderService.stringAfterField(pdfText, "Total Points Weighted")?.replace(/\s+/g, '');
+        transcript.totalPointsUnweighted = this.pdfLoaderService.stringAfterField(pdfText, "Total Points Unweighted")?.replace(/\s+/g, '');
         transcript.classRank = this.pdfLoaderService.stringAfterField(pdfText, "Class Rank").match(/\d+ out of \d+/)[0] ?? null;
 
         transcript.schoolDistrict = this.pdfLoaderService.stringAfterField(pdfText, "L.E.A.");
@@ -211,9 +211,11 @@ export class NhcsLoaderService extends SisLoaderService {
         transcript.reqirementsRemaining = this.filterTextByHeading(pdfText, 3).join("\n");
         transcript.workExperience = this.filterTextByHeading(pdfText, 7).join("\n");
         transcript.achievements = this.filterTextByHeading(pdfText, 8).slice(0, -2).join("\n");
-        transcript.tests = this.filterTextByHeading(pdfText, 5).join("\n");
+        transcript.tests = this.parseTests(pdfText);
 
-        transcript.ctePrograms = pdfText.find(str => str.startsWith("CTE Concentrator**")).split(/:/)[1];
+        transcript.ctePrograms = pdfText.find(str => str.startsWith("CTE Concentrator**"))?.split(/:/)[1];
+
+        console.log(transcript);
 
         return transcript;
     }
@@ -276,8 +278,8 @@ export class NhcsLoaderService extends SisLoaderService {
         const termPositions = positionalData.filter(item => item["text"].startsWith("Grade:"));
 
         for (let i = 0; i < positionalData.length - 2; i++) {
-            const courseCodeEnd: boolean = course.courseCode.endsWith(positionalData[i]["text"]);
-            const courseTitleStart: boolean = course.courseTitle.startsWith(positionalData[i+2]["text"]);
+            const courseCodeEnd: boolean = course.courseCode?.endsWith(positionalData[i]["text"]);
+            const courseTitleStart: boolean = course.courseTitle?.startsWith(positionalData[i+2]["text"]);
 
             if (courseCodeEnd && courseTitleStart) {
                 const courseY = positionalData[i]["y"];
@@ -401,6 +403,40 @@ export class NhcsLoaderService extends SisLoaderService {
         course.courseTitle = workingString.replace(creditLine, '').trim();
 
         return course;
+    }
+
+    parseTests(pdfText: string[]): string {
+        let tests: TestDto[] = [];
+        const startIndex = pdfText.indexOf("Test Name / Score Name Score Test Date");
+        if (startIndex === -1) {
+            return null;
+        }
+
+        const dateRegex = /\d{2}\/\d{2}\/\d{4}/;
+        const scoreRegex = /(P|F|Met|Level\s+\d+|[\d.]+)$/;
+
+        let currentIndex = startIndex + 1;
+        while (true) {
+            if (currentIndex >= pdfText.length) break;
+
+            let test: TestDto = new TestDto();
+
+            const currentString = pdfText[currentIndex];
+            const currentSplit = currentString.split(/\s+/)
+            if (dateRegex.test(currentString)) {
+                test.testDate = currentString.match(dateRegex)[0];
+                test.testTitle = currentString.replace(dateRegex, "").trim();
+            }
+            else if (scoreRegex.test(currentString)) {
+                test.testScore = currentString.match(scoreRegex)[1];
+                test.testTitle = currentString.replace(scoreRegex, "").trim();
+            }
+            else break;
+
+            tests.push(test);
+            currentIndex++;
+        }
+        return JSON.stringify(tests);
     }
 
     extractCreditValues(course: HighSchoolCourseDto, courseString: string): string {
