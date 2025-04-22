@@ -35,7 +35,7 @@ export class SvgService {
 
   private async getSchemaData(): Promise<any> {
     // Use this credential_exchange_id for Demo Purpose: f40af16d-edc4-4648-80c9-8e97e73a9015
-    const url = `${this.apiUrl}:8032/issue-credential/records/f40af16d-edc4-4648-80c9-8e97e73a9015`;
+    const url = `${this.apiUrl}/issue-credential/records/f40af16d-edc4-4648-80c9-8e97e73a9015`;
 
     const response = await firstValueFrom(
       this.httpService.get(url, {

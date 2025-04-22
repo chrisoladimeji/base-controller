@@ -18,7 +18,7 @@ export class OutOfBandService {
     console.log("connection",connection)
 
     const send_message =
-    `${this.configService.get<string>('API_BASE_URL')}:8032/connections/` +
+    `${this.configService.get<string>('API_BASE_URL')}/connections/` +
     connection +
     '/send-message';
   const requestConfig: AxiosRequestConfig = {
@@ -54,7 +54,7 @@ export class OutOfBandService {
 
 
 
-//     const taskEndpoint = `${this.configService.get<string>('API_BASE_URL')}:8032/out-of-band/`;
+//     const taskEndpoint = `${this.configService.get<string>('API_BASE_URL')}/out-of-band/`;
 //     const requestConfig: AxiosRequestConfig = {
 //       headers: {
 //         Authorization: `Bearer ${this.configService.get<string>('BEARER_TOKEN')}`,
