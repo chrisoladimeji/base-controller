@@ -25,7 +25,7 @@ export class AcaPyService {
     }
 
     async getConnections(): Promise<any> {
-        const connectionUrl = `${this.configService.get<string>('API_BASE_URL')}:8032/connections?limit=100&offset=0`;
+        const connectionUrl = `${this.configService.get<string>('API_BASE_URL')}/connections?limit=100&offset=0`;
         const requestConfig: AxiosRequestConfig = this.getRequestConfig();
         try {
             this.httpService.get(connectionUrl, requestConfig).subscribe((response) => {
@@ -53,7 +53,7 @@ export class AcaPyService {
     }
 
     async sendCredOffer(credentialOfferBody: object): Promise<boolean> {
-        const credentialRequestUrl = `${this.configService.get<string>('API_BASE_URL')}:8032/issue-credential/send-offer`;
+        const credentialRequestUrl = `${this.configService.get<string>('API_BASE_URL')}/issue-credential/send-offer`;
 
         try {
             await lastValueFrom(
@@ -70,7 +70,7 @@ export class AcaPyService {
     }
 
     async fetchCredentialRecord(credentialExchangeId: string): Promise<any> {
-        const url = `${this.configService.get<string>('API_BASE_URL')}:8032/issue-credential/records/${credentialExchangeId}`;
+        const url = `${this.configService.get<string>('API_BASE_URL')}/issue-credential/records/${credentialExchangeId}`;
 
         try {
             const response = await lastValueFrom(
@@ -88,7 +88,7 @@ export class AcaPyService {
     }
 
     async fetchCurrentMetadata(connId: string): Promise<any> {
-        const url = `${this.configService.get<string>('SWAGGER_API_URL')}:8032/connections/${connId}/metadata`;
+        const url = `${this.configService.get<string>('SWAGGER_API_URL')}/connections/${connId}/metadata`;
         try {
             const response = await lastValueFrom(
                 this.httpService.get(url, this.getRequestConfig())
@@ -102,7 +102,7 @@ export class AcaPyService {
     }
 
     async updateMetadata(connId: string, metadata: any): Promise<boolean> {
-        const url = `${this.configService.get<string>('SWAGGER_API_URL')}:8032/connections/${connId}/metadata`;
+        const url = `${this.configService.get<string>('SWAGGER_API_URL')}/connections/${connId}/metadata`;
         this.logger.log(`Updating metadata at URL: ${url} with data:`, metadata);
 
         try {
@@ -125,7 +125,7 @@ export class AcaPyService {
     }
 
     async sendMessage(connectionId: string, messageDisplayed: string): Promise<void> {
-        const messageUrl = `${this.configService.get<string>('API_BASE_URL')}:8032/connections/${connectionId}/send-message`;
+        const messageUrl = `${this.configService.get<string>('API_BASE_URL')}/connections/${connectionId}/send-message`;
         const requestConfig: AxiosRequestConfig = this.getRequestConfig();
         const messageContent = { content: messageDisplayed };
 
@@ -148,7 +148,7 @@ export class AcaPyService {
             "connection_id": connectionId,
             "proof_request": data
         }
-        const verificationRequestUrl = `${this.configService.get<string>('API_BASE_URL')}:8032/present-proof/send-request`;
+        const verificationRequestUrl = `${this.configService.get<string>('API_BASE_URL')}/present-proof/send-request`;
         const verificationRequestConfig: AxiosRequestConfig = this.getRequestConfig();
 
         try {
@@ -164,7 +164,7 @@ export class AcaPyService {
 
 
     async getConnectionById(connectionId: string): Promise<any> {
-        const connectionByIDFetchUrl = `${this.configService.get<string>('API_BASE_URL')}:8032/connections/${connectionId}`;
+        const connectionByIDFetchUrl = `${this.configService.get<string>('API_BASE_URL')}/connections/${connectionId}`;
         const connectionByIDFetchConfig: AxiosRequestConfig = this.getRequestConfig();
         try {
             const response = await lastValueFrom(
@@ -179,7 +179,7 @@ export class AcaPyService {
     }
 
     async getMetadataByConnectionId(connectionId: string): Promise<any> {
-        const metadataFetchUrl = `${this.configService.get<string>('API_BASE_URL')}:8032/connections/${connectionId}/metadata`;
+        const metadataFetchUrl = `${this.configService.get<string>('API_BASE_URL')}/connections/${connectionId}/metadata`;
         const metadataFetchConfig: AxiosRequestConfig = this.getRequestConfig();
 
         try {
