@@ -214,9 +214,7 @@ export class NhcsLoaderService extends SisLoaderService {
         transcript.tests = this.parseTests(pdfText);
 
         transcript.ctePrograms = pdfText.find(str => str.startsWith("CTE Concentrator**"))?.split(/:/)[1];
-
-        console.log(transcript);
-
+        
         return transcript;
     }
 
