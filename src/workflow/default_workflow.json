@@ -1,5 +1,5 @@
 {
-  "name": "Test Workflow Display Name",
+  "name": "High School Workflow",
   "workflow_id": "root-menu",
   "initial_state": "menu",
   "render": [
@@ -12,140 +12,26 @@
           "display_data": [
               {
                   "type": "image",
-                  "url": "https://images.squarespace-cdn.com/content/v1/67bc7581e3aeec063c6ed1ce/767927f3-b0cf-444c-88fb-97db73c92e54/DigiCred-Banner-Primary-Light%403x.png"
+                  "url": "https://resources.finalsite.net/images/f_auto,q_auto,t_image_size_2/v1613590428/nhcsk12ncus/yxrqzimdg5qgmygdciwc/NHCSLogo_Digital_Color.png"
+              },
+              {
+                "type": "image",
+                "url": "https://media.licdn.com/dms/image/v2/D4E0BAQH5dUkdwJgL5g/company-logo_200_200/company-logo_200_200/0/1709323865111/pender_county_schools_logo?e=1750896000&v=beta&t=p5lu_Npi8aSwhGBYtAKU3kBg3Rekc40KFG4YL0dd5Y4"
+              },
+             
+              {
+                  "type": "title",
+                  "text": "Welcome to our credential service."
               },
               {
                   "type": "text",
-                  "display": "title",
-                  "text": "This is the test title for workflow"
+                  "text": "The credential service allows you to download and hold your educational records."
               },
               {
-                  "type": "text",
-                  "text": "First time showing this page",
-                  "condition": "instance?.state_data?.first==undefined"
-              },
-              {
-                  "type": "button",
-                  "label": "Next button",
-                  "actionID": "nextButton"
-              },
-              {
-                  "type": "button",
-                  "label": "Data button",
-                  "actionID": "dataButton"
-              },
-              {
-                "type": "button",
-                "label": "Issue credentials",
-                "actionID": "issueButton"
-              },
-              {
-                "type": "button",
-                "label": "Verify credentials",
-                "actionID": "verifyButton"
-              }
-
-
-          ],
-          "actions": [
-              {
-                  "action_id": "nextButton",
-                  "type": "saveData",
-                  "condition": "true",
-                  "value": {"first": true }
-              }                        
-          ],
-          "transitions": [
-              {
-                  "transition_id": "nextButton",
-                  "type": "stateTransition",
-                  "state_id": "page1",
-                  "workflow_id": "",
-                  "condition": "actionInput.actionID=='nextButton'"
-              },
-              {
-                "transition_id": "issueButton",
-                "type": "stateTransition",
-                "state_id": "page3",
-                "workflow_id": "",
-                "condition": "actionInput.actionID=='issueButton'"
+                "type": "text",
+                "text": "You can use your student card as a digital ID and your transcript to apply for further education or job opportunities."
             },
             {
-                "transition_id": "verifyButton",
-                "type": "stateTransition",
-                "state_id": "page4",
-                "workflow_id": "",
-                "condition": "actionInput.actionID=='verifyButton'"
-            },
-            {
-                  "transition_id": "dataButton",
-                  "type": "stateTransition",
-                  "state_id": "page2",
-                  "workflow_id": "",
-                  "condition": "actionInput.actionID=='dataButton'"
-              }
-          ]
-      },
-      {
-          "name": "Test Workflow page 1",
-          "state_id": "page1",
-          "display_data": [
-              {
-                  "type": "text",
-                  "text": "This is the page for testing state transitions."
-              },
-              {
-                  "type": "button",
-                  "label": "Go back",
-                  "actionID": "backButton"
-              }
-          ],
-          "actions": [
-          ],
-          "transitions": [
-              {
-                  "transition_id": "backButton",
-                  "type": "stateTransition",
-                  "state_id": "menu",
-                  "workflow_id": "",
-                  "condition": "actionInput.actionID=='backButton'"
-              }
-          ]
-      },
-      {
-          "name": "Test Workflow page 2 data test",
-          "state_id": "page2",
-          "display_data": [
-              {
-                  "type": "text",
-                  "display": "title",
-                  "text": "This is the page for testing data."
-              },
-              {
-                  "type": "text",
-                  "text": "Date={Date}",
-                  "condition": "instance?.state_data?.Date!=undefined"
-              },
-              {
-                  "type": "extended",
-                  "text": "Extended text"
-              },
-              {
-                  "type": "button",
-                  "label": "Save Data",
-                  "actionID": "saveButton"
-              },
-              {
-                  "type": "button",
-                  "label": "State Data",
-                  "actionID": "stateButton"
-              },
-              {
-                  "type": "button",
-                  "label": "Extension",
-                  "actionID": "extensionButton"
-              },
-              {
                 "type": "button",
                 "label": "Request NHCS Student ID",
                 "actionID": "studentIDButtonNHCS"
@@ -166,82 +52,8 @@
                 "actionID": "studentTranscriptButtonPCS"
               },
               {
-                  "type": "button",
-                  "label": "Go back",
-                  "actionID": "backButton"
-              }
-          ],
-          "actions": [
-              {
-                  "action_id": "stateButton",
-                  "type": "stateData",
-                  "condition": "true",
-                  "value": "action.data"
-              },
-              {
-                  "action_id": "extensionButton",
-                  "type": "extension",
-                  "condition": "true",
-                  "value": {"extended": true }
-              },
-              {
-                  "action_id": "saveButton",
-                  "type": "saveData",
-                  "condition": "true",
-                  "value": {"data": "Hello"}
-              }
-          ],
-          "transitions": [
-              {
-                  "transition_id": "backButton",
-                  "type": "stateTransition",
-                  "state_id": "menu",
-                  "workflow_id": "",
-                  "condition": "actionInput.actionID=='backButton'"
-              },
-              {
-                "transition_id": "credential-issued",
-                "type": "stateTransition",
-                "state_id": "menu",
-                "workflow_id": "",
-                "condition": "true"
-              }
-
-          ]
-      },
-      {
-        "name": "Test Workflow page 3 issue test",
-        "state_id": "page3",
-        "display_data": [
-            {
                 "type": "text",
-                "display": "title",
-                "text": "This is the page for testing issueing credentials."
-            },
-            {
-              "type": "button",
-              "label": "Request NHCS Student ID",
-              "actionID": "studentIDButtonNHCS"
-            },
-            {
-              "type": "button",
-              "label": "Request PCS Student ID",
-              "actionID": "studentIDButtonPCS"
-            },
-            {
-              "type": "button",
-              "label": "Request NHCS Transcript",
-              "actionID": "studentTranscriptButtonNHCS"
-            },
-            {
-              "type": "button",
-              "label": "Request PCS Transcript",
-              "actionID": "studentTranscriptButtonPCS"
-            },
-            {
-                "type": "button",
-                "label": "Go back",
-                "actionID": "backButton"
+                "text": "Comming soon: credential analysis, job postings, scholarships, and career advice."
             }
         ],
         "actions": [
@@ -272,92 +84,7 @@
         ],
         "transitions": [
             {
-                "transition_id": "backButton",
-                "type": "stateTransition",
-                "state_id": "menu",
-                "workflow_id": "",
-                "condition": "actionInput.actionID=='backButton'"
-            },
-            {
                 "transition_id": "credential-issued",
-                "type": "stateTransition",
-                "state_id": "menu",
-                "workflow_id": "",
-                "condition": "true"
-            }
-        ]
-    },
-    {
-        "name": "Test Workflow page 4 verify test",
-        "state_id": "page4",
-        "display_data": [
-            {
-                "type": "text",
-                "display": "title",
-                "text": "This is the page for testing verification of credentials."
-            },
-            {
-              "type": "button",
-              "label": "Verify NHCS Student ID",
-              "actionID": "studentIDButtonNHCS"
-            },
-            {
-              "type": "button",
-              "label": "Verify PCS Student ID",
-              "actionID": "studentIDButtonPCS"
-            },
-            {
-              "type": "button",
-              "label": "Verify NHCS Transcript",
-              "actionID": "studentTranscriptButtonNHCS"
-            },
-            {
-              "type": "button",
-              "label": "Verify PCS Transcript",
-              "actionID": "studentTranscriptButtonPCS"
-            },
-            {
-                "type": "button",
-                "label": "Go back",
-                "actionID": "backButton"
-            }
-        ],
-        "actions": [
-            {
-              "action_id": "studentIDButtonNHCS",
-              "type": "verifycredential-StudentCard",
-              "condition": "true",
-              "value": {"type": "studentID", "cred_def": "64zTt4edLTprWQTUkrYhZJ:3:CL:1467:NHCS Student Card" }
-            },
-            {
-              "action_id": "studentIDButtonPCS",
-              "type": "verifycredential-StudentCard",
-              "condition": "true",
-              "value": {"type": "studentID", "cred_def": "64zTt4edLTprWQTUkrYhZJ:3:CL:1467:PCS Student Card" }
-            },
-            {
-              "action_id": "studentTranscriptButtonNHCS",
-              "type": "verifycredential-Transcript",
-              "condition": "true",
-              "value": {"type": "transcript", "cred_def": "64zTt4edLTprWQTUkrYhZJ:3:CL:1475:NHCS Transcript" }
-            },
-            {
-              "action_id": "studentTranscriptButtonPCS",
-              "type": "verifycredential-Transcript",
-              "condition": "true",
-              "value": {"type": "transcript", "cred_def": "64zTt4edLTprWQTUkrYhZJ:3:CL:1475:PCS Transcript" }
-            }
-        ],
-        "transitions": [
-            {
-                "transition_id": "backButton",
-                "type": "stateTransition",
-                "state_id": "menu",
-                "workflow_id": "",
-                "condition": "actionInput.actionID=='backButton'"
-            },
-            {
-                "transition_id": "credential-verified",
                 "type": "stateTransition",
                 "state_id": "menu",
                 "workflow_id": "",

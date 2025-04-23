@@ -19,6 +19,13 @@ describe('SisController', () => {
             providers: [
                 PenderLoaderService,
                 {
+                    provide: RedisService,
+                    useValue: {
+                        get: jest.fn(),
+                        set: jest.fn(),
+                    }
+                },
+                {
                     provide: ConfigService,
                     useValue: {
                         get: jest.fn((key: string) => {
