@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { SisLoaderService } from "../loaders/sisLoader.service";
 import { StudentIdDto } from "../../dtos/studentId.dto";
-import { HighSchoolCourseDto, HighSchoolTermDto, HighSchoolTranscriptDto, TranscriptDto } from "../../dtos/transcript.dto";
+import { CourseDto, HighSchoolCourseDto, HighSchoolTermDto, HighSchoolTranscriptDto, TranscriptDto } from "../../dtos/transcript.dto";
 import * as Zip from 'adm-zip';
 import * as Pdf from 'pdf-parse';
 import * as fs from 'fs';
@@ -87,23 +87,6 @@ export class PenderLoaderService extends SisLoaderService {
         return transcript;
     }
 
-    async getPdfBuffersFromZip(zipPath) {
-        console.log(`PDF zip archive at ${zipPath}`);
-
-        let zip = new Zip(zipPath);
-        let zipEntries = zip.getEntries();
-
-        let pdfBuffers: Promise<Buffer>[] = [];
-        for (const zipEntry of zipEntries) {
-            if (zipEntry.entryName.endsWith(".pdf")) {
-                console.log(`Loading PDF: ${zipEntry.entryName}`);
-                pdfBuffers.push(zipEntry.getData());
-            }
-        };
-
-        return pdfBuffers;
-    }
-
     async parsePenderTranscript(pdfBuffer: Buffer): Promise<[StudentIdDto, HighSchoolTranscriptDto]> {
         let studentId = new StudentIdDto();
         let transcript = new HighSchoolTranscriptDto();
@@ -111,9 +94,6 @@ export class PenderLoaderService extends SisLoaderService {
         const pdfText = pdfParser.text.split(/(\n| {3})/)
             .map(str => String(str).trim())
             .filter(str => str);
-
-        const termBlocks: string[][] = this.splitByTerms(pdfText);
-        transcript.terms = termBlocks.map(this.parseTerm.bind(this));
 
         // transcript.tests =
         // transcript.creditSummary = 
@@ -164,9 +144,29 @@ export class PenderLoaderService extends SisLoaderService {
         transcript.schoolPrincipal = PdfLoaderService.stringAfterField(pdfText, "Principal");
         transcript.curriculumProgram = PdfLoaderService.stringAfterField(pdfText, "Curriculum Program");
 
-        console.log(studentId);
-        console.log(transcript);
+        // Get a list of the terms in pdfText split apart into termBlocks
+        const termBlocks: string[][] = this.splitByTerms(pdfText);
+        // Parse the termBlocks into terms filled with courses
+        transcript.terms = termBlocks.map(this.parseTerm.bind(this));
+        // Parse the in-progress courses
+        const inProgressCourses: HighSchoolCourseDto[] = this.parseInProgressCourses(pdfText);
+        // Add the in-progress courses to the last term
+        (transcript.terms[transcript.terms.length - 1]?.courses as HighSchoolCourseDto[]).push(...inProgressCourses);
+        
+        // Mark courses in the term as transfer or not based on the school code
+        for (let term of transcript.terms) {
+            if (term.termSchoolCode === transcript.schoolCode) {
+                for (let course of term.courses) {
+                    (course as CourseDto).transfer = false;
+                }
+            } else {
+                for (let course of term.courses) {
+                    (course as CourseDto).transfer = true;
+                }
+            }
+        }
 
+        console.log(transcript.terms[transcript.terms.length - 1])
         return [studentId, transcript];
     }
 
@@ -178,7 +178,7 @@ export class PenderLoaderService extends SisLoaderService {
         // Iterate through text looking for year (ie 2021-2022)
         // Add text to current term
         for (const str of pdfText) {
-            if (str.match(/\d{4}-\d{4}/) !== null) {
+            if (/\d{4}-\d{4}/.test(str)) {
                 termIndex += 1;
                 termBlocks.push([]);
                 isAfterCredit = false;
@@ -204,8 +204,9 @@ export class PenderLoaderService extends SisLoaderService {
             term.termGradeLevel = PdfLoaderService.stringAfterField(termBlock, "Grade");
             term.termYear = termBlock[0];
             term.termSchoolName = PdfLoaderService.stringAfterField(termBlock, "#")?.split(" ").slice(1).join(" ");
+            term.termSchoolCode = PdfLoaderService.stringAfterField(termBlock, "#")?.split(" ")[0];
             const creditLine: string[] = termBlock.filter(str => str.startsWith("Credit"))[0]?.match(/[\d\.]+/g) || [];
-            if (creditLine) {
+            if (creditLine.length === 3) {
                 term.termCredit = creditLine[0];
                 term.termGpa = creditLine[1];
                 term.termUnweightedGpa = creditLine[2];
@@ -266,15 +267,42 @@ export class PenderLoaderService extends SisLoaderService {
                 course.courseWeight = creditLine[1];
             }
             else if (creditLine.length == 2) {
-                course.grade = courseBlock[courseBlock.length - 2];
+                course.grade = courseBlock[courseBlock.length - 2] ?? null;
                 course.creditEarned = creditLine[1];
                 course.courseWeight = creditLine[0];
             }
+            course.inProgress = false;
         }
         catch (err) {
             console.error("Error parsing course: ", err);
         }
 
         return course;
+    }
+
+    parseInProgressCourses(pdfText: string[]): HighSchoolCourseDto[] {
+        let courses: HighSchoolCourseDto[] = [];
+        let foundBlock: boolean = false;
+        for (const str of pdfText) {
+            if (str === "In-Progress Courses") {
+                foundBlock = true;
+                continue;
+            }
+            else if (!foundBlock) {
+                continue;
+            }
+            else if (!/[\d\.]+$/.test(str)) {
+                break;
+            }
+
+            let course = new HighSchoolCourseDto();
+            course.courseCode = str.split(/\s+/)[0] ?? null;
+            course.courseWeight = str.match(/[\d\.]+$/)[0] ?? null;
+            course.courseTitle = str.replace(/\s*[\d\.]+$/, "").split(/\s+/).slice(1).join(" ") ?? null;
+            course.inProgress = true;
+            course.transfer = false;
+            courses.push(course);
+        }
+        return courses;
     }
 }

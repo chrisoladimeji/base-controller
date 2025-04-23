@@ -76,6 +76,7 @@ export class TermDto {
     termGradeLevel: string;
     termYear: string;
     termSchoolName: string;
+    termSchoolCode: string;
 
     // Course Information
     courses: CourseDto[] | string;
