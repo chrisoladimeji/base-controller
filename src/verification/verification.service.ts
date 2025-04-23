@@ -18,7 +18,7 @@ export class VerificationService {
 
 /*   // Helper method to send a message
   private async sendMessage(connectionId: string, messageDisplayed: string): Promise<void> {
-    const messageUrl = `${this.configService.get<string>('API_BASE_URL')}:8032/connections/${connectionId}/send-message`;
+    const messageUrl = `${this.configService.get<string>('API_BASE_URL')}/connections/${connectionId}/send-message`;
     const requestConfig: AxiosRequestConfig = {
       headers: {
         Authorization: `Bearer ${this.configService.get<string>('BEARER_TOKEN')}`,
@@ -59,7 +59,7 @@ export class VerificationService {
 
 
     const send_message =
-      `${this.configService.get<string>('API_BASE_URL')}:8032/connections/` +
+      `${this.configService.get<string>('API_BASE_URL')}/connections/` +
       connectionId +
       '/send-message';
     const requestConfig: AxiosRequestConfig = {
@@ -197,7 +197,7 @@ export class VerificationService {
   private async fetchVerificationRecord(
     presentationExchangeId: string,
   ): Promise<any> {
-    const apiUrl = `${this.configService.get<string>('SWAGGER_API_URL')}:8032/present-proof/records/${presentationExchangeId}`;
+    const apiUrl = `${this.configService.get<string>('SWAGGER_API_URL')}/present-proof/records/${presentationExchangeId}`;
 
     const headers = {
       accept: 'application/json',
