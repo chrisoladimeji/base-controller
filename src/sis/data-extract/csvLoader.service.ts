@@ -1,5 +1,5 @@
 import { Injectable } from "@nestjs/common";
-import { SisLoaderService } from "./sisLoader.service";
+import { SisLoaderService } from "../loaders/sisLoader.service";
 import { RedisService } from "../../services/redis.service";
 import { TranscriptDto } from "../../dtos/transcript.dto";
 import { StudentIdDto } from "../../dtos/studentId.dto";
@@ -9,7 +9,7 @@ import * as csv from "csv-parser";
 import { validate } from "class-validator";
 
 @Injectable()
-export class CsvLoaderService extends SisLoaderService {
+export class CsvLoaderService {
 
     private readonly schoolCodes = {
         "650324": "Edwin A Alderman Elementary",
@@ -64,9 +64,7 @@ export class CsvLoaderService extends SisLoaderService {
     
     constructor(
         private readonly redisService: RedisService
-    ) {
-        super();
-    };
+    ) {};
     
     async load(): Promise<void> {
 
@@ -121,14 +119,4 @@ export class CsvLoaderService extends SisLoaderService {
         studentId.graduationDate = data["StudentCoreFields.graduation_year"] ?? null;
         return studentId;
     }
-
-    async getStudentId(studentNumber: string): Promise<StudentIdDto> {
-        const studentId: StudentIdDto = JSON.parse(await this.redisService.get(`${studentNumber}:studentId`));
-        return studentId;
-    }
-
-    async getStudentTranscript(studentNumber: string): Promise<TranscriptDto> {
-        return null;
-    }
-
 }
