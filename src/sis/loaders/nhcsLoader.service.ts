@@ -402,7 +402,7 @@ export class NhcsLoaderService extends SisLoaderService {
         return course;
     }
 
-    parseTests(pdfText: string[]): string {
+    parseTests(pdfText: string[]): TestDto[] {
         let tests: TestDto[] = [];
         const startIndex = pdfText.indexOf("Test Name / Score Name Score Test Date");
         if (startIndex === -1) {
@@ -433,7 +433,7 @@ export class NhcsLoaderService extends SisLoaderService {
             tests.push(test);
             currentIndex++;
         }
-        return JSON.stringify(tests);
+        return tests;
     }
 
     extractCreditValues(course: HighSchoolCourseDto, courseString: string): string {

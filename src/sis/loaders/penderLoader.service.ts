@@ -19,7 +19,6 @@ export class PenderLoaderService extends SisLoaderService {
 
     constructor(
         private readonly redisService: RedisService,
-        private readonly pdfLoaderService: PdfLoaderService,
     ) {
         super();
     };
@@ -170,7 +169,6 @@ export class PenderLoaderService extends SisLoaderService {
         transcript.creditSummary = this.parseCreditSummary(pdfText);
         // transcript.ctePrograms = new CteProgramDto();
 
-        console.log(transcript);
         return [studentId, transcript];
     }
 
