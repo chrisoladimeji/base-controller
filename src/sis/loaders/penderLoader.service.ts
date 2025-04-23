@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { SisLoaderService } from "../loaders/sisLoader.service";
 import { StudentIdDto } from "../../dtos/studentId.dto";
-import { CourseDto, HighSchoolCourseDto, HighSchoolTermDto, HighSchoolTranscriptDto, TestDto, TranscriptDto } from "../../dtos/transcript.dto";
+import { CourseDto, CreditRequirementDto, CteProgramDto, HighSchoolCourseDto, HighSchoolTermDto, HighSchoolTranscriptDto, TestDto, TranscriptDto } from "../../dtos/transcript.dto";
 import * as Zip from 'adm-zip';
 import * as Pdf from 'pdf-parse';
 import * as fs from 'fs';
@@ -167,6 +167,8 @@ export class PenderLoaderService extends SisLoaderService {
         }
 
         transcript.tests = this.parseTests(pdfText);
+        transcript.creditSummary = this.parseCreditSummary(pdfText);
+        // transcript.ctePrograms = new CteProgramDto();
 
         console.log(transcript);
         return [studentId, transcript];
@@ -310,8 +312,8 @@ export class PenderLoaderService extends SisLoaderService {
 
     parseTests(pdfText: string[]): TestDto[] {
         let tests: TestDto[] = [];
-
         let currentIndex = pdfText.indexOf("Standard Tests") + 1;
+        if (currentIndex === -1) return null;
         while (currentIndex < pdfText.length - 1 && pdfText[currentIndex] !== "Note: Best scores displayed.") {
             let test = new TestDto();
             test.testTitle = pdfText[currentIndex];
@@ -325,5 +327,29 @@ export class PenderLoaderService extends SisLoaderService {
         }
 
         return tests;
+    }
+
+    parseCreditSummary(pdfText: string[]): CreditRequirementDto[] {
+        let creditRequirements: CreditRequirementDto[] = [];
+
+        let startIndex = pdfText.indexOf("Requirements") + 2;
+        let endIndex = pdfText.indexOf("CTE Programs");
+        
+        if (startIndex === 1 || endIndex >= pdfText.length || startIndex >= endIndex) return null;
+
+        let creditSummaryFullString = pdfText.slice(startIndex, endIndex).join("");
+        const pattern = /(.*?)\s*(\d+\.\d{3})\s*(\d+\.\d{3})\s*(\d+\.\d{3})\s*(\d+\.\d{3})/g;
+        let matches;
+        while ((matches = pattern.exec(creditSummaryFullString)) !== null) {
+            let creditRequirement = new CreditRequirementDto();
+            creditRequirement.creditSubject = matches[1].trim();
+            creditRequirement.creditAttempted = matches[2].trim();
+            creditRequirement.creditEarned = matches[3].trim();
+            creditRequirement.creditRequired = matches[4].trim();
+            creditRequirement.creditRemaining = matches[5].trim();
+            creditRequirements.push(creditRequirement);
+        }
+
+        return creditRequirements;
     }
 }
