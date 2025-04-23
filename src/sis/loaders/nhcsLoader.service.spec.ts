@@ -2,8 +2,8 @@ import { ConfigService } from "@nestjs/config";
 import { Test } from "@nestjs/testing";
 import { RedisService } from "../../services/redis.service";
 import { NhcsLoaderService } from "./nhcsLoader.service";
-import { CsvLoaderService } from "./csvLoader.service";
-import { PdfLoaderService } from "./pdfLoader.service";
+import { CsvLoaderService } from "../data-extract/csvLoader.service";
+import { PdfLoaderService } from "../data-extract/pdfLoader.service";
 
 
 const env = {

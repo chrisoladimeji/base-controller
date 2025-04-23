@@ -1,7 +1,5 @@
-
-
 import { Injectable } from "@nestjs/common";
-import { SisLoaderService } from "./sisLoader.service";
+import { SisLoaderService } from "../loaders/sisLoader.service";
 import { StudentIdDto } from "../../dtos/studentId.dto";
 import { HighSchoolCourseDto, HighSchoolTermDto, HighSchoolTranscriptDto, TranscriptDto } from "../../dtos/transcript.dto";
 import * as Zip from 'adm-zip';
@@ -9,9 +7,10 @@ import * as Pdf from 'pdf-parse';
 import * as fs from 'fs';
 import * as path from "path";
 import { RedisService } from "../../services/redis.service";
+import { PdfLoaderService } from "../data-extract/pdfLoader.service";
 
 @Injectable()
-export class PdfLoaderService extends SisLoaderService {
+export class PenderLoaderService extends SisLoaderService {
 
     studentIds = {};
     transcripts = {};
@@ -19,70 +18,73 @@ export class PdfLoaderService extends SisLoaderService {
     private readonly uploadDir = './uploads' // The docker volume where uploads should go
 
     constructor(
-        private readonly redisService: RedisService
+        private readonly redisService: RedisService,
+        private readonly pdfLoaderService: PdfLoaderService,
     ) {
         super();
     };
 
     async load(): Promise<void> {
-        
-        const files = fs.readdirSync(this.uploadDir);
-        const zipFile = files.find((file) => file.endsWith('.zip'));
-
-        if (!zipFile) {
-          console.error('No zip file found in the uploads directory');
-          return;
+        const zipPath = await PdfLoaderService.getZipFilePath();
+        if (!zipPath) {
+            console.error("No zip file found in the uploads directory");
+            return;
         }
-        console.log("Loading SIS data from zip file using PDFLoader: ", zipFile)
     
-        const zipPath = path.join(this.uploadDir, zipFile);
-
-        let zip = new Zip(zipPath);
-        let zipEntries = zip.getEntries();
-
+        console.log("Loading SIS data from zip file using PDFLoader:", zipPath);
+    
         let successes = 0;
         let failures = 0;
-        for (const zipEntry of zipEntries) {
-            if (!zipEntry.entryName.endsWith(".pdf")) {
-                continue;
-            }
-
-            console.log(`Loading PDF: ${zipEntry.entryName}`);
-
-            const pdfBuffer = await zipEntry.getData();
-            let studentId: StudentIdDto;
-            let transcript: TranscriptDto;
+    
+        const pdfBuffers = await PdfLoaderService.extractPdfs(zipPath);
+    
+        for (const [i, buffer] of pdfBuffers.entries()) {
+            console.log(`Processing PDF #${i + 1} of ${pdfBuffers.length}`);
+    
+            let splitBuffers: Buffer[];
+    
             try {
-                [studentId, transcript] = await this.parsePdfPender(pdfBuffer);
-            }
-            catch (err) {
-                console.error("Error parsing data out of PDF: ", zipEntry.entryName);
-                failures++;
-                continue;
-            }
-            try {
-                this.redisService.set(`${studentId.studentNumber}:studentId`, JSON.stringify(studentId));
-                this.redisService.set(`${studentId.studentNumber}:transcript`, JSON.stringify(transcript));
-                console.log("Saved data for student: ", studentId.studentNumber);
-                successes++
-            }
-            catch (err) {
-                console.error("Error saving data for student: ", studentId.studentNumber);
+                splitBuffers = await PdfLoaderService.splitPdfByTranscripts(buffer, "Student Information");
+                console.log(`Found ${splitBuffers.length} transcript(s) in PDF #${i + 1}`);
+            } catch (err) {
+                console.error(`Error splitting PDF #${i + 1} into transcripts`);
                 console.error(err);
                 failures++;
                 continue;
             }
+    
+            for (const [j, singleBuffer] of splitBuffers.entries()) {
+                try {
+                    const [studentId, transcript] = await this.parsePenderTranscript(singleBuffer);
+    
+                    if (!studentId.studentNumber) {
+                        throw new Error(`Missing student number for transcript index ${j} in PDF #${i + 1}`);
+                    }
+    
+                    await this.redisService.set(`${studentId.studentNumber}:studentId`, JSON.stringify(studentId));
+                    console.log(`Saved ${studentId.studentNumber}:studentId`)
+                    await this.redisService.set(`${studentId.studentNumber}:transcript`, JSON.stringify(transcript));
+                    console.log(`Saved ${studentId.studentNumber}:transcript`);
+                    successes++;
+                } catch (err) {
+                    console.error(`Error parsing or saving transcript index ${j} in PDF #${i + 1}:`);
+                    console.error(err);
+                    failures++;
+                }
+            }
         }
-    };
+    
+        console.log(`Finished loading: ${successes} success(es), ${failures} failure(s)`);
+    }
 
     async getStudentId(studentNumber: string): Promise<StudentIdDto> {
-        const studentIdString = JSON.parse(await this.redisService.get(`${studentNumber}:studentId`));
-        return studentIdString;
+        const studentId = JSON.parse(await this.redisService.get(`${studentNumber}:studentId`));
+        return studentId;
     }
 
     async getStudentTranscript(studentNumber: string): Promise<TranscriptDto> {
-        const studentIdString = JSON.parse(await this.redisService.get(`${studentNumber}:transcript`));
-        return studentIdString;
+        const transcript = JSON.parse(await this.redisService.get(`${studentNumber}:transcript`));
+        return transcript;
     }
 
     async getPdfBuffersFromZip(zipPath) {
@@ -102,7 +104,7 @@ export class PdfLoaderService extends SisLoaderService {
         return pdfBuffers;
     }
 
-    async parsePdfPender(pdfBuffer: Buffer): Promise<[StudentIdDto, HighSchoolTranscriptDto]> {
+    async parsePenderTranscript(pdfBuffer: Buffer): Promise<[StudentIdDto, HighSchoolTranscriptDto]> {
         let studentId = new StudentIdDto();
         let transcript = new HighSchoolTranscriptDto();
         let pdfParser = await Pdf(pdfBuffer);
@@ -113,45 +115,57 @@ export class PdfLoaderService extends SisLoaderService {
         const termBlocks: string[][] = this.splitByTerms(pdfText);
         transcript.terms = termBlocks.map(this.parseTerm.bind(this));
 
-        studentId.studentNumber = this.stringAfterField(pdfText, "Student Number");
-        studentId.studentFullName = pdfText[8]; // Assuming this index is correct, no need to change
-        studentId.studentBirthDate = this.stringAfterField(pdfText, "Birthdate").match(/[\d\/]+/)[0];
-        studentId.studentPhone = this.stringAfterField(pdfText, "Tel", 1);
-        studentId.gradeLevel = this.stringAfterField(pdfText, "Grade");
-        studentId.graduationDate = pdfText[pdfText.indexOf("Graduation Year:") + 1];
-        studentId.schoolName = pdfText[1].substring(0, pdfText[1].indexOf(" Official Transcript"));
-        studentId.schoolPhone = this.stringAfterField(pdfText, "Tel",);
-
-        transcript.transcriptDate = this.stringAfterField(pdfText, "Generated on");
-        transcript.transcriptComments = pdfText.slice(pdfText.indexOf("Comments"), pdfText.length - 1).join(" ");
-        transcript.studentNumber = studentId.studentNumber;
-        transcript.studentFullName = studentId.studentFullName;
-        transcript.studentBirthDate = studentId.studentBirthDate;
-        transcript.studentPhone = studentId.studentPhone;
-        transcript.studentAddress = pdfText[12];
-        transcript.gradeLevel = studentId.gradeLevel;
-        transcript.graduationDate = studentId.graduationDate;
-        transcript.schoolName = studentId.schoolName;
-        transcript.schoolPhone = studentId.schoolPhone;
-        transcript.schoolAddress = pdfText[7];
-        transcript.schoolFax = this.stringAfterField(pdfText, "Fax");
-        transcript.schoolCode = this.stringAfterField(pdfText, "School Code");
-        transcript.gpa = this.stringAfterField(pdfText, "Cumulative GPA").match(/[\d\.]+/)[0];
-        transcript.gpaUnweighted = this.stringAfterField(pdfText, "Cumulative GPA", 1).match(/[\d\.]+/)[0];
-        transcript.classRank = this.stringAfterField(pdfText, "Class Rank");
+        // transcript.tests =
+        // transcript.creditSummary = 
+        // transcript.ctePrograms = 
 
         const creditTotals: string[] = pdfText.filter(str => str.startsWith("Total"))[0]?.match(/\d+\.\d{3}/g) || [];
         if (creditTotals.length === 4) {
-            transcript.earnedCredits = creditTotals[1];
+            
             // transcript.attemptedCredits = parseFloat(creditTotals[0]);
             // transcript.requiredCredits = parseFloat(creditTotals[2]);
             // transcript.remainingCredits = parseFloat(creditTotals[3]);
         }
 
-        transcript.schoolDistrict = this.stringAfterField(pdfText, "District Name");
-        transcript.schoolAccreditation = this.stringAfterField(pdfText, "Accreditation");
-        transcript.schoolCeebCode = this.stringAfterField(pdfText, "School CEEB Code");
-        transcript.schoolPrincipal = this.stringAfterField(pdfText, "Principal");
+        studentId.studentNumber = PdfLoaderService.stringAfterField(pdfText, "Student Number");
+        studentId.studentFullName = pdfText[8] ?? null;
+        studentId.studentBirthDate = PdfLoaderService.stringAfterField(pdfText, "Birthdate")?.match(/[\d\/]+/)[0];
+        studentId.studentPhone = PdfLoaderService.stringAfterField(pdfText, "Tel", 1);
+        studentId.gradeLevel = PdfLoaderService.stringAfterField(pdfText, "Grade");
+        studentId.graduationDate = pdfText[pdfText.indexOf("Graduation Year:") + 1];
+        studentId.schoolName = pdfText[1]?.substring(0, pdfText[1].indexOf(" Official Transcript"));
+        studentId.schoolPhone = PdfLoaderService.stringAfterField(pdfText, "Tel",);
+
+        transcript.transcriptDate = PdfLoaderService.stringAfterField(pdfText, "Generated on");
+        transcript.transcriptComments = pdfText.slice(pdfText.indexOf("Comments"), pdfText.length - 1)?.join(" ");
+        transcript.studentNumber = studentId.studentNumber;
+        transcript.studentFullName = studentId.studentFullName;
+        transcript.studentBirthDate = studentId.studentBirthDate;
+        transcript.studentPhone = studentId.studentPhone;
+        transcript.studentAddress = pdfText[12];
+        transcript.studentSex = pdfText.find(str => /Sex:\s*\S+/.test(str))?.split(/Sex:\s*/)[1];
+        transcript.gradeLevel = studentId.gradeLevel;
+        transcript.graduationDate = studentId.graduationDate;
+        transcript.program = PdfLoaderService.stringAfterField(pdfText, "Course of Study");
+        transcript.schoolName = studentId.schoolName;
+        transcript.schoolPhone = studentId.schoolPhone;
+        transcript.schoolAddress = pdfText[7];
+        transcript.schoolFax = PdfLoaderService.stringAfterField(pdfText, "Fax");
+        transcript.schoolCode = PdfLoaderService.stringAfterField(pdfText, "School Code");
+        transcript.gpa = PdfLoaderService.stringAfterField(pdfText, "Cumulative GPA").match(/[\d\.]+/)[0];
+        // transcript.earnedCredits = creditTotals[1];
+
+        transcript.studentStateId = PdfLoaderService.stringAfterField(pdfText, "State ID");
+        transcript.gpaUnweighted = PdfLoaderService.stringAfterField(pdfText, "Cumulative GPA", 1).match(/[\d\.]+/)[0];
+        transcript.classRank = PdfLoaderService.stringAfterField(pdfText, "Class Rank");
+        transcript.schoolDistrict = PdfLoaderService.stringAfterField(pdfText, "District Name");
+        transcript.schoolAccreditation = PdfLoaderService.stringAfterField(pdfText, "Accreditation");
+        transcript.schoolCeebCode = PdfLoaderService.stringAfterField(pdfText, "School CEEB Code");
+        transcript.schoolPrincipal = PdfLoaderService.stringAfterField(pdfText, "Principal");
+        transcript.curriculumProgram = PdfLoaderService.stringAfterField(pdfText, "Curriculum Program");
+
+        console.log(studentId);
+        console.log(transcript);
 
         return [studentId, transcript];
     }
@@ -187,9 +201,9 @@ export class PdfLoaderService extends SisLoaderService {
             const courseBlocks: string[][] = this.splitByCourses(termBlock);
             term.courses = courseBlocks.map(this.parseCourse.bind(this));
 
-            term.termGradeLevel = this.stringAfterField(termBlock, "Grade");
+            term.termGradeLevel = PdfLoaderService.stringAfterField(termBlock, "Grade");
             term.termYear = termBlock[0];
-            term.termSchoolName = this.stringAfterField(termBlock, "#").split(" ").slice(1).join(" ");
+            term.termSchoolName = PdfLoaderService.stringAfterField(termBlock, "#")?.split(" ").slice(1).join(" ");
             const creditLine: string[] = termBlock.filter(str => str.startsWith("Credit"))[0]?.match(/[\d\.]+/g) || [];
             if (creditLine) {
                 term.termCredit = creditLine[0];
@@ -262,32 +276,5 @@ export class PdfLoaderService extends SisLoaderService {
         }
 
         return course;
-    }
-
-    stringAfterField(pdfText: string[], fieldName: string, occurrence: number = 0): string | null {
-        let count = 0;
-        
-        // Loop through the array to find the field
-        for (const str of pdfText) {
-            if (str.startsWith(fieldName)) {
-                // If we are skipping the first occurrence, we skip it
-                if (count < occurrence) {
-                    count++;
-                    continue;
-                }
-                
-                // If this is not the first match (or skipFirst is false), handle the value extraction
-                const match = str.match(new RegExp(`${fieldName}\\s*[:\\s]*([\\s\\S]*)`));
-
-                if (match) {
-                    const value = match[1].trim();
-                    // Return null if the value is empty (or just a colon)
-                    return value === "" ? null : value;
-                }
-            }
-        }
-    
-        // If the field is not found or there's no value, return null
-        return null;
     }
 }

@@ -1,7 +1,8 @@
 import { ConfigService } from "@nestjs/config";
-import { PdfLoaderService } from "./pdfLoader.service";
+import { PenderLoaderService } from "./penderLoader.service";
 import { Test } from "@nestjs/testing";
 import { RedisService } from "../../services/redis.service";
+import { PdfLoaderService } from "../data-extract/pdfLoader.service";
 
 
 const env = {
@@ -11,12 +12,12 @@ const env = {
 
 describe('SisController', () => {
 
-    let pdfLoaderService: PdfLoaderService;
+    let penderLoaderService: PenderLoaderService;
 
     beforeEach(async () => {
         const module = await Test.createTestingModule({
             providers: [
-                PdfLoaderService,
+                PenderLoaderService,
                 {
                     provide: ConfigService,
                     useValue: {
@@ -25,19 +26,27 @@ describe('SisController', () => {
                         })
                     }
                 },
+                {
+                    provide: RedisService,
+                    useValue: {
+                        get: jest.fn(),
+                        set: jest.fn(),
+                    }
+                },
+                PdfLoaderService
             ],
         }).compile()
 
-        pdfLoaderService = module.get(PdfLoaderService);
+        penderLoaderService = module.get(PenderLoaderService);
     })
 
     it('is defined', () => {
-        expect(pdfLoaderService).toBeDefined();
+        expect(penderLoaderService).toBeDefined();
     });
 
     describe('load', () => {
         it('loads pdfs into the redis cache', async () => {
-            await pdfLoaderService.load();
+            await penderLoaderService.load();
         })
     })
 
