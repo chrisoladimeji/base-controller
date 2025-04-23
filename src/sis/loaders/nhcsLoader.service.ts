@@ -3,8 +3,8 @@ import { SisLoaderService } from "./sisLoader.service";
 import { RedisService } from "../../services/redis.service";
 import { CourseDto, HighSchoolCourseDto, HighSchoolTermDto, HighSchoolTranscriptDto, TermDto, TestDto, TranscriptDto } from "../../dtos/transcript.dto";
 import { StudentIdDto } from "../../dtos/studentId.dto";
-import { CsvLoaderService } from "./csvLoader.service";
-import { PdfLoaderService } from "./pdfLoader.service";
+import { CsvLoaderService } from "../data-extract/csvLoader.service";
+import { PdfLoaderService } from "../data-extract/pdfLoader.service";
 import * as path from "path";
 import * as Pdf from 'pdf-parse';
 import * as fs from "fs";
@@ -35,7 +35,6 @@ export class NhcsLoaderService extends SisLoaderService {
     constructor(
         private readonly redisService: RedisService,
         private readonly csvLoaderService: CsvLoaderService,
-        private readonly pdfLoaderService: PdfLoaderService,
     ) {
         super();
     };
@@ -71,7 +70,7 @@ export class NhcsLoaderService extends SisLoaderService {
             let transcriptBuffers: Buffer[];
     
             try {
-                transcriptBuffers = await this.splitPdfByTranscripts(pdfBuffer);
+                transcriptBuffers = await this.splitPdfByTranscripts(pdfBuffer); // 'Official NC Transcript'
                 console.log(`Found ${transcriptBuffers.length} transcript(s) in ${zipEntry.entryName}`);
             } catch (err) {
                 console.error("Error splitting PDF into transcripts:", zipEntry.entryName);
@@ -81,7 +80,7 @@ export class NhcsLoaderService extends SisLoaderService {
     
             for (const singleTranscriptBuffer of transcriptBuffers) {
                 try {
-                    const transcript = await this.parsePdfNhcs(singleTranscriptBuffer);
+                    const transcript = await this.parseNhcsTranscript(singleTranscriptBuffer);
                     
                     if (!transcript.studentNumber) {
                         throw new Error(`StudentID could not be parsed from transcript index: ${transcriptBuffers.indexOf(singleTranscriptBuffer)}`);
@@ -148,7 +147,7 @@ export class NhcsLoaderService extends SisLoaderService {
         return transcriptBuffers;
     }
 
-    async parsePdfNhcs(pdfBuffer: Buffer): Promise<HighSchoolTranscriptDto> {
+    async parseNhcsTranscript(pdfBuffer: Buffer): Promise<HighSchoolTranscriptDto> {
         let transcript = new HighSchoolTranscriptDto();
 
         let pdfParser = await Pdf(pdfBuffer);
@@ -174,41 +173,41 @@ export class NhcsLoaderService extends SisLoaderService {
         transcript.transcriptDate = pdfText.filter(str => /^\d{2}\/\d{2}\/\d{4}$/.test(str))[0] ?? null;
 
         transcript.transcriptComments = this.filterTextByHeading(pdfText, 9).join("\n");
-        transcript.studentNumber = this.pdfLoaderService.stringAfterField(pdfText, "Student No");
+        transcript.studentNumber = PdfLoaderService.stringAfterField(pdfText, "Student No");
 
         // JSON.parse(await this.redisService.get(`${transcript.studentNumber}:studentId`)); // TODO Reference data from CSV for consistency
 
-        transcript.studentFullName = this.pdfLoaderService.stringAfterField(pdfText, "Student Name");
-        transcript.studentBirthDate = this.pdfLoaderService.stringAfterField(pdfText, "Birthdate");
-        transcript.studentAddress = this.pdfLoaderService.stringAfterField(pdfText, "Address"); // TODO Parse rest of address
-        transcript.studentSex = this.pdfLoaderService.stringAfterField(pdfText, "Sex");
-        transcript.studentContacts = this.pdfLoaderService.stringAfterField(pdfText, "Contacts");
-        transcript.graduationDate = this.pdfLoaderService.stringAfterField(pdfText, "Graduation Date");
-        transcript.program = this.pdfLoaderService.stringAfterField(pdfText, "Course Of Study");
+        transcript.studentFullName = PdfLoaderService.stringAfterField(pdfText, "Student Name");
+        transcript.studentBirthDate = PdfLoaderService.stringAfterField(pdfText, "Birthdate");
+        transcript.studentAddress = PdfLoaderService.stringAfterField(pdfText, "Address"); // TODO Parse rest of address
+        transcript.studentSex = PdfLoaderService.stringAfterField(pdfText, "Sex");
+        transcript.studentContacts = PdfLoaderService.stringAfterField(pdfText, "Contacts");
+        transcript.graduationDate = PdfLoaderService.stringAfterField(pdfText, "Graduation Date");
+        transcript.program = PdfLoaderService.stringAfterField(pdfText, "Course Of Study");
 
         const officialTranscriptIndex = pdfText.indexOf("Official NC Transcript");
         transcript.schoolName = pdfText[officialTranscriptIndex - 4] ?? null;
         transcript.schoolPhone = pdfText[officialTranscriptIndex - 1] ?? null;
         transcript.schoolAddress = pdfText.slice(officialTranscriptIndex - 3, officialTranscriptIndex - 1).join("\n") ?? null;
-        transcript.schoolCode = this.pdfLoaderService.stringAfterField(pdfText, "School No");
-        transcript.gpa = this.pdfLoaderService.stringAfterField(pdfText, "Cumulative GPA Weighted");
-        transcript.earnedCredits = this.pdfLoaderService.stringAfterField(pdfText, "Total Credits Toward Graduation");
+        transcript.schoolCode = PdfLoaderService.stringAfterField(pdfText, "School No");
+        transcript.gpa = PdfLoaderService.stringAfterField(pdfText, "Cumulative GPA Weighted");
+        transcript.earnedCredits = PdfLoaderService.stringAfterField(pdfText, "Total Credits Toward Graduation");
 
-        transcript.gpaUnweighted = this.pdfLoaderService.stringAfterField(pdfText, "Cumulative GPA Unweighted");
-        transcript.totalPoints = this.pdfLoaderService.stringAfterField(pdfText, "Total Points Weighted")?.replace(/\s+/g, '');
-        transcript.totalPointsUnweighted = this.pdfLoaderService.stringAfterField(pdfText, "Total Points Unweighted")?.replace(/\s+/g, '');
-        transcript.classRank = this.pdfLoaderService.stringAfterField(pdfText, "Class Rank").match(/\d+ out of \d+/)[0] ?? null;
+        transcript.gpaUnweighted = PdfLoaderService.stringAfterField(pdfText, "Cumulative GPA Unweighted");
+        transcript.totalPoints = PdfLoaderService.stringAfterField(pdfText, "Total Points Weighted").replace(/\s+/g, '');
+        transcript.totalPointsUnweighted = PdfLoaderService.stringAfterField(pdfText, "Total Points Unweighted").replace(/\s+/g, '');
+        transcript.classRank = PdfLoaderService.stringAfterField(pdfText, "Class Rank").match(/\d+ out of \d+/)[0] ?? null;
 
-        transcript.schoolDistrict = this.pdfLoaderService.stringAfterField(pdfText, "L.E.A.");
+        transcript.schoolDistrict = PdfLoaderService.stringAfterField(pdfText, "L.E.A.");
         transcript.schoolDistrictPhone = pdfText[pdfText.indexOf(pdfText.find(str => str.startsWith("L.E.A."))) + 1] ?? null;
-        transcript.schoolAccreditation = this.pdfLoaderService.stringAfterField(pdfText, "Accreditation");
-        transcript.schoolCeebCode = this.pdfLoaderService.stringAfterField(pdfText, "College Board Code");
-        transcript.schoolPrincipal = this.pdfLoaderService.stringAfterField(pdfText, "Principal");
+        transcript.schoolAccreditation = PdfLoaderService.stringAfterField(pdfText, "Accreditation");
+        transcript.schoolCeebCode = PdfLoaderService.stringAfterField(pdfText, "College Board Code");
+        transcript.schoolPrincipal = PdfLoaderService.stringAfterField(pdfText, "Principal");
         transcript.schoolPrincipalPhone = pdfText[pdfText.indexOf(pdfText.find(str => str.startsWith("Principal"))) + 1] ?? null;
 
         transcript.endorsements = this.filterTextByHeading(pdfText, 6).join("\n");
-        transcript.mathRigor = this.pdfLoaderService.stringAfterField(pdfText, "Math Rigor");
-        transcript.reqirementsRemaining = this.filterTextByHeading(pdfText, 3).join("\n");
+        transcript.mathRigor = PdfLoaderService.stringAfterField(pdfText, "Math Rigor");
+        transcript.requirementsRemaining = this.filterTextByHeading(pdfText, 3).join("\n");
         transcript.workExperience = this.filterTextByHeading(pdfText, 7).join("\n");
         transcript.achievements = this.filterTextByHeading(pdfText, 8).slice(0, -2).join("\n");
         transcript.tests = this.parseTests(pdfText);
@@ -223,7 +222,7 @@ export class NhcsLoaderService extends SisLoaderService {
         let termIndex = 0;
         while (true) {
             let term = new HighSchoolTermDto();
-            const termInfo = this.pdfLoaderService.stringAfterField(pdfText, "Grade", termIndex);
+            const termInfo = PdfLoaderService.stringAfterField(pdfText, "Grade", termIndex);
             if (termInfo) {
                 term.termYear = termInfo.slice(-7);
                 term.termGradeLevel = termInfo.replace(term.termYear, "");
@@ -403,7 +402,7 @@ export class NhcsLoaderService extends SisLoaderService {
         return course;
     }
 
-    parseTests(pdfText: string[]): string {
+    parseTests(pdfText: string[]): TestDto[] {
         let tests: TestDto[] = [];
         const startIndex = pdfText.indexOf("Test Name / Score Name Score Test Date");
         if (startIndex === -1) {
@@ -434,7 +433,7 @@ export class NhcsLoaderService extends SisLoaderService {
             tests.push(test);
             currentIndex++;
         }
-        return JSON.stringify(tests);
+        return tests;
     }
 
     extractCreditValues(course: HighSchoolCourseDto, courseString: string): string {
