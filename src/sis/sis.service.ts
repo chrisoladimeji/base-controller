@@ -59,7 +59,11 @@ export class SisService {
     }
 
     // Convert terms into a json string for flat structure
-    transcript.terms = JSON.stringify(transcript.terms);
+    for (const key in transcript) {
+      if (typeof transcript[key] !== "string") {
+        transcript[key] = JSON.stringify(transcript[key]);
+      }
+    }
 
     return transcript;
   }

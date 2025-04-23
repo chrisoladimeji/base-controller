@@ -1,7 +1,7 @@
 import { Injectable } from "@nestjs/common";
 import { SisLoaderService } from "../loaders/sisLoader.service";
 import { StudentIdDto } from "../../dtos/studentId.dto";
-import { CourseDto, HighSchoolCourseDto, HighSchoolTermDto, HighSchoolTranscriptDto, TranscriptDto } from "../../dtos/transcript.dto";
+import { CourseDto, HighSchoolCourseDto, HighSchoolTermDto, HighSchoolTranscriptDto, TestDto, TranscriptDto } from "../../dtos/transcript.dto";
 import * as Zip from 'adm-zip';
 import * as Pdf from 'pdf-parse';
 import * as fs from 'fs';
@@ -166,7 +166,9 @@ export class PenderLoaderService extends SisLoaderService {
             }
         }
 
-        console.log(transcript.terms[transcript.terms.length - 1])
+        transcript.tests = this.parseTests(pdfText);
+
+        console.log(transcript);
         return [studentId, transcript];
     }
 
@@ -304,5 +306,24 @@ export class PenderLoaderService extends SisLoaderService {
             courses.push(course);
         }
         return courses;
+    }
+
+    parseTests(pdfText: string[]): TestDto[] {
+        let tests: TestDto[] = [];
+
+        let currentIndex = pdfText.indexOf("Standard Tests") + 1;
+        while (currentIndex < pdfText.length - 1 && pdfText[currentIndex] !== "Note: Best scores displayed.") {
+            let test = new TestDto();
+            test.testTitle = pdfText[currentIndex];
+            const match = pdfText[currentIndex + 1].match(/[Score|Result]:(.*?)\s*Date:(.*)/);
+            if (match) {
+                test.testScore = match[1];
+                test.testDate = match[2];
+            }
+            tests.push(test);
+            currentIndex += 2;
+        }
+
+        return tests;
     }
 }
