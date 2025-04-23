@@ -57,8 +57,8 @@ export class HighSchoolTranscriptDto extends TranscriptDto {
     endorsements: string;
     mathRigor: string;
 
-    curriculumProgram: string;
-    requirementsRemaining: string;
+    cirriculumProgram: string;
+    reqirementsRemaining: string;
     workExperience: string;
     achievements: string;
 

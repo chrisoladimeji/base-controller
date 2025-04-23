@@ -207,7 +207,7 @@ export class NhcsLoaderService extends SisLoaderService {
 
         transcript.endorsements = this.filterTextByHeading(pdfText, 6).join("\n");
         transcript.mathRigor = PdfLoaderService.stringAfterField(pdfText, "Math Rigor");
-        transcript.requirementsRemaining = this.filterTextByHeading(pdfText, 3).join("\n");
+        transcript.reqirementsRemaining = this.filterTextByHeading(pdfText, 3).join("\n");
         transcript.workExperience = this.filterTextByHeading(pdfText, 7).join("\n");
         transcript.achievements = this.filterTextByHeading(pdfText, 8).slice(0, -2).join("\n");
         transcript.tests = this.parseTests(pdfText);
