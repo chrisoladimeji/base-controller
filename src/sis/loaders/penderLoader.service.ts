@@ -141,7 +141,7 @@ export class PenderLoaderService extends SisLoaderService {
         transcript.schoolAccreditation = PdfLoaderService.stringAfterField(pdfText, "Accreditation");
         transcript.schoolCeebCode = PdfLoaderService.stringAfterField(pdfText, "School CEEB Code");
         transcript.schoolPrincipal = PdfLoaderService.stringAfterField(pdfText, "Principal");
-        transcript.curriculumProgram = PdfLoaderService.stringAfterField(pdfText, "Curriculum Program");
+        transcript.cirriculumProgram = PdfLoaderService.stringAfterField(pdfText, "Curriculum Program");
 
         // Get a list of the terms in pdfText split apart into termBlocks
         const termBlocks: string[][] = this.splitByTerms(pdfText);
