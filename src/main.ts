@@ -2,6 +2,7 @@ import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import { ConfigService } from '@nestjs/config';
+import { Request, Response, NextFunction } from 'express';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -27,6 +28,24 @@ async function bootstrap() {
   app.enableCors({
     origin: true, // This will allow all origins
     // credentials: true, // Optional: if your frontend needs to send cookies or authentication information
+  });
+
+  // Add request logging middleware
+  app.use((req: Request, res: Response, next: NextFunction) => {
+    console.log(`[Request] ${req.method} ${req.url}`);
+    console.log('[Raw Headers]', req.rawHeaders);
+    console.log('[Headers]', req.headers);
+    console.log('[Query Params]', req.query);
+    console.log('[Body]', req.body);
+
+    const apiKey = configService.get<string>('WEBHOOK_API_KEY');
+    const requestApiKey = req.headers['x-api-key'];
+
+    if (apiKey && (!requestApiKey || requestApiKey !== apiKey)) {
+      return res.status(401).json({ message: 'Unauthorized' });
+    }
+
+    next();
   });
 
   const config = new DocumentBuilder()
