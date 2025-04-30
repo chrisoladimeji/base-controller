@@ -5,10 +5,20 @@ import { firstValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { RedisService } from '../services/redis.service';
 import { jwtDecode } from 'jwt-decode';
-import { StudentIdDto } from 'src/dtos/studentId.dto';
-import { SisLoaderService } from 'src/sis/loaders/sisLoader.service';
-import { TranscriptDto } from 'src/dtos/transcript.dto';
+import { StudentIdDto } from '../dtos/studentId.dto';
+import { SisLoaderService } from '../sis/loaders/sisLoader.service';
+import { TranscriptDto } from '../dtos/transcript.dto';
 
+
+const ELLUCIAN_PERSON_API_ROUTE = "/api/persons";
+const ELLUCIAN_TRANSCRIPT_API_ROUTE = "";
+const ELLUCIAN_GRADE_POINT_AVERAGE_API_ROUTE = ""
+const ELLUCIAN_STUDENT_API_ROUTE = "";
+const ELLUCIAN_SECTIONS_API_ROUTE = "";
+const ELLUCIAN_COURSES_API_ROUTE = "";
+const ELLUCIAN_ACADEMIC_PERIOD_API_ROUTE = "";
+const ELLUCIAN_ACADEMIC_GRADE_DEF_API_ROUTE = "";
+const ELLUCIAN_AUTH_ROUTE = "/auth";
 
 @Injectable()
 export class EllucianService extends SisLoaderService {
@@ -23,8 +33,7 @@ export class EllucianService extends SisLoaderService {
   ) {
     super();
     const baseUrl = this.configService.get<string>('ELLUCIAN_BASE_API_URL');
-    const authRoute = this.configService.get<string>('ELLUCIAN_AUTH_ROUTE');
-    this.authUrl = `${baseUrl}${authRoute}`;
+    this.authUrl = `${baseUrl}${ELLUCIAN_AUTH_ROUTE}`;
     this.apiUrl = baseUrl;
   }
 
@@ -71,10 +80,8 @@ export class EllucianService extends SisLoaderService {
     if (!studentNumber) {
       throw new Error('Student number is required');
     }
-
-    const apiRoute = this.configService.get<string>('ELLUCIAN_PERSON_API_ROUTE', '');
     const criteria = encodeURIComponent(`{"credentials":[{"type":"colleaguePersonId","value":"${studentNumber}"}]}`);
-    const url = `${this.apiUrl}${apiRoute}?criteria=${criteria}`;
+    const url = `${this.apiUrl}${ELLUCIAN_PERSON_API_ROUTE}?criteria=${criteria}`;
 
     try {
       const response = await firstValueFrom(
@@ -156,14 +163,12 @@ export class EllucianService extends SisLoaderService {
     return this.fetchFromEllucian(url);
   }
 
-  async getStudentId(studentNumber: string) {
+  async getStudentId(studentNumber: string): Promise<StudentIdDto> {
     await this.getAccessToken();
     const person = await this.getPerson(studentNumber);
     if (!person || !person.length) {
       throw new HttpException('Student not found', HttpStatus.NOT_FOUND);
     }
-
-    console.log(person);
 
     let studentId = new StudentIdDto();
     studentId.studentNumber = person[0].studentsId?.studentsId ?? null;
@@ -171,6 +176,7 @@ export class EllucianService extends SisLoaderService {
     studentId.studentBirthDate = person[0].dateOfBirth ?? null;
     studentId.studentPhone = person[0].phones[0]?.number ?? null;
     studentId.studentEmail = person[0].emails.find(e => e.preference === "primary")?.address ?? null;
+    studentId.expiration = this.configService.get("STUDENTID_EXPIRATION");
 
     // student.photo = getStudentPhoto();
 

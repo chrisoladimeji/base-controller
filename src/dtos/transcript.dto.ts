@@ -78,19 +78,27 @@ export class TermDto {
     termSchoolName: string;
     termSchoolCode: string;
 
+    termCredit: string;
+    termGpa: string;
     // Course Information
     courses: CourseDto[] | string;
 }
 
 export class HighSchoolTermDto extends TermDto {
-    termCredit: string;
-    termGpa: string;
     termUnweightedGpa: string;
 }
 
 export class CollegeTermDto extends TermDto {
     termSeason: string;
     academicStanding: string;
+
+    termHoursPossible
+    termHoursEarned
+    termGradePoints
+    cumulativeHoursPossible
+    cumulativeHoursEarned
+    cumulativeGradePoints
+    cumulativeGpa
 }
 
 export class CourseDto {
@@ -117,6 +125,8 @@ export class CollegeCourseDto extends CourseDto {
     hoursEarned: string;
 
     repeat: boolean;
+
+    schoolName: string;
 }
 
 export class TestDto {
