@@ -26,41 +26,14 @@ export class CredentialService {
 
   async handleCredential(credentialData: CredentialData): Promise<void> {
     const { credential_exchange_id, connection_id, state } = credentialData;
+    console.log("handleCredential state=", state);
 
-/*     if (state === 'offer_sent') {
-      this.logger.log('Credential Offer sent...');
-      this.emitEvent(credentialData);
-      await this.handleStateOfferSentWorkflow(credentialData);
-    }
- */
     if (state === 'credential_acked') {
-      this.logger.log('Credential Accepted ...');
-      this.logger.log('Fetching detailed record using credential_exchange_id:', credential_exchange_id);
-      const credentialRecord = await this.acapyService.fetchCredentialRecord(credential_exchange_id);
-      // this.logger.log('Credential Record:', credentialRecord);
-
-      const attributes = credentialRecord?.credential_proposal_dict?.credential_proposal?.attributes;
-
-      if (attributes) {
-        const { First, Last, StudentID, Expiration } = this.extractAttributes(attributes);
-
-        if (First && Last && StudentID && Expiration) {
-          await this.metadataService.updateConnectionMetadata(connection_id, {
-            student_id: StudentID,
-            first_name: First,
-            last_name: Last,
-            expiration: Expiration,
-          });
-        } else {
-          this.logger.error('First, Last, ID or Expiration not found in credential attributes.');
-        }
-      } else {
-        this.logger.error('Credential attributes are undefined.');
-      }
-
-
       await this.handleStateCredAckWorkflow(credentialData);
     }
+    //if (state === 'credential_acked') {
+    //  await this.handleStateCredAckWorkflow(credentialData);
+    //}
 
     // if (state === 'offer_sent' &&
     //   [this.configService.get<string>('STUDENTID_CREDENTIAL_DEFINITION_ID'),

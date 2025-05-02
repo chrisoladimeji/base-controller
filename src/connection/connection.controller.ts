@@ -17,7 +17,7 @@ export class ConnectionController {
   ): Promise<Response> {
     console.log('************* Connection controller ***************');
     console.log(connectionData);
-    console.log(response)
+    //console.log(response)
     try {
       await this.connectionService.handleConnection(connectionData);
       return response

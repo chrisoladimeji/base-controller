@@ -3,6 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import { HttpService } from '@nestjs/axios';
 import { AxiosRequestConfig } from 'axios';
 import { lastValueFrom, map } from 'rxjs';
+import util from 'util';
 
 @Injectable()
 export class AcaPyService {
@@ -143,17 +144,14 @@ export class AcaPyService {
     }
 
     async sendProofRequest(connectionId: string, data: object): Promise<void> {
-        const verificationRequestBody = {
-            "auto_verify": false,
-            "connection_id": connectionId,
-            "proof_request": data
-        }
-        const verificationRequestUrl = `${this.configService.get<string>('API_BASE_URL')}/present-proof/send-request`;
+
+        console.log("Verification request = ", JSON.stringify(data));
+        const verificationRequestUrl = `${this.configService.get<string>('API_BASE_URL')}/present-proof-2.0/send-request`;
         const verificationRequestConfig: AxiosRequestConfig = this.getRequestConfig();
 
         try {
             await lastValueFrom(
-                this.httpService.post(verificationRequestUrl, verificationRequestBody, verificationRequestConfig).pipe(map((resp) => console.log(resp.data)))
+                this.httpService.post(verificationRequestUrl, data, verificationRequestConfig).pipe(map((resp) => console.log(resp.data)))
             );
             this.logger.log('Proof request sent successfully');
         } catch (error) {
