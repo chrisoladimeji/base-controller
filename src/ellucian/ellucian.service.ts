@@ -5,15 +5,26 @@ import { firstValueFrom } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { RedisService } from '../services/redis.service';
 import { jwtDecode } from 'jwt-decode';
-import { StudentIdDto } from 'src/dtos/studentId.dto';
-import { SisLoaderService } from 'src/sis/loaders/sisLoader.service';
-import { TranscriptDto } from 'src/dtos/transcript.dto';
+import { StudentIdDto } from '../dtos/studentId.dto';
+import { SisLoaderService } from '../sis/loaders/sisLoader.service';
+import { CollegeCourseDto, CollegeTermDto, CollegeTranscriptDto, TermDto } from '../dtos/transcript.dto';
 
+
+const ELLUCIAN_PERSON_API_ROUTE = "/api/persons";
+const ELLUCIAN_ADDRESS_ROUTE = "/api/addresses";
+const ELLUCIAN_TRANSCRIPT_API_ROUTE = "/api/student-transcript-grades";
+const ELLUCIAN_GRADE_POINT_AVERAGE_API_ROUTE = ""
+const ELLUCIAN_STUDENT_API_ROUTE = "";
+const ELLUCIAN_SECTIONS_API_ROUTE = "";
+const ELLUCIAN_COURSES_API_ROUTE = "";
+const ELLUCIAN_ACADEMIC_PERIOD_API_ROUTE = "";
+const ELLUCIAN_ACADEMIC_GRADE_DEF_API_ROUTE = "";
+const ELLUCIAN_AUTH_ROUTE = "/auth";
 
 @Injectable()
 export class EllucianService extends SisLoaderService {
   private accessToken: string = '';
-  private apiUrl: string;
+  private baseUrl: string;
   private authUrl: string;
 
   constructor(
@@ -22,10 +33,8 @@ export class EllucianService extends SisLoaderService {
     private redisService: RedisService
   ) {
     super();
-    const baseUrl = this.configService.get<string>('ELLUCIAN_BASE_API_URL');
-    const authRoute = this.configService.get<string>('ELLUCIAN_AUTH_ROUTE');
-    this.authUrl = `${baseUrl}${authRoute}`;
-    this.apiUrl = baseUrl;
+    this.baseUrl = this.configService.get<string>('ELLUCIAN_BASE_API_URL');
+    this.authUrl = `${this.baseUrl}${ELLUCIAN_AUTH_ROUTE}`;
   }
 
   // Ellucian had not specified a load procedure
@@ -46,10 +55,11 @@ export class EllucianService extends SisLoaderService {
       return;
     }
 
-    console.log(`Fetching new access token from: ${this.authUrl}`);
+    const authUrl = `${this.baseUrl}${ELLUCIAN_AUTH_ROUTE}`;
+    console.log(`Fetching new access token from: ${authUrl}`);
     let response;
     try {
-      response = await firstValueFrom(this.httpService.post(this.authUrl, {}, {
+      response = await firstValueFrom(this.httpService.post(authUrl, {}, {
         headers: { Authorization: `Bearer ${this.configService.get<string>('ELLUCIAN_API_KEY')}` }
       }).pipe(map(res => res.data)));
     }
@@ -71,10 +81,8 @@ export class EllucianService extends SisLoaderService {
     if (!studentNumber) {
       throw new Error('Student number is required');
     }
-
-    const apiRoute = this.configService.get<string>('ELLUCIAN_PERSON_API_ROUTE', '');
     const criteria = encodeURIComponent(`{"credentials":[{"type":"colleaguePersonId","value":"${studentNumber}"}]}`);
-    const url = `${this.apiUrl}${apiRoute}?criteria=${criteria}`;
+    const url = `${this.baseUrl}${ELLUCIAN_PERSON_API_ROUTE}?criteria=${criteria}`;
 
     try {
       const response = await firstValueFrom(
@@ -88,7 +96,8 @@ export class EllucianService extends SisLoaderService {
           map(response => response.data)
         )
       );
-      return response;
+      if (response) return response[0];
+      else throw new Error("Ellucian returned no data");
     } catch (error) {
       console.error('Error fetching student information:', error.response ? error.response.data : error.message);
       throw new Error('Failed to fetch student information');
@@ -112,72 +121,170 @@ export class EllucianService extends SisLoaderService {
     }
   }
 
+  async getAddress(ellucianPerson: any): Promise<string | null> {
+    const addressId = ellucianPerson.addresses[0]?.address?.id;
+    if (!addressId) {
+      console.log("No address in Ellucian Person response");
+      return null;
+    }
+  
+    const url = `${this.baseUrl}${ELLUCIAN_ADDRESS_ROUTE}/${addressId}`;
+    const response = await this.fetchFromEllucian(url);
+  
+    if (!response?.addressLines) {
+      console.error("No address was given from Ellucian");
+      return null;
+    }
+  
+    return response.addressLines.join("\n");
+  }
+
 
   async getStudentTranscriptGrades(studentGuid: string): Promise<any> {
-    const apiRoute = this.configService.get<string>('ELLUCIAN_TRANSCRIPT_API_ROUTE', '');
-    const url = `${this.apiUrl}${apiRoute}?criteria={"student":{"id":"${studentGuid}"}}`;
+    const url = `${this.baseUrl}${ELLUCIAN_TRANSCRIPT_API_ROUTE}?criteria={"student":{"id":"${studentGuid}"}}`;
     return this.fetchFromEllucian(url);
   }
 
 
   async getStudent(studentGuid: string): Promise<any> {
     const apiRoute = this.configService.get<string>('ELLUCIAN_STUDENT_API_ROUTE', '');
-    const url = `${this.apiUrl}${apiRoute}?criteria={"person":{"id":"${studentGuid}"}}`;
+    const url = `${this.baseUrl}${apiRoute}?criteria={"person":{"id":"${studentGuid}"}}`;
     return this.fetchFromEllucian(url);
   }
 
   async getCourseIdBySection(sectionId: string): Promise<any> {
     const apiRoute = this.configService.get<string>('ELLUCIAN_SECTIONS_API_ROUTE', '');
-    const url = `${this.apiUrl}${apiRoute}/${sectionId}`;
+    const url = `${this.baseUrl}${apiRoute}/${sectionId}`;
     return this.fetchFromEllucian(url);
   }
 
   async getCourse(courseId: string): Promise<any> {
     const apiRoute = this.configService.get<string>('ELLUCIAN_COURSES_API_ROUTE', '');
-    const url = `${this.apiUrl}${apiRoute}/${courseId}`;
+    const url = `${this.baseUrl}${apiRoute}/${courseId}`;
     return this.fetchFromEllucian(url);
   }
 
   async getAcademicPeriod(academicPeriodId: string): Promise<any> {
     const apiRoute = this.configService.get<string>('ELLUCIAN_ACADEMIC_PERIOD_API_ROUTE', '');
-    const url = `${this.apiUrl}${apiRoute}/${academicPeriodId}`;
+    const url = `${this.baseUrl}${apiRoute}/${academicPeriodId}`;
     return this.fetchFromEllucian(url);
   }
 
   async getGradeDefinition(gradeDefinitionId: string): Promise<any> {
     const apiRoute = this.configService.get<string>('ELLUCIAN_ACADEMIC_GRADE_DEF_API_ROUTE', '');
-    const url = `${this.apiUrl}${apiRoute}/${gradeDefinitionId}`;
+    const url = `${this.baseUrl}${apiRoute}/${gradeDefinitionId}`;
     return this.fetchFromEllucian(url);
   }
 
   async getStudentGradePointAverages(studentGuid: string): Promise<any> {
     const apiRoute = this.configService.get<string>('ELLUCIAN_GRADE_POINT_AVERAGE_API_ROUTE', '');
-    const url = `${this.apiUrl}${apiRoute}?criteria={"student":{"id":"${studentGuid}"}}`;
+    const url = `${this.baseUrl}${apiRoute}?criteria={"student":{"id":"${studentGuid}"}}`;
     return this.fetchFromEllucian(url);
   }
 
-  async getStudentId(studentNumber: string) {
+  async getStudentId(studentNumber: string): Promise<StudentIdDto> {
     await this.getAccessToken();
     const person = await this.getPerson(studentNumber);
-    if (!person || !person.length) {
+    if (!person) {
       throw new HttpException('Student not found', HttpStatus.NOT_FOUND);
     }
 
-    console.log(person);
-
     let studentId = new StudentIdDto();
-    studentId.studentNumber = person[0].studentsId?.studentsId ?? null;
-    studentId.studentFullName = person[0].names[0]?.fullName ?? null;
-    studentId.studentBirthDate = person[0].dateOfBirth ?? null;
-    studentId.studentPhone = person[0].phones[0]?.number ?? null;
-    studentId.studentEmail = person[0].emails.find(e => e.preference === "primary")?.address ?? null;
-
-    // student.photo = getStudentPhoto();
+    studentId.studentNumber = person.studentsId?.studentsId ?? null;
+    studentId.studentFullName = person.names[0]?.fullName ?? null;
+    studentId.studentBirthDate = person.dateOfBirth ?? null;
+    studentId.studentPhone = person.phones[0]?.number ?? null;
+    studentId.studentEmail = person.emails.find(e => e.preference === "primary")?.address ?? null;
+    studentId.expiration = this.configService.get("STUDENTID_EXPIRATION");
 
     return studentId;
   }
 
-  async getStudentTranscript(studentNumber: string): Promise<TranscriptDto> {
-    return null;
+  async getStudentTranscript(studentNumber: string): Promise<CollegeTranscriptDto> {
+    console.log("Getting student transcript from Ellucian for student: ", studentNumber);
+
+    await this.getAccessToken();
+
+    // Make initial call to ellucian to get a Person
+    const ellucianPerson = await this.getPerson(studentNumber);
+    if (!ellucianPerson) {
+      throw new HttpException("Student not found", HttpStatus.NOT_FOUND);
+    }
+    if (!ellucianPerson.id) {
+      throw new HttpException("Person GUID not found", HttpStatus.NOT_FOUND);
+    }
+
+    // const ellucianStudent = await this.getStudent(ellucianPerson.id);
+
+    // Make a list of tasks to execute in parallel
+    // const tasks = [
+    //   this.getAddress(ellucianPerson),
+    //   this.getStudentGradePointAverages(ellucianPerson.id),
+    // ]
+    // // Extract data from the tasks after all have resolved
+    // const [
+    //   address,
+    //   gradePointAverages,
+    // ] = await Promise.all(tasks);
+
+    // console.log(ellucianStudent);
+
+    // Create the transcript DTO and set all of the fields
+    let transcript = new CollegeTranscriptDto();
+    transcript.transcriptDate = new Date().toLocaleDateString();
+    transcript.transcriptComments = "A=4, B=3, C=2, D=1, F=0"
+    if (studentNumber !== ellucianPerson.studentsId?.studentsId) {
+      console.error("Student number given did not match student number in response");
+    }
+    transcript.studentNumber = studentNumber;
+
+    transcript.studentFullName = ellucianPerson.names[0]?.fullName ?? null;
+    transcript.studentBirthDate = ellucianPerson.dateOfBirth ?? null;
+    transcript.studentPhone = ellucianPerson.phones[0]?.number ?? null;
+    transcript.studentEmail = ellucianPerson.emails.find(e => e.preference === "primary")?.address ?? null;
+    transcript.studentAddress = "1234 Oak Ln\nWilmington, NC" // address;
+    transcript.studentSsn = ellucianPerson.credentials.find(e => e.type === "taxIdentificationNumber")?.value ?? null;
+    transcript.program = "Associate in Arts";
+    transcript.schoolName = "Cape Fear Community College";
+    transcript.schoolPhone = "555-555-5555";
+    transcript.schoolAddress = "411 N. Front Street\nWilmington, NC 28401";
+    transcript.gpa = "3.912";
+    transcript.earnedCredits = "119.00";
+    transcript.terms = [];
+
+    let term = new CollegeTermDto();
+    term.termYear = "2024";
+    term.termCredit = "18.00";
+    term.termGpa = "3.167";
+    term.termSeason = "Fall";
+    term.academicStanding = "Honor's List";
+    term.termHoursPossible = "18.00";
+    term.termHoursEarned = "18.00";
+    term.termGradePoints = "57.00";
+    term.cumulativeHoursPossible = "22.00";
+    term.cumulativeHoursEarned = "52.00";
+    term.cumulativeGradePoints = "73.00";
+    term.cumulativeGpa = " 3.192";
+
+    term.courses = [];
+
+    let course = new CollegeCourseDto();
+    course.courseCode = "BIO-168";
+    course.courseTitle = "Anatomy and Physiology 1";
+    course.grade = "A";
+    course.creditEarned = "4.00";
+    course.gradePoints = "16.00";
+    course.transfer = false;
+    course.inProgress = false;
+    course.flags = ["A"];
+    course.hoursPossible = "4.00";
+    course.hoursEarned = "4.00";
+    course.repeat = true;
+    course.schoolName = "Cape Fear Community College";
+
+    term.courses.push(course);
+    transcript.terms.push(term);
+
+    return transcript;
   }
 }
