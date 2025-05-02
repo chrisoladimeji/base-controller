@@ -7,7 +7,7 @@ import { RedisService } from '../services/redis.service';
 import { jwtDecode } from 'jwt-decode';
 import { StudentIdDto } from '../dtos/studentId.dto';
 import { SisLoaderService } from '../sis/loaders/sisLoader.service';
-import { TranscriptDto } from '../dtos/transcript.dto';
+import { CollegeTranscriptDto } from '../dtos/transcript.dto';
 
 
 const ELLUCIAN_PERSON_API_ROUTE = "/api/persons";
@@ -178,12 +178,23 @@ export class EllucianService extends SisLoaderService {
     studentId.studentEmail = person[0].emails.find(e => e.preference === "primary")?.address ?? null;
     studentId.expiration = this.configService.get("STUDENTID_EXPIRATION");
 
-    // student.photo = getStudentPhoto();
-
     return studentId;
   }
 
-  async getStudentTranscript(studentNumber: string): Promise<TranscriptDto> {
-    return null;
+  async getStudentTranscript(studentNumber: string): Promise<CollegeTranscriptDto> {
+    await this.getAccessToken();
+    const person = await this.getPerson(studentNumber);
+    if (!person) {
+      throw new HttpException("Student not found", HttpStatus.NOT_FOUND);
+    }
+
+    let transcript = new CollegeTranscriptDto();
+    transcript.studentNumber = person[0].studentsId?.studentsId ?? null;
+    transcript.studentFullName = person[0].names[0]?.fullName ?? null;
+    transcript.studentBirthDate = person[0].dateOfBirth ?? null;
+    transcript.studentPhone = person[0].phones[0]?.number ?? null;
+    transcript.studentEmail = person[0].emails.find(e => e.preference === "primary")?.address ?? null;
+
+    return transcript;
   }
 }
