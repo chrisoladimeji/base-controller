@@ -89,52 +89,10 @@ describe('EllucianService', () => {
   
   describe('getStudentTranscript', () => {
       it("returns a transcript when given a student number", async () => {
-        const response: CollegeTranscriptDto = new CollegeTranscriptDto();
-        response.transcriptDate
-        response.transcriptComments
-        response.studentNumber
-        response.studentFullName
-        response.studentBirthDate
-        response.studentAddress
-        response.studentSsn
-        response.program
-        response.schoolName
-        response.schoolPhone
-        response.schoolAddress
-        response.gpa
-        response.earnedCredits // Total in program
-        response.terms
-        
-        // response.terms[0].termYear
-        // response.terms[0].termCredit
-        // response.terms[0].termGpa
-
-        // response.terms[0].termSeason
-        // response.terms[0].academicStanding
-
-        // response.terms[0].termHoursPossible
-        // response.terms[0].termHoursEarned
-        // response.terms[0].termGradePoints
-        // response.terms[0].cumulativeHoursPossible
-        // response.terms[0].cumulativeHoursEarned
-        // response.terms[0].cumulativeGradePoints
-        // response.terms[0].cumulativeGpa
-
-        // response.terms[0].courses[0].courseCode
-        // response.terms[0].courses[0].courseTitle
-        // response.terms[0].courses[0].grade
-        // response.terms[0].courses[0].creditEarned
-        // response.terms[0].courses[0].gradePoints
-        // response.terms[0].courses[0].transfer
-        // response.terms[0].courses[0].inProgress
-        // response.terms[0].courses[0].flags
-
-        // response.terms[0].courses[0].hoursPossible
-        // response.terms[0].courses[0].hoursEarned
-        // response.terms[0].courses[0].repeat
-        // response.terms[0].courses[0].schoolName
-
-        validate(response);
+        const response: CollegeTranscriptDto = await service.getStudentTranscript("12345678");
+        console.log(response);
+        expect(Object.keys(response).length).toBeGreaterThanOrEqual(10);
+        validate(response);        
       })
   })
 });

@@ -40,7 +40,6 @@ export class CfccLoaderService extends SisLoaderService {
         const imageFileType = this.configService.get("PHOTOID_FILE_TYPE")
         const imageUrl = `${imageServerBaseUrl}/${studentNumber}.${imageFileType}`
 
-        console.log(imageUrl);
         let response;
         try {
             response = await firstValueFrom(this.httpService.get(
@@ -55,8 +54,7 @@ export class CfccLoaderService extends SisLoaderService {
             ));
         }
         catch (err) {
-            console.error(`Error fetching photo for student ${studentNumber} from ${imageUrl}:`, err.message);
-            throw new Error(`Failed to fetch student photo`);
+            console.error(`Error fetching photo for student ${studentNumber} from ${imageUrl}:`, err);
         }
         if (!response) {
             console.error("No image data found for student: ", studentNumber);
