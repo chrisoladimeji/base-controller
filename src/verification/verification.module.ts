@@ -6,9 +6,10 @@ import { HttpModule } from '@nestjs/axios';
 import { ConfigModule } from '@nestjs/config';
 import { MetadataModule } from '../metadata/metadata.module'; // Import MetadataModule
 import { WorkflowsService } from 'src/workflow/workflows/workflows.service';
+import { WorkflowModule } from 'src/workflow/workflow.module';
 
 @Module({
-  imports: [HttpModule, ConfigModule, MetadataModule], // Add MetadataModule here
+  imports: [HttpModule, ConfigModule, WorkflowModule, MetadataModule], // Add MetadataModule here
   controllers: [VerificationController],
   providers: [VerificationService],
 })

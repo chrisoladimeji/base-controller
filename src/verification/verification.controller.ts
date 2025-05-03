@@ -16,7 +16,7 @@ export class VerificationController {
     console.log(data);
     if (data?.state === 'request_sent') {
       await this.verificationService.verify(data);
-    } else if (data?.state === 'verified') {
+    } else if (data?.state === 'done') {
       await this.verificationService.handleVerifiedState(data);
     }else if (data?.state === 'abandoned') {
       await this.verificationService.handleAbandonedState(data);

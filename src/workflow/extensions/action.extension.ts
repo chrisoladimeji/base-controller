@@ -14,10 +14,11 @@ export class ExtendedAction implements IActionExtension {
     ) {}
 
     async actions(actionInput: any, instance: Instance, action: any, transition: Transition): Promise<Transition>{
-        console.log("^^^ Extension -> actions");
+        console.log("^^^ Extension -> actions actionInputs=", actionInput, "action=", action);
         const connection_id = instance.client_id;
         const cred_def_id = action?.value?.cred_def;
         console.log("Cred-defID=", cred_def_id);
+        transition.type = "none-nodisplay";
         // handle the types of actions
         switch(action?.type) {
             case "extension":
@@ -84,8 +85,36 @@ export class ExtendedAction implements IActionExtension {
     };
 
     async sendStudentIDProofRequest(connection_id: string, cred_def_id: string) {
+
     }
     async sendTranscriptProofRequest(connection_id: string, cred_def_id: string) {
+      const proofRequest = {
+          "auto_remove": false,
+          "auto_verify": true,
+          "comment": "Student Trascript Proof Request",
+          "connection_id": connection_id,
+          "presentation_request": {
+            "indy": {
+              "name": "Student Transcript Proof Request",
+              "nonce": "1",
+              "requested_attributes": {
+                "additionalProp1": {
+                  "name": "studentNumber",
+                  "restrictions": [
+                    {
+                      "cred_def_id": cred_def_id
+                    }
+                  ]
+                }
+              },
+              "requested_predicates": {
+              },
+              "version": "1.0"
+            }
+          },
+          "trace": false
+      }
+      return this.acapyService.sendProofRequest(connection_id, proofRequest);
     }
 
     async sendTranscriptCredOffer(connection_id: string, cred_def_id: string) {
@@ -179,180 +208,6 @@ export class ExtendedAction implements IActionExtension {
               "name": "transcript",
               "value": JSON.stringify(transcript)
             }
-/* 
-            {
-              "name": "studentSsn",
-              "value": (studentTranscript?.studentSsn==undefined) ? " " : studentTranscript?.studentSsn.toString()
-            },
-            {
-              "name": "studentSex",
-              "value": (studentTranscript?.studentSex==undefined) ? " " : studentTranscript?.studentSex.toString()
-            },
-            {
-              "name": "studentContacts",
-              "value": (studentTranscript?.studentContacts==undefined) ? " " : studentTranscript?.studentContacts.toString()
-            },
-            {
-              "name": "studentStateId",
-              "value": (studentTranscript?.studentStateId==undefined) ? " " : studentTranscript?.studentStateId.toString()
-            },
-            {
-              "name": "guardianName",
-              "value": (studentTranscript?.guardianName==undefined) ? " " : studentTranscript?.guardianName.toString()
-            },
-            {
-              "name": "guardianPhone",
-              "value": (studentTranscript?.guardianPhone==undefined) ? " " : studentTranscript?.guardianPhone.toString()
-            },
-            {
-              "name": "guardianEmail",
-              "value": (studentTranscript?.guardianEmail==undefined) ? " " : studentTranscript?.guardianEmail.toString()
-            },
-            {
-              "name": "gradeLevel",
-              "value": (studentTranscript?.gradeLevel==undefined) ? " " : studentTranscript?.gradeLevel.toString()
-            },
-            {
-              "name": "graduationDate",
-              "value": (studentTranscript?.graduationDate==undefined) ? " " : studentTranscript?.graduationDate.toString()
-            },
-            {
-              "name": "program",
-              "value": (studentTranscript?.program==undefined) ? " " : studentTranscript?.program.toString()
-            },
-            {
-              "name": "schoolName",
-              "value": (studentTranscript?.schoolName==undefined) ? " " : studentTranscript?.schoolName.toString()
-            },
-            {
-              "name": "schoolAddress",
-              "value": (studentTranscript?.schoolAddress==undefined) ? " " : studentTranscript?.schoolAddress.toString()
-            },
-            {
-              "name": "schoolPhone",
-              "value": (studentTranscript?.schoolPhone==undefined) ? " " : studentTranscript?.schoolPhone.toString()
-            },
-            {
-              "name": "schoolFax",
-              "value": (studentTranscript?.schoolFax==undefined) ? " " : studentTranscript?.schoolFax.toString()
-            },
-            {
-              "name": "schoolCode",
-              "value": (studentTranscript?.schoolCode==undefined) ? " " : studentTranscript?.schoolCode.toString()
-            },
-            {
-              "name": "schoolDistrict",
-              "value": (studentTranscript?.schoolDistrict==undefined) ? " " : studentTranscript?.schoolDistrict.toString()
-            },
-            {
-              "name": "schoolDistrictPhone",
-              "value": (studentTranscript?.schoolDistrictPhone==undefined) ? " " : studentTranscript?.schoolDistrictPhone.toString()
-            },
-            {
-              "name": "schoolCeebCode",
-              "value": (studentTranscript?.schoolCeebCode==undefined) ? " " : studentTranscript?.schoolCeebCode.toString()
-            },
-            {
-              "name": "schoolPrincipal",
-              "value": (studentTranscript?.schoolPrincipal==undefined) ? " " : studentTranscript?.schoolPrincipal.toString()
-            },
-            {
-              "name": "schoolPrincipalPhone",
-              "value": (studentTranscript?.schoolPrincipalPhone==undefined) ? " " : studentTranscript?.schoolPrincipalPhone.toString()
-            },
-            {
-              "name": "schoolGradeLevels",
-              "value": (studentTranscript?.schoolGradeLevels==undefined) ? " " : studentTranscript?.schoolGradeLevels.toString()
-            },
-            {
-              "name": "gpa",
-              "value": (studentTranscript?.gpa==undefined) ? " " : studentTranscript?.gpa.toString()
-            },
-            {
-              "name": "gpaUnweighted",
-              "value": (studentTranscript?.gpaUnweighted==undefined) ? " " : studentTranscript?.gpaUnweighted.toString()
-            },
-            {
-              "name": "classRank",
-              "value": (studentTranscript?.classRank==undefined) ? " " : studentTranscript?.classRank.toString()
-            },            
-            {
-              "name": "totalPoints",
-              "value": (studentTranscript?.totalPoints==undefined) ? " " : studentTranscript?.totalPoints.toString()
-            },
-            {
-              "name": "totalPointsUnweighted",
-              "value": (studentTranscript?.totalPointsUnweighted==undefined) ? " " : studentTranscript?.totalPointsUnweighted.toString()
-            },
-            {
-              "name": "attemptedCredits",
-              "value": (studentTranscript?.attemptedCredits==undefined) ? " " : studentTranscript?.attemptedCredits.toString()
-            },
-            {
-              "name": "earnedCredits",
-              "value": (studentTranscript?.earnedCredits==undefined) ? " " : studentTranscript?.earnedCredits.toString()
-            },
-            {
-              "name": "requiredCredits",
-              "value": (studentTranscript?.requiredCredits==undefined) ? " " : studentTranscript?.requiredCredits.toString()
-            },
-            {
-              "name": "remainingCredits",
-              "value": (studentTranscript?.remainingCredits==undefined) ? " " : studentTranscript?.remainingCredits.toString()
-            },
-            {
-              "name": "endorsements",
-              "value": (studentTranscript?.endorsements==undefined) ? " " : studentTranscript?.endorsements.toString()
-            },
-            {
-              "name": "mathRigor",
-              "value": (studentTranscript?.mathRigor==undefined) ? " " : studentTranscript?.mathRigor.toString()
-            },
-            {
-              "name": "cirriculumProgram",
-              "value": (studentTranscript?.cirriculumProgram==undefined) ? " " : studentTranscript?.cirriculumProgram.toString()
-            },
-            {
-              "name": "reqirementsRemaining",
-              "value": (studentTranscript?.reqirementsRemaining==undefined) ? " " : studentTranscript?.reqirementsRemaining.toString()
-            },
-            {
-              "name": "terms",
-              "value": (studentTranscript?.terms==undefined) ? " " : studentTranscript?.terms.toString()
-            },
-            {
-              "name": "workExperience",
-              "value": (studentTranscript?.workExperience==undefined) ? " " : studentTranscript?.workExperience.toString()
-            },
-            {
-              "name": "achievements",
-              "value": (studentTranscript?.achievements==undefined) ? " " : studentTranscript?.achievements.toString()
-            },
-            {
-              "name": "tests",
-              "value": (studentTranscript?.tests==undefined) ? " " : studentTranscript?.tests.toString()
-            },
-            {
-              "name": "creditSummary",
-              "value": (studentTranscript?.creditSummary==undefined) ? " " : studentTranscript?.creditSummary.toString()
-            },
-            {
-              "name": "ctePrograms",
-              "value": (studentTranscript?.ctePrograms==undefined) ? " " : studentTranscript?.ctePrograms.toString()
-            },
-            {
-              "name": "transcriptDate",
-              "value": (studentTranscript?.transcriptDate==undefined) ? " " : studentTranscript?.transcriptDate.toString()
-            },
-            {
-              "name": "transcriptComments",
-              "value": (studentTranscript?.transcriptComments==undefined) ? " " : studentTranscript?.transcriptComments.toString()
-            },
-            {
-              "name": "schoolAccreditation",
-              "value": (studentTranscript?.schoolAccreditation==undefined) ? " " : studentTranscript?.schoolAccreditation.toString()
-            }
- */            
           ]
         }
       }
@@ -430,3 +285,5 @@ export class ExtendedAction implements IActionExtension {
         return parts.length > 1 ? parts[1] : null;
     }
 }
+
+

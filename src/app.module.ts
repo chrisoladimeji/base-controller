@@ -79,7 +79,7 @@ import { WorkflowsModule } from './workflow/workflows/workflows.module';
               module: CredentialModule,
             },
             {
-              path: 'present_proof',
+              path: 'present_proof_v2_0',
               module: VerificationModule,
             },
             {
