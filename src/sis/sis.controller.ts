@@ -32,10 +32,8 @@ export class SisController {
     let studentId;
     try {
         studentId = await this.sisService.getStudentId(studentNumber);
-        if (!studentId) {
-          throw new Error();
-        }
     } catch (error) {
+      console.error(error);
         throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
@@ -44,14 +42,6 @@ export class SisController {
     
     return response;
   }
-
-  @Post('student-photo')
-  @ApiOperation({summary: 'Retrieve student photo by student number'})
-  @ApiQuery({ name: 'studentNumber', required: true, type: String, description: 'The student number'})
-  async getStudentPhoto(@Query('studentNumber') studentNumber: string) {
-    return null
-  }
-
 
   @Get('student-transcript')
   @ApiOperation({ summary: 'Retrieve student transcript by student number' })
@@ -63,6 +53,7 @@ export class SisController {
     try {
         studentTranscript = await this.sisService.getStudentTranscript(studentNumber);
     } catch (error) {
+        console.error(error);
         throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
     }
     return studentTranscript;

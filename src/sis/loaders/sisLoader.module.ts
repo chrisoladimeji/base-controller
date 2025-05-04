@@ -10,6 +10,7 @@ import { EllucianService } from 'src/ellucian/ellucian.service';
 import { EllucianModule } from 'src/ellucian/ellucian.module';
 import { HttpModule } from '@nestjs/axios';
 import { PenderLoaderService } from './penderLoader.service';
+import { CfccLoaderService } from './cfccLoader.service';
 
 @Module({})
 export class SisLoaderModule {
@@ -28,7 +29,7 @@ export class SisLoaderModule {
                 PenderLoaderService,
                 TestLoaderService,
                 NhcsLoaderService,
-                EllucianService,
+                CfccLoaderService,
                 {
                     provide: SisLoaderService,
                     inject: [
@@ -36,14 +37,14 @@ export class SisLoaderModule {
                         TestLoaderService,
                         NhcsLoaderService,
                         PenderLoaderService,
-                        EllucianService,
+                        CfccLoaderService,
                     ],
                     useFactory: (
                         configService: ConfigService,
                         test: TestLoaderService,
                         nhcs: NhcsLoaderService,
                         pender: PenderLoaderService,
-                        ellucian: EllucianService,
+                        cfcc: CfccLoaderService,
                     ): SisLoaderService => {
                         const type = configService.get<string>('LOAD_TYPE')?.toUpperCase();
                         switch (type) {
@@ -54,7 +55,7 @@ export class SisLoaderModule {
                             case 'PENDER':
                                 return pender;
                             case 'CFCC':
-                                return ellucian;
+                                return cfcc;
                             default:
                                 throw new Error(`Unknown LOAD_TYPE: ${type}`);
                         }
