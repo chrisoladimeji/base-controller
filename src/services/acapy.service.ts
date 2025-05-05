@@ -145,7 +145,7 @@ export class AcaPyService {
     async sendProofRequest(connectionId: string, data: object): Promise<void> {
 
         console.log("Verification request = ", JSON.stringify(data));
-        const verificationRequestUrl = `${this.configService.get<string>('API_BASE_URL')}/present-proof/send-request`;
+        const verificationRequestUrl = `${this.configService.get<string>('API_BASE_URL')}/present-proof-2.0/send-request`;
         const verificationRequestConfig: AxiosRequestConfig = this.getRequestConfig();
 
         try {
