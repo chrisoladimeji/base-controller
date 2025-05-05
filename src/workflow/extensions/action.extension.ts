@@ -17,6 +17,7 @@ export class ExtendedAction implements IActionExtension {
         console.log("^^^ Extension -> actions actionInputs=", actionInput, "action=", action);
         const connection_id = instance.client_id;
         const cred_def_id = action?.value?.cred_def;
+        const schema_name = action?.value?.schema_name;
         console.log("Cred-defID=", cred_def_id);
         transition.type = "none-nodisplay";
         // handle the types of actions
@@ -28,7 +29,7 @@ export class ExtendedAction implements IActionExtension {
                     instance.state_data = Object.assign(instance.state_data, action.value);
                 }
                 break;
-            case "issuecredential-StudentCard":
+            case "issuecredential-HSStudentCard":
                     console.log("Issue Credential");
                     // check condition
                     if(eval(action.condition)) {
@@ -36,11 +37,11 @@ export class ExtendedAction implements IActionExtension {
                         console.log("Action=", action);
                         console.log("ActionInput=", actionInput);
                         if(action?.value?.type=="studentID") {
-                            await this.sendStudentIDCredOffer(connection_id, cred_def_id);
+                            await this.sendHSStudentIDCredOffer(connection_id, cred_def_id);
                         }
                     }
                     break;
-                case "issuecredential-Transcript":
+                case "issuecredential-HSTranscript":
                   console.log("Issue Credential");
                   // check condition
                   if(eval(action.condition)) {
@@ -48,23 +49,23 @@ export class ExtendedAction implements IActionExtension {
                       console.log("Action=", action);
                       console.log("ActionInput=", actionInput);
                       if(action?.value?.type=="transcript") {
-                          await this.sendTranscriptCredOffer(connection_id, cred_def_id);
+                          await this.sendHSTranscriptCredOffer(connection_id, cred_def_id);
                       }
                   }
                   break;
-                case "verifycredential-StudentCard":
+                case "verifycredential-HSStudentCard":
                     console.log("Verify Credential");
                     // check condition
                     if(eval(action.condition)) {
                         // issue the credential
                         console.log("Action=", action);
                         console.log("ActionInput=", actionInput);
-                        if(action?.value?.type=="transcript") {
-                            await this.sendStudentIDProofRequest(connection_id, cred_def_id);
+                        if(action?.value?.type=="studentID") {
+                            await this.sendHSStudentIDProofRequest2(connection_id, schema_name);
                         }
                     }
                     break;
-                case "verifycredential-Transcript":
+                case "verifycredential-HSTranscript":
                   console.log("Verify Credential");
                   // check condition
                   if(eval(action.condition)) {
@@ -72,7 +73,7 @@ export class ExtendedAction implements IActionExtension {
                       console.log("Action=", action);
                       console.log("ActionInput=", actionInput);
                       if(action?.value?.type=="transcript") {
-                          await this.sendTranscriptProofRequest(connection_id, cred_def_id);
+                          await this.sendHSTranscriptProofRequest2(connection_id, schema_name);
                       }
                   }
                   break;
@@ -84,10 +85,60 @@ export class ExtendedAction implements IActionExtension {
         return transition;
     };
 
-    async sendStudentIDProofRequest(connection_id: string, cred_def_id: string) {
-
+    async sendHSStudentIDProofRequest(connection_id: string, schema_name: string) {
+      const proofRequest = {
+        "connection_id": connection_id,
+        "proof_request": {
+          "version": "1.0",
+          "name": "Student Card Proof Request",
+          "nonce": "1234567890",
+          "requested_attributes": [
+            {  
+                "name": "StudentNumber",
+                "restrictions": [
+                    {
+                      "schema_name": schema_name
+                    }
+                ]
+            }
+          ],
+          "requested_predicates": []
+        }
+      }
+      const retval =await this.acapyService.sendProofRequest(connection_id, proofRequest);
+      console.log("Proof return = ", retval);
     }
-    async sendTranscriptProofRequest(connection_id: string, cred_def_id: string) {
+
+
+
+
+    async sendHSStudentIDProofRequest2(connection_id: string, schema_name: string) {
+      const schema = schema_name.split(":");
+      const proofRequest = {
+        "auto_remove": false,
+        "trace": false,
+        "auto_verify": false,
+        "comment": "Student Card Proof Request",
+        "connection_id": connection_id,
+        "presentation_request": {
+          "indy": {
+            "name": "proof-request",
+            "nonce": "1234567890",
+            "version": "1.0",
+            "requested_attributes": {
+              "studentInfo": {
+                "names": [ "BarcodeFields", "BirthDate", "CardURL", "Expiration", "FullName", "NfcFields", "QrcodeFields", "SchoolName", "StudentNumber ", "StudentPhoto" ],
+                "restrictions": [{"schema_name": schema[2]}]
+              }
+            },
+            "requested_predicates": {},
+          }
+        }
+      }
+      return this.acapyService.sendProofRequest2(connection_id, proofRequest);
+    }
+
+    async sendHSTranscriptProofRequest2(connection_id: string, schema_name: string) {
       const proofRequest = {
           "auto_remove": false,
           "auto_verify": true,
@@ -102,7 +153,7 @@ export class ExtendedAction implements IActionExtension {
                   "name": "studentNumber",
                   "restrictions": [
                     {
-                      "cred_def_id": cred_def_id
+                      "schema_name": schema_name
                     }
                   ]
                 }
@@ -114,10 +165,10 @@ export class ExtendedAction implements IActionExtension {
           },
           "trace": false
       }
-      return this.acapyService.sendProofRequest(connection_id, proofRequest);
+      return this.acapyService.sendProofRequest2(connection_id, proofRequest);
     }
 
-    async sendTranscriptCredOffer(connection_id: string, cred_def_id: string) {
+    async sendHSTranscriptCredOffer(connection_id: string, cred_def_id: string) {
       console.log("sendTranscriptCredOffer", connection_id);
       const connectionData = await this.acapyService.getConnectionById(connection_id);
       console.log("ConnectionData=", connectionData);
@@ -219,7 +270,7 @@ export class ExtendedAction implements IActionExtension {
 
 
 
-    async sendStudentIDCredOffer(connection_id: string, cred_def_id: string) {
+    async sendHSStudentIDCredOffer(connection_id: string, cred_def_id: string) {
         console.log("sendStudentIDCredOffer", connection_id);
         const connectionData = await this.acapyService.getConnectionById(connection_id);
         console.log("ConnectionData=", connectionData);

@@ -142,8 +142,25 @@ export class AcaPyService {
             throw new Error('Failed to send message');
         }
     }
-
     async sendProofRequest(connectionId: string, data: object): Promise<void> {
+
+        console.log("Verification request = ", JSON.stringify(data));
+        const verificationRequestUrl = `${this.configService.get<string>('API_BASE_URL')}/present-proof/send-request`;
+        const verificationRequestConfig: AxiosRequestConfig = this.getRequestConfig();
+
+        try {
+            await lastValueFrom(
+                this.httpService.post(verificationRequestUrl, data, verificationRequestConfig).pipe(map((resp) => console.log(resp.data)))
+            );
+            this.logger.log('Proof request sent successfully');
+        } catch (error) {
+            //console.log("Send Proof Error=", error);
+            this.logger.error('Error sending proof request:', error.message);
+            throw new Error('Failed to send proof request');
+        }
+    }
+
+    async sendProofRequest2(connectionId: string, data: object): Promise<void> {
 
         console.log("Verification request = ", JSON.stringify(data));
         const verificationRequestUrl = `${this.configService.get<string>('API_BASE_URL')}/present-proof-2.0/send-request`;
