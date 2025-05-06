@@ -34,7 +34,7 @@ export class SisController {
         studentId = await this.sisService.getStudentId(studentNumber);
     } catch (error) {
       console.error(error);
-        throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
+      throw new HttpException('Failed to retrieve student information', HttpStatus.INTERNAL_SERVER_ERROR);
     }
 
     let response = {studentIdCred: studentId};

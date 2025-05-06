@@ -13,19 +13,18 @@ import { CollegeCourseDto, CollegeTermDto, CollegeTranscriptDto, TermDto } from 
 const ELLUCIAN_PERSON_API_ROUTE = "/api/persons";
 const ELLUCIAN_ADDRESS_ROUTE = "/api/addresses";
 const ELLUCIAN_TRANSCRIPT_API_ROUTE = "/api/student-transcript-grades";
-const ELLUCIAN_GRADE_POINT_AVERAGE_API_ROUTE = ""
+const ELLUCIAN_GRADE_POINT_AVERAGE_API_ROUTE = "/api/student-grade-point-averages";
 const ELLUCIAN_STUDENT_API_ROUTE = "";
-const ELLUCIAN_SECTIONS_API_ROUTE = "";
-const ELLUCIAN_COURSES_API_ROUTE = "";
-const ELLUCIAN_ACADEMIC_PERIOD_API_ROUTE = "";
-const ELLUCIAN_ACADEMIC_GRADE_DEF_API_ROUTE = "";
+const ELLUCIAN_SECTIONS_API_ROUTE = "/api/sections";
+const ELLUCIAN_COURSES_API_ROUTE = "/api/courses";
+const ELLUCIAN_ACADEMIC_PERIOD_API_ROUTE = "/api/academic-periods";
+const ELLUCIAN_ACADEMIC_GRADE_DEF_API_ROUTE = "/api/grade-definitions";
 const ELLUCIAN_AUTH_ROUTE = "/auth";
 
 @Injectable()
 export class EllucianService extends SisLoaderService {
   private accessToken: string = '';
   private baseUrl: string;
-  private authUrl: string;
 
   constructor(
     private httpService: HttpService,
@@ -34,7 +33,6 @@ export class EllucianService extends SisLoaderService {
   ) {
     super();
     this.baseUrl = this.configService.get<string>('ELLUCIAN_BASE_API_URL');
-    this.authUrl = `${this.baseUrl}${ELLUCIAN_AUTH_ROUTE}`;
   }
 
   // Ellucian had not specified a load procedure
@@ -105,6 +103,7 @@ export class EllucianService extends SisLoaderService {
   }
 
   private async fetchFromEllucian(url: string): Promise<any> {
+    console.log("HttpService call to: ", url);
     try {
       const response = await firstValueFrom(this.httpService.get(url, {
         headers: {
@@ -114,10 +113,13 @@ export class EllucianService extends SisLoaderService {
         }
 
       }));
+      if (!response.data) {
+        console.error("HttpService response contained no body");
+      }
       return response.data;
     } catch (error) {
       console.error(`Error accessing ${url}:`, error.message);
-      throw new Error('Failed to fetch data from Ellucian API');
+      // throw new Error('Failed to fetch data from Ellucian API');
     }
   }
 
@@ -152,34 +154,57 @@ export class EllucianService extends SisLoaderService {
     return this.fetchFromEllucian(url);
   }
 
-  async getCourseIdBySection(sectionId: string): Promise<any> {
-    const apiRoute = this.configService.get<string>('ELLUCIAN_SECTIONS_API_ROUTE', '');
-    const url = `${this.baseUrl}${apiRoute}/${sectionId}`;
-    return this.fetchFromEllucian(url);
+  async getSections(sectionIds: string[]): Promise<any> {
+    let sections = {};
+    await Promise.all(
+      sectionIds.map(async (sectionId) => {
+        const url = `${this.baseUrl}${ELLUCIAN_SECTIONS_API_ROUTE}/${sectionId}`;
+        sections[sectionId] = await this.fetchFromEllucian(url);
+      })
+    );
+    return sections;
   }
 
-  async getCourse(courseId: string): Promise<any> {
-    const apiRoute = this.configService.get<string>('ELLUCIAN_COURSES_API_ROUTE', '');
-    const url = `${this.baseUrl}${apiRoute}/${courseId}`;
-    return this.fetchFromEllucian(url);
+  async getCourses(courseIds: string[]): Promise<any> {
+    let courses = {};
+    await Promise.all(courseIds.map(async (courseId) => {
+      const url = `${this.baseUrl}${ELLUCIAN_COURSES_API_ROUTE}/${courseId}`;
+      courses[courseId] = await this.fetchFromEllucian(url);
+    }));
+    return courses;
   }
 
-  async getAcademicPeriod(academicPeriodId: string): Promise<any> {
-    const apiRoute = this.configService.get<string>('ELLUCIAN_ACADEMIC_PERIOD_API_ROUTE', '');
-    const url = `${this.baseUrl}${apiRoute}/${academicPeriodId}`;
-    return this.fetchFromEllucian(url);
+  async getAcademicPeriods(academicPeriodIds: string[]): Promise<any> {
+    let academicPeriods = {};
+    await Promise.all(academicPeriodIds.map(async academicPeriodId => {
+      const url = `${this.baseUrl}${ELLUCIAN_ACADEMIC_PERIOD_API_ROUTE}/${academicPeriodId}`;
+      academicPeriods[academicPeriodId] = await this.fetchFromEllucian(url);
+    }));
+    return academicPeriods;
   }
 
   async getGradeDefinition(gradeDefinitionId: string): Promise<any> {
-    const apiRoute = this.configService.get<string>('ELLUCIAN_ACADEMIC_GRADE_DEF_API_ROUTE', '');
-    const url = `${this.baseUrl}${apiRoute}/${gradeDefinitionId}`;
-    return this.fetchFromEllucian(url);
+    const url = `${this.baseUrl}${ELLUCIAN_ACADEMIC_GRADE_DEF_API_ROUTE}/${gradeDefinitionId}`;
+    return await this.fetchFromEllucian(url);
   }
 
   async getStudentGradePointAverages(studentGuid: string): Promise<any> {
-    const apiRoute = this.configService.get<string>('ELLUCIAN_GRADE_POINT_AVERAGE_API_ROUTE', '');
-    const url = `${this.baseUrl}${apiRoute}?criteria={"student":{"id":"${studentGuid}"}}`;
+    const url = `${this.baseUrl}${ELLUCIAN_GRADE_POINT_AVERAGE_API_ROUTE}?criteria={"student":{"id":"${studentGuid}"}}`;
     return this.fetchFromEllucian(url);
+  }
+
+  async extractTranscriptGrades(transcriptGrades: any): Promise<any> {
+    let gradeDefinitionResponses = {}
+    await Promise.all(
+      Object.values(transcriptGrades).map(async transcriptGradeData => {
+        const gradeId = transcriptGradeData["grade"]["id"] ?? null;
+        if (gradeId) {
+          const gradeDef = await this.getGradeDefinition(gradeId);
+          const sectionId = transcriptGradeData["course"]["section"]["id"];
+          gradeDefinitionResponses[sectionId] = gradeDef;
+        }
+    }));
+    return gradeDefinitionResponses;
   }
 
   async getStudentId(studentNumber: string): Promise<StudentIdDto> {
@@ -196,7 +221,6 @@ export class EllucianService extends SisLoaderService {
     studentId.studentPhone = person.phones[0]?.number ?? null;
     studentId.studentEmail = person.emails.find(e => e.preference === "primary")?.address ?? null;
     studentId.expiration = this.configService.get("STUDENTID_EXPIRATION");
-
     return studentId;
   }
 
@@ -208,26 +232,37 @@ export class EllucianService extends SisLoaderService {
     // Make initial call to ellucian to get a Person
     const ellucianPerson = await this.getPerson(studentNumber);
     if (!ellucianPerson) {
-      throw new HttpException("Student not found", HttpStatus.NOT_FOUND);
+      throw new HttpException("Person not found", HttpStatus.NOT_FOUND);
     }
     if (!ellucianPerson.id) {
       throw new HttpException("Person GUID not found", HttpStatus.NOT_FOUND);
     }
 
-    // const ellucianStudent = await this.getStudent(ellucianPerson.id);
-
     // Make a list of tasks to execute in parallel
-    // const tasks = [
-    //   this.getAddress(ellucianPerson),
-    //   this.getStudentGradePointAverages(ellucianPerson.id),
-    // ]
+    const transcriptCalls = [
+      // this.getAddress(ellucianPerson),
+      this.getStudentGradePointAverages(ellucianPerson.id),
+      this.getStudentTranscriptGrades(ellucianPerson.id),
+    ];
     // // Extract data from the tasks after all have resolved
-    // const [
-    //   address,
-    //   gradePointAverages,
-    // ] = await Promise.all(tasks);
+    const [
+      // address,
+      gradePointAverages,
+      transcriptGrades,
+    ] = await Promise.all(transcriptCalls);
 
-    // console.log(ellucianStudent);
+
+    // Calls that require gradePointAverages (Terms)
+    const termIds = gradePointAverages[0]?.periodBased
+      .filter(e => e.academicSource === "all")
+      .map(e => e.academicPeriod.id);
+
+    const academicPeriodsResponse = await this.getAcademicPeriods(termIds);
+    
+    // Calls that require transcriptGrades (Courses)
+    const sectionIds = transcriptGrades.map(e => e.course.section.id);
+    const sectionResponses = await this.getSections(sectionIds);
+    const gradeDefinitionResponses = await this.extractTranscriptGrades(transcriptGrades);
 
     // Create the transcript DTO and set all of the fields
     let transcript = new CollegeTranscriptDto();
@@ -242,48 +277,68 @@ export class EllucianService extends SisLoaderService {
     transcript.studentBirthDate = ellucianPerson.dateOfBirth ?? null;
     transcript.studentPhone = ellucianPerson.phones[0]?.number ?? null;
     transcript.studentEmail = ellucianPerson.emails.find(e => e.preference === "primary")?.address ?? null;
-    transcript.studentAddress = "1234 Oak Ln\nWilmington, NC" // address;
+    // transcript.studentAddress = "1234 Oak Ln\nWilmington, NC" // address;
     transcript.studentSsn = ellucianPerson.credentials.find(e => e.type === "taxIdentificationNumber")?.value ?? null;
-    transcript.program = "Associate in Arts";
+    // transcript.program = "Associate in Arts";
     transcript.schoolName = "Cape Fear Community College";
-    transcript.schoolPhone = "555-555-5555";
+    transcript.schoolPhone = "910-362-7000";
     transcript.schoolAddress = "411 N. Front Street\nWilmington, NC 28401";
-    transcript.gpa = "3.912";
-    transcript.earnedCredits = "119.00";
-    transcript.terms = [];
 
-    let term = new CollegeTermDto();
-    term.termYear = "2024";
-    term.termCredit = "18.00";
-    term.termGpa = "3.167";
-    term.termSeason = "Fall";
-    term.academicStanding = "Honor's List";
-    term.termHoursPossible = "18.00";
-    term.termHoursEarned = "18.00";
-    term.termGradePoints = "57.00";
-    term.cumulativeHoursPossible = "22.00";
-    term.cumulativeHoursEarned = "52.00";
-    term.cumulativeGradePoints = "73.00";
-    term.cumulativeGpa = " 3.192";
+    const cumulativeGpa = gradePointAverages[0]?.cumulative.find(e => e.academicSource === "all");
+    if (cumulativeGpa) {
+      transcript.gpa = cumulativeGpa.value;
+      transcript.earnedCredits = cumulativeGpa.earnedCredits ?? null;
+    }
 
-    term.courses = [];
+    let terms = {};
 
-    let course = new CollegeCourseDto();
-    course.courseCode = "BIO-168";
-    course.courseTitle = "Anatomy and Physiology 1";
-    course.grade = "A";
-    course.creditEarned = "4.00";
-    course.gradePoints = "16.00";
-    course.transfer = false;
-    course.inProgress = false;
-    course.flags = ["A"];
-    course.hoursPossible = "4.00";
-    course.hoursEarned = "4.00";
-    course.repeat = true;
-    course.schoolName = "Cape Fear Community College";
+    for (const termId of termIds) {
+      let term = new CollegeTermDto();
 
-    term.courses.push(course);
-    transcript.terms.push(term);
+      const termGpa = gradePointAverages[0]?.periodBased
+        .find(e => e.academicPeriod.id === termId && e.academicSource === "all");
+      const academicPeriod = academicPeriodsResponse[termId];
+
+      term.termYear = academicPeriod["title"]?.match(/\d{4}/)[0] ?? null;
+      term.termCredit = termGpa?.earnedCredits?.toFixed(2) ?? null;
+      term.termGpa = termGpa?.value?.toFixed(4) ?? null;
+      term.termSeason = academicPeriod["title"]?.replace(/\d{4}/, "").trim();
+      // term.academicStanding = "Honor's List";
+      term.termHoursPossible = termGpa?.attemptedCredits?.toFixed(2) ?? null;
+      term.termHoursEarned = termGpa?.earnedCredits?.toFixed(2) ?? null;
+      term.termGradePoints = termGpa?.qualityPoints?.toFixed(2) ?? null;
+      // term.cumulativeHoursPossible = "22.00";
+      // term.cumulativeHoursEarned = "52.00";
+      // term.cumulativeGradePoints = "73.00";
+      // term.cumulativeGpa = " 3.192";
+
+      term.courses = [];
+
+      terms[termId] = term;
+    }
+
+    for (const sectionId of sectionIds) {
+      let course = new CollegeCourseDto();
+
+      const transcriptGrade = transcriptGrades.find(e => e.course.section.id === sectionId);
+
+      course.courseCode = sectionResponses[sectionId]["secLocalGovtCodes"][0]["secLocalGovtCodes"] ?? null;
+      course.courseTitle = sectionResponses[sectionId]["titles"][0]["value"] ?? null
+      course.grade = gradeDefinitionResponses[sectionId]["grade"]["value"] ?? null;
+      course.creditEarned = transcriptGrade?.credit?.earnedCredit?.toFixed(2) ?? null;
+      course.gradePoints = transcriptGrade?.credit?.qualityPoint?.gpa?.toFixed(2) ?? null;
+      // course.transfer = false;
+      // course.inProgress = false;
+      // course.flags = ["A"];
+      course.hoursPossible = transcriptGrade?.credit?.attemptedCredit?.toFixed(2) ?? null;
+      course.hoursEarned = transcriptGrade?.credit?.earnedCredit?.toFixed(2) ?? null;
+      // course.repeat = true;
+      // course.schoolName = "Cape Fear Community College";
+
+      terms[transcriptGrade.academicPeriod.id].courses.push(course);
+    }
+
+    transcript.terms = Object.values(terms);
 
     return transcript;
   }
