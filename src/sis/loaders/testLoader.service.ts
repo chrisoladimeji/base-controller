@@ -3,6 +3,7 @@ import { SisLoaderService } from "./sisLoader.service";
 import { StudentIdDto } from "../../dtos/studentId.dto";
 import { HighSchoolTermDto, HighSchoolTranscriptDto, HighSchoolCourseDto, TranscriptDto } from "../../dtos/transcript.dto";
 import * as sharp from 'sharp'
+import { join } from 'path';
 
 
 @Injectable()
@@ -97,7 +98,8 @@ export class TestLoaderService extends SisLoaderService {
 
     }
 
-    photoURL = "../../../test/sis/sample-id-photo.png";
+    //photoURL = join(__dirname, 'images', 'sample-id-photo.png');
+    photoURL = join(process.cwd(), 'test', 'sis', 'sample-id-photo.png');
 
     constructor() {
         super();
@@ -124,6 +126,10 @@ export class TestLoaderService extends SisLoaderService {
                 studentPhoto: ""
             }
             try{ 
+                const currentDirectory = process.cwd();
+                console.log("Current directory is=", currentDirectory);
+                console.log("File path is=", this.photoURL);
+
                 let photoBuffer = await sharp(this.photoURL).jpeg({quality: 3, force: true}).toBuffer();
                 studentId.studentPhoto = photoBuffer.toString("base64");
                 console.log(`StudentID photo successfully loaded`);
