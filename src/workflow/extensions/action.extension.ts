@@ -30,104 +30,142 @@ export class ExtendedAction implements IActionExtension {
                 }
                 break;
             case "issuecredential-HSStudentCard":
-                    console.log("Issue High School Card Credential");
-                    // check condition
-                    if(eval(action.condition)) {
-                        // issue the credential
-                        console.log("Action=", action);
-                        console.log("ActionInput=", actionInput);
-                        if(action?.value?.type=="studentID") {
-                            await this.sendHSStudentIDCredOffer(connection_id, cred_def_id);
-                        }
+                console.log("Issue High School Card Credential");
+                // check condition
+                if(eval(action.condition)) {
+                    // issue the credential
+                    console.log("Action=", action);
+                    console.log("ActionInput=", actionInput);
+                    if(action?.value?.type=="studentID") {
+                        await this.sendHSStudentIDCredOffer(connection_id, cred_def_id);
                     }
-                    break;
-                case "issuecredential-HSTranscript":
-                  console.log("Issue High School Transcript Credential");
-                  // check condition
-                  if(eval(action.condition)) {
-                      // issue the credential
-                      console.log("Action=", action);
-                      console.log("ActionInput=", actionInput);
-                      if(action?.value?.type=="transcript") {
-                          await this.sendHSTranscriptCredOffer(connection_id, cred_def_id);
-                      }
-                  }
-                  break;
-                  case "issuecredential-CollegeStudentCard":
-                    console.log("Issue College Student Card Credential");
-                    // check condition
-                    if(eval(action.condition)) {
-                        // issue the credential
-                        console.log("Action=", action);
-                        console.log("ActionInput=", actionInput);
-                        if(action?.value?.type=="studentID") {
-                            await this.sendCollegeStudentIDCredOffer(connection_id, cred_def_id);
-                        }
+                }
+                break;
+            case "issuecredential-HSTranscript":
+                console.log("Issue High School Transcript Credential");
+                // check condition
+                if(eval(action.condition)) {
+                    // issue the credential
+                    console.log("Action=", action);
+                    console.log("ActionInput=", actionInput);
+                    if(action?.value?.type=="transcript") {
+                        await this.sendHSTranscriptCredOffer(connection_id, cred_def_id);
                     }
-                    break;
-                case "issuecredential-CollegeTranscript":
-                  console.log("Issue College Transcript Credential");
-                  // check condition
-                  if(eval(action.condition)) {
-                      // issue the credential
-                      console.log("Action=", action);
-                      console.log("ActionInput=", actionInput);
-                      if(action?.value?.type=="transcript") {
-                          await this.sendCollegeTranscriptCredOffer(connection_id, cred_def_id);
-                      }
+                }
+                break;
+            case "issuecredential-CollegeStudentCard":
+              console.log("Issue College Student Card Credential");
+              // check condition
+              if(eval(action.condition)) {
+                  // issue the credential
+                  console.log("Action=", action);
+                  console.log("ActionInput=", actionInput);
+                  if(action?.value?.type=="studentID") {
+                      await this.sendCollegeStudentIDCredOffer(connection_id, cred_def_id);
                   }
-                  break;
-                case "verifycredential-HSStudentCard":
-                    console.log("Verify High School Student CardCredential");
-                    // check condition
-                    if(eval(action.condition)) {
-                        // issue the credential
-                        console.log("Action=", action);
-                        console.log("ActionInput=", actionInput);
-                        if(action?.value?.type=="studentID") {
-                            await this.sendHSStudentIDProofRequest2(connection_id, schema_name);
-                        }
+              }
+              break;
+            case "issuecredential-CollegeTranscript":
+              console.log("Issue College Transcript Credential");
+              // check condition
+              if(eval(action.condition)) {
+                  // issue the credential
+                  console.log("Action=", action);
+                  console.log("ActionInput=", actionInput);
+                  if(action?.value?.type=="transcript") {
+                      await this.sendCollegeTranscriptCredOffer(connection_id, cred_def_id);
+                  }
+              }
+              break;
+            case "verifycredential-HSStudentCard":
+                console.log("Verify High School Student CardCredential");
+                // check condition
+                if(eval(action.condition)) {
+                    // issue the credential
+                    console.log("Action=", action);
+                    console.log("ActionInput=", actionInput);
+                    if(action?.value?.type=="studentID") {
+                        await this.sendHSStudentIDProofRequest2(connection_id, schema_name);
                     }
-                    break;
-                case "verifycredential-HSTranscript":
-                  console.log("Verify High School Transcript Credential");
-                  // check condition
-                  if(eval(action.condition)) {
-                      // issue the credential
-                      console.log("Action=", action);
-                      console.log("ActionInput=", actionInput);
-                      if(action?.value?.type=="transcript") {
-                          await this.sendHSTranscriptProofRequest2(connection_id, schema_name);
-                      }
+                }
+                break;
+            case "verifycredential-HSTranscript":
+              console.log("Verify High School Transcript Credential");
+              // check condition
+              if(eval(action.condition)) {
+                  // issue the credential
+                  console.log("Action=", action);
+                  console.log("ActionInput=", actionInput);
+                  if(action?.value?.type=="transcript") {
+                      await this.sendHSTranscriptProofRequest2(connection_id, schema_name);
                   }
-                  break;
-  
-                            
+              }
+              break;
           default:
         }
     
         return transition;
     };
 
+    async receiveInvitation(invite: string) {
+
+
+    }
 
     async sendHSStudentIDProofRequest2(connection_id: string, schema_name: string) {
       const schema = schema_name.split(":");
       const proofRequest = {
         "auto_remove": false,
-        "trace": false,
-        "auto_verify": false,
+        "trace": true,
+        "auto_verify": true,
         "comment": "Student Card Proof Request",
         "connection_id": connection_id,
         "presentation_request": {
           "indy": {
-            "name": "proof-request",
+            "name": "Proof of NC High School Student Card",
             "nonce": "1234567890",
             "version": "1.0",
             "requested_attributes": {
-              "studentInfo": {
-                "names": [ "BarcodeFields", "BirthDate", "CardURL", "Expiration", "FullName", "NfcFields", "QrcodeFields", "SchoolName", "StudentNumber", "StudentPhoto" ],
+              "0_BarcodeFields_uuid": {
+                  "name": "BarcodeFields",
+                  "restrictions": [{"schema_name": schema[2]}]
+              },
+              "0_BirthDate_uuid": {
+                  "name": "BirthDate",
+                  "restrictions": [{"schema_name": schema[2]}]
+              },  
+              "0_CardURL_uuid": {
+                "name": "CardURL",
                 "restrictions": [{"schema_name": schema[2]}]
-              }
+              },  
+              "0_Expiration_uuid": {
+                "name": "Expiration",
+                "restrictions": [{"schema_name": schema[2]}]
+              },
+              "0_FullName_uuid": {
+                "name": "FullName",
+                "restrictions": [{"schema_name": schema[2]}]
+              },  
+              "0_NfcFields_uuid": {
+                "name": "NfcFields",
+                "restrictions": [{"schema_name": schema[2]}]
+              },  
+              "0_QrcodeFields_uuid": {
+                "name": "QrcodeFields",
+                "restrictions": [{"schema_name": schema[2]}]
+              },  
+              "0_SchoolName_uuid": {
+                "name": "SchoolName",
+                "restrictions": [{"schema_name": schema[2]}]
+              },  
+              "0_StudentNumber_uuid": {
+                "name": "StudentNumber",
+                "restrictions": [{"schema_name": schema[2]}]
+              },  
+              "0_StudentPhoto_uuid": {
+                "name": "StudentPhoto",
+                "restrictions": [{"schema_name": schema[2]}]
+              },  
             },
             "requested_predicates": {},
           }
@@ -137,31 +175,38 @@ export class ExtendedAction implements IActionExtension {
     }
 
     async sendHSTranscriptProofRequest2(connection_id: string, schema_name: string) {
+      const schema = schema_name.split(":");
       const proofRequest = {
-          "auto_remove": false,
-          "auto_verify": true,
-          "comment": "Student Trascript Proof Request",
-          "connection_id": connection_id,
-          "presentation_request": {
+        "connection_id": connection_id,
+        "auto_verify": true,
+        "auto_remove": false,
+        "comment": "Student Transcript Proof Request",
+        "trace": false,
+        "presentation_request": {
             "indy": {
-              "name": "Student Transcript Proof Request",
-              "nonce": "1",
-              "requested_attributes": {
-                "additionalProp1": {
-                  "name": "studentNumber",
-                  "restrictions": [
-                    {
-                      "schema_name": schema_name
+                "name": "proof-request",
+                "nonce": "1234567890",
+                "version": "1.0",
+                "requested_attributes": {
+                    "studentInfo": {
+                        "names": [
+                            "studentBirthDate",
+                            "studentFullName",
+                            "studentInfo",
+                            "studentNumber",
+                            "terms",
+                            "transcript"
+                        ],
+                        "restrictions": [
+                            {
+                                "schema_name": schema[2]
+                            }
+                        ]
                     }
-                  ]
-                }
-              },
-              "requested_predicates": {
-              },
-              "version": "1.0"
+                },
+                "requested_predicates": {}
             }
-          },
-          "trace": false
+        }
       }
       return this.acapyService.sendProofRequest2(connection_id, proofRequest);
     }
@@ -228,6 +273,7 @@ export class ExtendedAction implements IActionExtension {
       // get data for send offer
       const credentialOfferBody = {
         "auto_issue": true,
+        "auto_remove": false,
         "connection_id": connection_id,
         "cred_def_id": cred_def_id,
         "credential_preview": {
@@ -337,6 +383,7 @@ export class ExtendedAction implements IActionExtension {
       // get data for send offer
       const credentialOfferBody = {
         "auto_issue": true,
+        "auto_remove": false,
         "connection_id": connection_id,
         "cred_def_id": cred_def_id,
         "credential_preview": {
@@ -452,6 +499,7 @@ export class ExtendedAction implements IActionExtension {
     // get data for send offer
     const credentialOfferBody = {
       "auto_issue": true,
+      "auto_remove": false,
       "connection_id": connection_id,
       "cred_def_id": cred_def_id,
       "credential_preview": {
