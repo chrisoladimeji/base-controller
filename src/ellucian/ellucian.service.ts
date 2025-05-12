@@ -10,7 +10,6 @@ import { SisLoaderService } from '../sis/loaders/sisLoader.service';
 import { CollegeCourseDto, CollegeTermDto, CollegeTranscriptDto, TermDto } from '../dtos/transcript.dto';
 
 const ELLUCIAN_PERSON_API_ROUTE = "/api/persons";
-const ELLUCIAN_ADDRESS_ROUTE = "/api/addresses";
 const ELLUCIAN_TRANSCRIPT_API_ROUTE = "/api/student-transcript-grades";
 const ELLUCIAN_GRADE_POINT_AVERAGE_API_ROUTE = "/api/student-grade-point-averages";
 const ELLUCIAN_SECTIONS_API_ROUTE = "/api/sections";
@@ -165,12 +164,17 @@ export class EllucianService extends SisLoaderService {
 
   async getGradeDefinition(gradeDefinitionId: string): Promise<any> {
     const url = `${this.baseUrl}${ELLUCIAN_ACADEMIC_GRADE_DEF_API_ROUTE}/${gradeDefinitionId}`;
-    return await this.fetchFromEllucian(url);
+    return this.fetchFromEllucian(url);
   }
 
   async getStudentGradePointAverages(studentGuid: string): Promise<any> {
     const url = `${this.baseUrl}${ELLUCIAN_GRADE_POINT_AVERAGE_API_ROUTE}?criteria={"student":{"id":"${studentGuid}"}}`;
-    return this.fetchFromEllucian(url);
+    const response = await this.fetchFromEllucian(url);
+    if (!response) {
+      return null;
+    } else {
+      return response[0];
+    }
   }
 
   async getCreditCategory(creditCategoryGuid: string): Promise<any> {
@@ -204,6 +208,7 @@ export class EllucianService extends SisLoaderService {
   }
 
   async extractTranscriptGrades(transcriptGrades: any): Promise<any> {
+    if (!transcriptGrades) return {};
     let gradeDefinitionResponses = {}
     await Promise.all(
       Object.values(transcriptGrades).map(async transcriptGradeData => {
@@ -218,6 +223,7 @@ export class EllucianService extends SisLoaderService {
   }
 
   async extractCreditCategories(transcriptGrades: any): Promise<any> {
+    if (!transcriptGrades) return {};
     let creditCategoryResponses = {}
     await Promise.all(
       Object.values(transcriptGrades).map(async transcriptGradeData => {
@@ -280,11 +286,12 @@ export class EllucianService extends SisLoaderService {
       academicProgram
     ] = await Promise.all(transcriptCalls);
 
-    const termIds = gradePointAverages[0]?.periodBased
-      .filter(e => e.academicSource === "all")
-      .map(e => e.academicPeriod.id);
 
-    const sectionIds = transcriptGrades.map(e => e.course.section.id);
+    const termIds = gradePointAverages ? gradePointAverages?.periodBased
+      .filter(e => e.academicSource === "all")
+      .map(e => e.academicPeriod.id) : [];
+
+    const sectionIds = transcriptGrades? transcriptGrades.map(e => e.course.section.id) : [];
 
     const secondaryCalls = [
       // Calls that require gradePointAverages (Terms)
@@ -296,7 +303,7 @@ export class EllucianService extends SisLoaderService {
     ]
     
     const [
-      academicPeriodsResponse, 
+      academicPeriodsResponses, 
       sectionResponses,
       gradeDefinitionResponses, 
       creditCategoryResponses,
@@ -322,7 +329,7 @@ export class EllucianService extends SisLoaderService {
     transcript.schoolPhone = "910-362-7000";
     transcript.schoolAddress = "411 N. Front Street\nWilmington, NC 28401";
 
-    const cumulativeGpa = gradePointAverages[0]?.cumulative.find(e => e.academicSource === "all");
+    const cumulativeGpa = gradePointAverages?.cumulative.find(e => e.academicSource === "all");
     if (cumulativeGpa) {
       transcript.gpa = cumulativeGpa.value?.toFixed(4);
       transcript.earnedCredits = cumulativeGpa.earnedCredits?.toFixed(2) ?? null;
@@ -333,9 +340,9 @@ export class EllucianService extends SisLoaderService {
     for (const termId of termIds) {
       let term = new CollegeTermDto();
 
-      const termGpa = gradePointAverages[0]?.periodBased
+      const termGpa = gradePointAverages?.periodBased
         .find(e => e.academicPeriod.id === termId && e.academicSource === "all");
-      const academicPeriod = academicPeriodsResponse[termId];
+      const academicPeriod = academicPeriodsResponses[termId];
 
       term.termYear = academicPeriod["title"]?.match(/\d{4}/)[0] ?? null;
       term.termCredit = termGpa?.earnedCredits?.toFixed(2) ?? null;

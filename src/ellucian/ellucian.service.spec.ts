@@ -5,11 +5,11 @@ import { validate } from 'class-validator';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { RedisService } from '../services/redis.service';
-import { of } from 'rxjs';
+import { of, throwError } from 'rxjs';
 import { academicPeriodResponse, academicProgramsResponse, creditCategoriesResponse, gradeDefinitionResponse, personsResponse, sectionResponse, studentAcademicProgramsResponse, studentGradePointAveragesResponse, studentTranscriptGradesResponse } from "../../test/ellucian/ellucianResponses"
 import * as jwt from "jsonwebtoken";
 import { CollegeTranscriptDto } from '../dtos/transcript.dto';
-
+import { AxiosResponse } from 'axios';
 
 const env = {
   "ELLUCIAN_BASE_API_URL": "https://test.com",
@@ -113,5 +113,41 @@ describe('EllucianService', () => {
         expect(Object.keys(response).length).toBeGreaterThanOrEqual(10);
         validate(response);        
       })
+
+      it("handles 4XX errors from all endpoints except /api/persons", async () => {
+        const mockHttpService = service['httpService'];
+      
+        jest.spyOn(mockHttpService, 'get').mockImplementation((url: string) => {
+          if (url.includes('/api/persons')) {
+            const mockResponse: AxiosResponse = {
+              data: personsResponse,
+              status: 200,
+              statusText: 'OK',
+              headers: {},
+              config: {
+                headers: undefined
+              }
+            };
+            return of(mockResponse);
+          } else {
+            const error = {
+              response: {
+                status: 404,
+                statusText: 'Not Found',
+                data: {},
+                headers: {},
+                config: {}
+              },
+              message: 'Request failed with status code 404'
+            };
+            return throwError(() => error);
+          }
+        });
+      
+        const result = await service.getStudentTranscript("0512831");
+        console.log(result);
+      
+        expect(result).toBeDefined();
+      });
   })
 });
