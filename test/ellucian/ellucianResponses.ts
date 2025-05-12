@@ -666,3 +666,10 @@ export const academicPeriodResponse = {
     "termRegStartDate": "2022-08-21",
     "termCensusDates": "2022-08-31ý2022-08-31"
 }
+
+export const creditCategoriesResponse = {
+    "creditType": "institution",
+    "code": "IN",
+    "title": "Institutional",
+    "id": "55753fa0-e510-4dd8-80cb-83553e92574d"
+}

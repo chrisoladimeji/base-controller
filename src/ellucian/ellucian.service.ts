@@ -14,11 +14,11 @@ const ELLUCIAN_PERSON_API_ROUTE = "/api/persons";
 const ELLUCIAN_ADDRESS_ROUTE = "/api/addresses";
 const ELLUCIAN_TRANSCRIPT_API_ROUTE = "/api/student-transcript-grades";
 const ELLUCIAN_GRADE_POINT_AVERAGE_API_ROUTE = "/api/student-grade-point-averages";
-const ELLUCIAN_STUDENT_API_ROUTE = "";
 const ELLUCIAN_SECTIONS_API_ROUTE = "/api/sections";
 const ELLUCIAN_COURSES_API_ROUTE = "/api/courses";
 const ELLUCIAN_ACADEMIC_PERIOD_API_ROUTE = "/api/academic-periods";
 const ELLUCIAN_ACADEMIC_GRADE_DEF_API_ROUTE = "/api/grade-definitions";
+const ELLUCIAN_CREDIT_CATEGORY_ROUTE = "/api/credit-categories"
 const ELLUCIAN_AUTH_ROUTE = "/auth";
 
 @Injectable()
@@ -138,7 +138,11 @@ export class EllucianService extends SisLoaderService {
       return null;
     }
   
-    return response.addressLines.join("\n");
+    const streetAddress = response.addressLines.join("\n");
+    const city = response?.place?.country?.locality ?? "";
+    const state = response?.place?.country?.region?.code?.split("-")[1] ?? "";
+    const postalCode = response?.place?.country?.postalCode ?? "";
+    return `${streetAddress}\n${city}, ${state} ${postalCode}`;
   }
 
 
@@ -193,6 +197,11 @@ export class EllucianService extends SisLoaderService {
     return this.fetchFromEllucian(url);
   }
 
+  async getCreditCategory(creditCategoryGuid: string): Promise<any> {
+    const url = `${this.baseUrl}${ELLUCIAN_CREDIT_CATEGORY_ROUTE}/${creditCategoryGuid}`;
+    return this.fetchFromEllucian(url);
+  }
+
   async extractTranscriptGrades(transcriptGrades: any): Promise<any> {
     let gradeDefinitionResponses = {}
     await Promise.all(
@@ -205,6 +214,20 @@ export class EllucianService extends SisLoaderService {
         }
     }));
     return gradeDefinitionResponses;
+  }
+
+  async extractCreditCategories(transcriptGrades: any): Promise<any> {
+    let creditCategoryResponses = {}
+    await Promise.all(
+      Object.values(transcriptGrades).map(async transcriptGradeData => {
+        const categoryId = transcriptGradeData["creditCategory"]["id"] ?? null;
+        if (categoryId) {
+          const creditCategory = await this.getCreditCategory(categoryId);
+          const sectionId = transcriptGradeData["course"]["section"]["id"];
+          creditCategoryResponses[sectionId] = creditCategory;
+        }
+    }));
+    return creditCategoryResponses;
   }
 
   async getStudentId(studentNumber: string): Promise<StudentIdDto> {
@@ -240,13 +263,13 @@ export class EllucianService extends SisLoaderService {
 
     // Make a list of tasks to execute in parallel
     const transcriptCalls = [
-      // this.getAddress(ellucianPerson),
+      this.getAddress(ellucianPerson),
       this.getStudentGradePointAverages(ellucianPerson.id),
       this.getStudentTranscriptGrades(ellucianPerson.id),
     ];
     // // Extract data from the tasks after all have resolved
     const [
-      // address,
+      address,
       gradePointAverages,
       transcriptGrades,
     ] = await Promise.all(transcriptCalls);
@@ -259,10 +282,11 @@ export class EllucianService extends SisLoaderService {
 
     const academicPeriodsResponse = await this.getAcademicPeriods(termIds);
     
-    // Calls that require transcriptGrades (Courses)
+    // Calls that require transcriptGrades (Sections/Courses)
     const sectionIds = transcriptGrades.map(e => e.course.section.id);
     const sectionResponses = await this.getSections(sectionIds);
     const gradeDefinitionResponses = await this.extractTranscriptGrades(transcriptGrades);
+    const creditCategoryResponses = await this.extractCreditCategories(transcriptGrades);
 
     // Create the transcript DTO and set all of the fields
     let transcript = new CollegeTranscriptDto();
@@ -277,7 +301,7 @@ export class EllucianService extends SisLoaderService {
     transcript.studentBirthDate = ellucianPerson.dateOfBirth ?? null;
     transcript.studentPhone = ellucianPerson.phones[0]?.number ?? null;
     transcript.studentEmail = ellucianPerson.emails.find(e => e.preference === "primary")?.address ?? null;
-    // transcript.studentAddress = "1234 Oak Ln\nWilmington, NC" // address;
+    transcript.studentAddress = address;
     transcript.studentSsn = ellucianPerson.credentials.find(e => e.type === "taxIdentificationNumber")?.value ?? null;
     // transcript.program = "Associate in Arts";
     transcript.schoolName = "Cape Fear Community College";
@@ -303,14 +327,9 @@ export class EllucianService extends SisLoaderService {
       term.termCredit = termGpa?.earnedCredits?.toFixed(2) ?? null;
       term.termGpa = termGpa?.value?.toFixed(4) ?? null;
       term.termSeason = academicPeriod["title"]?.replace(/\d{4}/, "").trim();
-      // term.academicStanding = "Honor's List";
       term.termHoursPossible = termGpa?.attemptedCredits?.toFixed(2) ?? null;
       term.termHoursEarned = termGpa?.earnedCredits?.toFixed(2) ?? null;
       term.termGradePoints = termGpa?.qualityPoints?.toFixed(2) ?? null;
-      // term.cumulativeHoursPossible = "22.00";
-      // term.cumulativeHoursEarned = "52.00";
-      // term.cumulativeGradePoints = "73.00";
-      // term.cumulativeGpa = " 3.192";
 
       term.courses = [];
 
@@ -327,13 +346,10 @@ export class EllucianService extends SisLoaderService {
       course.grade = gradeDefinitionResponses[sectionId]["grade"]["value"] ?? null;
       course.creditEarned = transcriptGrade?.credit?.earnedCredit?.toFixed(2) ?? null;
       course.gradePoints = transcriptGrade?.credit?.qualityPoint?.gpa?.toFixed(2) ?? null;
-      // course.transfer = false;
-      // course.inProgress = false;
-      // course.flags = ["A"];
+      course.transfer = creditCategoryResponses?.sectionId?.creditType === "transfer";
       course.hoursPossible = transcriptGrade?.credit?.attemptedCredit?.toFixed(2) ?? null;
       course.hoursEarned = transcriptGrade?.credit?.earnedCredit?.toFixed(2) ?? null;
-      // course.repeat = true;
-      // course.schoolName = "Cape Fear Community College";
+      course.repeat = transcriptGrade?.credit?.repeatedSection != null && transcriptGrade.credit.repeatedSection !== "notRepeated";
 
       terms[transcriptGrade.academicPeriod.id].courses.push(course);
     }

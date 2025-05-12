@@ -6,7 +6,7 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { RedisService } from '../services/redis.service';
 import { of } from 'rxjs';
-import { academicPeriodResponse, gradeDefinitionResponse, personsResponse, sectionResponse, studentGradePointAveragesResponse, studentTranscriptGradesResponse } from "../../test/ellucian/ellucianResponses"
+import { academicPeriodResponse, creditCategoriesResponse, gradeDefinitionResponse, personsResponse, sectionResponse, studentGradePointAveragesResponse, studentTranscriptGradesResponse } from "../../test/ellucian/ellucianResponses"
 import * as jwt from "jsonwebtoken";
 import { CollegeTranscriptDto } from '../dtos/transcript.dto';
 
@@ -57,6 +57,8 @@ describe('EllucianService', () => {
                 return of({ data: gradeDefinitionResponse})
               } else if (url.includes("/academic-periods")) {
                 return of({ data: academicPeriodResponse})
+              } else if (url.includes("/credit-categories")) {
+                return of({ data: creditCategoriesResponse})
               } else {
                 throw new Error("Http route has not been mocked");
               }
