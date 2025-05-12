@@ -9,7 +9,6 @@ import { StudentIdDto } from '../dtos/studentId.dto';
 import { SisLoaderService } from '../sis/loaders/sisLoader.service';
 import { CollegeCourseDto, CollegeTermDto, CollegeTranscriptDto, TermDto } from '../dtos/transcript.dto';
 
-
 const ELLUCIAN_PERSON_API_ROUTE = "/api/persons";
 const ELLUCIAN_ADDRESS_ROUTE = "/api/addresses";
 const ELLUCIAN_TRANSCRIPT_API_ROUTE = "/api/student-transcript-grades";
@@ -18,8 +17,11 @@ const ELLUCIAN_SECTIONS_API_ROUTE = "/api/sections";
 const ELLUCIAN_COURSES_API_ROUTE = "/api/courses";
 const ELLUCIAN_ACADEMIC_PERIOD_API_ROUTE = "/api/academic-periods";
 const ELLUCIAN_ACADEMIC_GRADE_DEF_API_ROUTE = "/api/grade-definitions";
-const ELLUCIAN_CREDIT_CATEGORY_ROUTE = "/api/credit-categories"
+const ELLUCIAN_CREDIT_CATEGORY_ROUTE = "/api/credit-categories";
+const ELLUCIAN_STUDENT_ACADEMIC_PROGRAMS_ROUTE = "/api/student-academic-programs";
+const ELLUCIAN_ACADEMIC_PROGRAMS_ROUTE = "/api/academic-programs";
 const ELLUCIAN_AUTH_ROUTE = "/auth";
+
 
 @Injectable()
 export class EllucianService extends SisLoaderService {
@@ -37,7 +39,6 @@ export class EllucianService extends SisLoaderService {
 
   // Ellucian had not specified a load procedure
   async load(): Promise<void> {}
-
 
   async getAccessToken(): Promise<void> {
     const tokenKey = 'accessToken';
@@ -119,38 +120,13 @@ export class EllucianService extends SisLoaderService {
       return response.data;
     } catch (error) {
       console.error(`Error accessing ${url}:`, error.message);
-      // throw new Error('Failed to fetch data from Ellucian API');
     }
   }
-
-  async getAddress(ellucianPerson: any): Promise<string | null> {
-    const addressId = ellucianPerson.addresses[0]?.address?.id;
-    if (!addressId) {
-      console.log("No address in Ellucian Person response");
-      return null;
-    }
-  
-    const url = `${this.baseUrl}${ELLUCIAN_ADDRESS_ROUTE}/${addressId}`;
-    const response = await this.fetchFromEllucian(url);
-  
-    if (!response?.addressLines) {
-      console.error("No address was given from Ellucian");
-      return null;
-    }
-  
-    const streetAddress = response.addressLines.join("\n");
-    const city = response?.place?.country?.locality ?? "";
-    const state = response?.place?.country?.region?.code?.split("-")[1] ?? "";
-    const postalCode = response?.place?.country?.postalCode ?? "";
-    return `${streetAddress}\n${city}, ${state} ${postalCode}`;
-  }
-
 
   async getStudentTranscriptGrades(studentGuid: string): Promise<any> {
     const url = `${this.baseUrl}${ELLUCIAN_TRANSCRIPT_API_ROUTE}?criteria={"student":{"id":"${studentGuid}"}}`;
     return this.fetchFromEllucian(url);
   }
-
 
   async getStudent(studentGuid: string): Promise<any> {
     const apiRoute = this.configService.get<string>('ELLUCIAN_STUDENT_API_ROUTE', '');
@@ -202,6 +178,31 @@ export class EllucianService extends SisLoaderService {
     return this.fetchFromEllucian(url);
   }
 
+  async getAcademicProgram(academicProgramId: string): Promise<any> {
+    const url = `${this.baseUrl}${ELLUCIAN_ACADEMIC_PROGRAMS_ROUTE}/${academicProgramId}`;
+    return this.fetchFromEllucian(url);
+  }
+
+  async getStudentAcademicProgram(studentGuid: string): Promise<any> {
+    const url = `${this.baseUrl}${ELLUCIAN_STUDENT_ACADEMIC_PROGRAMS_ROUTE}?criteria={"student":{"id":"${studentGuid}"}}`;
+    const studentProgramsResponse = await this.fetchFromEllucian(url);
+    if (!studentProgramsResponse) {
+      return null;
+    }
+    const programGuids = studentProgramsResponse
+      .filter(e => e.enrollmentStatus?.status === "active")
+      .map(e => e.program?.id);
+    
+    let programTitles = [];
+    await Promise.all(programGuids.map(async programGuid => {
+      const programResponse = await this.getAcademicProgram(programGuid);
+      if (programResponse.title) {
+        programTitles.push(programResponse.title);
+      }
+    }));
+    return programTitles.join(", ");
+  }
+
   async extractTranscriptGrades(transcriptGrades: any): Promise<any> {
     let gradeDefinitionResponses = {}
     await Promise.all(
@@ -230,6 +231,14 @@ export class EllucianService extends SisLoaderService {
     return creditCategoryResponses;
   }
 
+  getAddress(ellucianPerson: any): string {
+    const streetAddress = ellucianPerson.addressLines ?? "";
+    const city = ellucianPerson.city ?? "";
+    const state = ellucianPerson.state ?? "";
+    const postalCode = ellucianPerson.zip ?? "";
+    return `${streetAddress}\n${city}, ${state} ${postalCode}`;
+  }
+
   async getStudentId(studentNumber: string): Promise<StudentIdDto> {
     await this.getAccessToken();
     const person = await this.getPerson(studentNumber);
@@ -254,39 +263,44 @@ export class EllucianService extends SisLoaderService {
 
     // Make initial call to ellucian to get a Person
     const ellucianPerson = await this.getPerson(studentNumber);
-    if (!ellucianPerson) {
+    if (!ellucianPerson || !ellucianPerson.id) {
       throw new HttpException("Person not found", HttpStatus.NOT_FOUND);
-    }
-    if (!ellucianPerson.id) {
-      throw new HttpException("Person GUID not found", HttpStatus.NOT_FOUND);
     }
 
     // Make a list of tasks to execute in parallel
     const transcriptCalls = [
-      this.getAddress(ellucianPerson),
       this.getStudentGradePointAverages(ellucianPerson.id),
       this.getStudentTranscriptGrades(ellucianPerson.id),
+      this.getStudentAcademicProgram(ellucianPerson.id)
     ];
     // // Extract data from the tasks after all have resolved
     const [
-      address,
       gradePointAverages,
       transcriptGrades,
+      academicProgram
     ] = await Promise.all(transcriptCalls);
 
-
-    // Calls that require gradePointAverages (Terms)
     const termIds = gradePointAverages[0]?.periodBased
       .filter(e => e.academicSource === "all")
       .map(e => e.academicPeriod.id);
 
-    const academicPeriodsResponse = await this.getAcademicPeriods(termIds);
-    
-    // Calls that require transcriptGrades (Sections/Courses)
     const sectionIds = transcriptGrades.map(e => e.course.section.id);
-    const sectionResponses = await this.getSections(sectionIds);
-    const gradeDefinitionResponses = await this.extractTranscriptGrades(transcriptGrades);
-    const creditCategoryResponses = await this.extractCreditCategories(transcriptGrades);
+
+    const secondaryCalls = [
+      // Calls that require gradePointAverages (Terms)
+      this.getAcademicPeriods(termIds),
+      // Calls that require transcriptGrades (Sections/Courses)
+      this.getSections(sectionIds),
+      this.extractTranscriptGrades(transcriptGrades),
+      this.extractCreditCategories(transcriptGrades)
+    ]
+    
+    const [
+      academicPeriodsResponse, 
+      sectionResponses,
+      gradeDefinitionResponses, 
+      creditCategoryResponses,
+    ] = await Promise.all(secondaryCalls);
 
     // Create the transcript DTO and set all of the fields
     let transcript = new CollegeTranscriptDto();
@@ -301,17 +315,17 @@ export class EllucianService extends SisLoaderService {
     transcript.studentBirthDate = ellucianPerson.dateOfBirth ?? null;
     transcript.studentPhone = ellucianPerson.phones[0]?.number ?? null;
     transcript.studentEmail = ellucianPerson.emails.find(e => e.preference === "primary")?.address ?? null;
-    transcript.studentAddress = address;
+    transcript.studentAddress = this.getAddress(ellucianPerson);
     transcript.studentSsn = ellucianPerson.credentials.find(e => e.type === "taxIdentificationNumber")?.value ?? null;
-    // transcript.program = "Associate in Arts";
+    transcript.program = academicProgram;
     transcript.schoolName = "Cape Fear Community College";
     transcript.schoolPhone = "910-362-7000";
     transcript.schoolAddress = "411 N. Front Street\nWilmington, NC 28401";
 
     const cumulativeGpa = gradePointAverages[0]?.cumulative.find(e => e.academicSource === "all");
     if (cumulativeGpa) {
-      transcript.gpa = cumulativeGpa.value;
-      transcript.earnedCredits = cumulativeGpa.earnedCredits ?? null;
+      transcript.gpa = cumulativeGpa.value?.toFixed(4);
+      transcript.earnedCredits = cumulativeGpa.earnedCredits?.toFixed(2) ?? null;
     }
 
     let terms = {};
