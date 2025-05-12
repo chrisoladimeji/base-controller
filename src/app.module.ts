@@ -23,6 +23,7 @@ import { SvgService } from './svg/svg.service';
 import { SvgModule } from './svg/svg.module';
 import { SisModule } from './sis/sis.module';
 import { WorkflowsModule } from './workflow/workflows/workflows.module';
+import { EnrollmentModule } from './enrollment/enrollment.module';
 
 @Module({
   imports: [
@@ -37,6 +38,7 @@ import { WorkflowsModule } from './workflow/workflows/workflows.module';
     PingModule,
     EllucianModule,
     BasicMessagesModule,
+    EnrollmentModule,
     WorkflowModule,
     WorkflowsModule,
     MetadataModule,
@@ -93,11 +95,16 @@ import { WorkflowsModule } from './workflow/workflows/workflows.module';
           module: SisModule,        
         },
         {
+          path: 'enrollment',
+          module: EnrollmentModule,
+        },
+        {
           path: 'workflow',
           module: WorkflowModule,
         },
       ],
     ),
+    EnrollmentModule,
   ],
   providers: [
     AppService,

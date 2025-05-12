@@ -7,9 +7,10 @@ import { ConfigModule } from '@nestjs/config';
 import { MetadataModule } from '../metadata/metadata.module'; // Import MetadataModule
 import { WorkflowsService } from 'src/workflow/workflows/workflows.service';
 import { WorkflowModule } from 'src/workflow/workflow.module';
+import { EnrollmentModule } from 'src/enrollment/enrollment.module';
 
 @Module({
-  imports: [HttpModule, ConfigModule, WorkflowModule, MetadataModule], // Add MetadataModule here
+  imports: [HttpModule, ConfigModule, WorkflowModule, MetadataModule, EnrollmentModule], // Add MetadataModule here
   controllers: [VerificationController],
   providers: [VerificationService],
 })

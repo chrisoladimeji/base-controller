@@ -5,6 +5,9 @@ import { MetadataService } from '../metadata/metadata.service';
 import { AxiosRequestConfig, AxiosResponse } from 'axios';
 import { lastValueFrom, firstValueFrom, map } from 'rxjs';
 import { WorkflowService } from 'src/workflow/workflow.service';
+import { EnrollmentService } from 'src/enrollment/enrollment.service';
+import { Enrollment } from 'src/enrollment/entities/enrollment.entity';
+import { CreateEnrollmentDto } from 'src/enrollment/dto/create-enrollment.dto';
 // import { parse, getWorkflowInstance, updateWorkflowInstanceByID } from '@veridid/workflow-parser';
 
 
@@ -14,6 +17,7 @@ export class VerificationService {
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
     private readonly metadataService: MetadataService,
+    private readonly enrollmentService: EnrollmentService,
     private readonly workflowService: WorkflowService
   ) { }
 
@@ -117,17 +121,36 @@ export class VerificationService {
 
   async handleVerifiedState(credentialData: any): Promise<void> {
     console.log("+++ Credential verified");
-    const connectionId = credentialData.connection_id;
-    const threadId = credentialData.thread_id;
-    const instance = await this.workflowService.getInstanceByData(connectionId, {threadID: threadId});
-    if(instance?.client_id===connectionId) {
-      const action = {
-        workflowID: instance.workflow_id,
-        actionID: "credential-verified",
-        data: {}
-      };           
-      const displayData = await this.workflowService.parser.parse(connectionId, action);
-      await this.workflowService.sendWorkflow(connectionId, displayData);
+    console.log("Save enrollment data credentialData=", JSON.stringify(credentialData?.by_format?.pres?.indy?.requested_proof?.revealed_attr_groups?.studentInfo?.values));
+    const transcriptData = credentialData?.by_format?.pres?.indy?.requested_proof?.revealed_attr_groups?.studentInfo?.values;
+    try {
+      if(transcriptData != undefined) {
+          const enrollment = new CreateEnrollmentDto();
+          enrollment.studentNumber = transcriptData?.studentNumber?.raw;
+          enrollment.studentFullName = transcriptData?.studentFullName?.raw;
+          enrollment.gpa = JSON.parse(transcriptData?.studentInfo?.raw)?.gpa;
+          enrollment.studentBirthDate = transcriptData?.studentBirthDate?.raw;
+          enrollment.terms = JSON.parse(transcriptData?.terms?.raw);
+          enrollment.studentInfo = JSON.parse(transcriptData?.studentInfo?.raw);
+          enrollment.transcript = JSON.parse(transcriptData?.transcript?.raw);
+          //console.log("Enrollment=", enrollment);
+          // Save the transcript data in the enrollment table
+          await this.enrollmentService.create(enrollment);
+      }
+      const connectionId = credentialData.connection_id;
+      const threadId = credentialData.thread_id;
+      const instance = await this.workflowService.getInstanceByData(connectionId, {threadID: threadId});
+      if(instance?.client_id===connectionId) {
+        const action = {
+          workflowID: instance.workflow_id,
+          actionID: "credential-verified",
+          data: {}
+        };           
+        const displayData = await this.workflowService.parser.parse(connectionId, action);
+        await this.workflowService.sendWorkflow(connectionId, displayData);
+      }
+    } catch (error) {
+      console.error('Error handling verification state:', error);
     }
   }
 
