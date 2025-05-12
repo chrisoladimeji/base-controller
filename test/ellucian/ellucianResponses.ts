@@ -666,3 +666,149 @@ export const academicPeriodResponse = {
     "termRegStartDate": "2022-08-21",
     "termCensusDates": "2022-08-31ý2022-08-31"
 }
+
+export const creditCategoriesResponse = {
+    "creditType": "institution",
+    "code": "IN",
+    "title": "Institutional",
+    "id": "55753fa0-e510-4dd8-80cb-83553e92574d"
+}
+
+export const studentAcademicProgramsResponse = [{
+    "student": {
+        "id": ""
+    },
+    "program": {
+        "id": "67f767fe-06eb-4068-9c19-f75cc93f4999"
+    },
+    "curriculumObjective": "matriculated",
+    "programOwner": {
+        "id": "6b7893bf-32bf-4533-849f-1c37fe1ae465"
+    },
+    "catalog": {
+        "id": "72f5d461-a41e-4ea2-b4e0-32b0869138c3"
+    },
+    "academicLevel": {
+        "id": "daa08d60-853b-4fcf-8497-7f7ff849dba8"
+    },
+    "startOn": "1998-10-12",
+    "enrollmentStatus": {
+        "status": "active",
+        "detail": {
+            "id": "1da4971b-e778-471d-9f02-8071fa13c92d"
+        }
+    },
+    "id": "18b89316-1b2b-4d95-87c4-d0afcdcdd4de"
+}]
+
+export const academicProgramsResponse = {
+    "authorizing": {
+        "institution": {
+            "id": "9f362ee7-5b2e-4e4d-b771-05879f0a45d4"
+        }
+    },
+    "academicLevel": {
+        "id": "daa08d60-853b-4fcf-8497-7f7ff849dba8"
+    },
+    "programOwners": [
+        {
+            "id": "6b7893bf-32bf-4533-849f-1c37fe1ae465"
+        }
+    ],
+    "status": "active",
+    "startOn": "1960-01-01",
+    "code": "CONED",
+    "title": "Continuing Education",
+    "id": "67f767fe-06eb-4068-9c19-f75cc93f4999",
+    "acpgAllowGraduationFlag": "N",
+    "acpgCreateApplicationFlag": "N",
+    "acpgGradeScheme": "CE",
+    "catalog": [
+        {
+            "acpgCatalogs": "2025"
+        },
+        {
+            "acpgCatalogs": "2024"
+        },
+        {
+            "acpgCatalogs": "2023"
+        },
+        {
+            "acpgCatalogs": "2022"
+        },
+        {
+            "acpgCatalogs": "2021"
+        },
+        {
+            "acpgCatalogs": "2020"
+        },
+        {
+            "acpgCatalogs": "2019"
+        },
+        {
+            "acpgCatalogs": "2018"
+        },
+        {
+            "acpgCatalogs": "2017"
+        },
+        {
+            "acpgCatalogs": "2016"
+        },
+        {
+            "acpgCatalogs": "2015"
+        },
+        {
+            "acpgCatalogs": "2014"
+        },
+        {
+            "acpgCatalogs": "2013"
+        },
+        {
+            "acpgCatalogs": "2012"
+        },
+        {
+            "acpgCatalogs": "2011"
+        },
+        {
+            "acpgCatalogs": "2010"
+        },
+        {
+            "acpgCatalogs": "2009"
+        },
+        {
+            "acpgCatalogs": "2007"
+        },
+        {
+            "acpgCatalogs": "2008"
+        },
+        {
+            "acpgCatalogs": "2006"
+        },
+        {
+            "acpgCatalogs": "2005"
+        },
+        {
+            "acpgCatalogs": "2004"
+        },
+        {
+            "acpgCatalogs": "2003"
+        },
+        {
+            "acpgCatalogs": "2002"
+        },
+        {
+            "acpgCatalogs": "2001"
+        },
+        {
+            "acpgCatalogs": "1997"
+        }
+    ],
+    "statusDetails": [
+        {
+            "acpgStatus": "A",
+            "acpgStatusDate": "2002-02-07",
+            "acpgApprovalAgencyIds": "0019943",
+            "acpgApprovalDates": "2002-02-07"
+        }
+    ]
+}
