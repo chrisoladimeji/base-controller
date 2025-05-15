@@ -1,4 +1,4 @@
-// src/hello/hello.service.ts
+// src/aiskills/aiskills.service.ts
 import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
@@ -6,7 +6,7 @@ import { lastValueFrom } from 'rxjs';
 import { SisService } from '../sis/sis.service'; // Import SisService
 
 @Injectable()
-export class HelloService {
+export class AiSkillsService {
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
@@ -14,7 +14,7 @@ export class HelloService {
   ) {}
 
   async getTranscriptAndSendToAI(studentNumber: string): Promise<string> {
-    console.log(Fetching transcript for student number: ${studentNumber});
+    console.log('Fetching transcript for student number: ${studentNumber}');
 
     const transcript = await this.sisService.getStudentTranscript(studentNumber);
     if (!transcript) {
@@ -47,7 +47,7 @@ export class HelloService {
         },
         {
           headers: {
-            Authorization: Bearer ${apiKey},
+            Authorization: 'Bearer ${apiKey}',
           },
         }
       )

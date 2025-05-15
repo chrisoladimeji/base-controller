@@ -23,7 +23,7 @@ import { RedisService } from './services/redis.service';
 
 
 // Import hello
-import { HelloModule } from './hello/hello.module';
+import { AiSkillsModule } from './aiskills/aiskills.module';
 
 
 @Module({
@@ -43,7 +43,7 @@ import { HelloModule } from './hello/hello.module';
     SvgModule,
     SisModule,
 
-    HelloModule,
+    AiSkillsModule,
 
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
@@ -83,8 +83,8 @@ import { HelloModule } from './hello/hello.module';
       },
 
       {
-        path: 'hello',
-        module: HelloModule,
+        path: 'aiskills',
+        module: AiSkillsModule,
       },
     ]),
   ],

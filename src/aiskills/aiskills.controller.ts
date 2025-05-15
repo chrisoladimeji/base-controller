@@ -1,12 +1,12 @@
-// src/hello/hello.controller.ts
+// src/aiskills/aiskills.controller.ts
 import { Controller, Get, Query, HttpException, HttpStatus } from '@nestjs/common';
-import { AISkillsService } from './aiskills.service';
+import { AiSkillsService } from './aiskills.service';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('AI Skills')
-@Controller() 
-export class HelloController {
-  constructor(private readonly aiSkillsService: AISkillsService) {}
+@Controller('ai_skills')
+export class AiSkillsController {
+  constructor(private readonly aiSkillsService: AiSkillsService) {}
 
   @Get('transcript')
   @ApiQuery({ name: 'studentNumber', required: true, type: String, description: 'The student number' })
