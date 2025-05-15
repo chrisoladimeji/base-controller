@@ -11,25 +11,24 @@ import { VerificationModule } from './verification/verification.module';
 import { PingModule } from './ping/ping.module';
 import { EllucianModule } from './ellucian/ellucian.module';
 import { OutOfBandModule } from './out_of_band/out_of_band.module';
-import { EventsGateway } from './events/events.gateway';
-import { MetadataModule } from './metadata/metadata.module';
 import { BasicMessagesModule } from './basicmessages/basicmessages.module';
 import { WorkflowModule } from './workflow/workflow.module';
-import { PostgresService } from './services/postgres.service';
-import { RedisService } from './services/redis.service';
-import * as path from 'path';
-import { readFileSync } from 'fs';
-import { SvgService } from './svg/svg.service';
+import { WorkflowsModule } from './workflow/workflows/workflows.module';
+import { MetadataModule } from './metadata/metadata.module';
 import { SvgModule } from './svg/svg.module';
 import { SisModule } from './sis/sis.module';
-import { WorkflowsModule } from './workflow/workflows/workflows.module';
-import { EnrollmentModule } from './enrollment/enrollment.module';
+import { EventsGateway } from './events/events.gateway';
+import { PostgresService } from './services/postgres.service';
+import { RedisService } from './services/redis.service';
+
+
+// Import hello
+import { HelloModule } from './hello/hello.module';
+
 
 @Module({
   imports: [
-    ConfigModule.forRoot({
-      isGlobal: true,
-    }),
+    ConfigModule.forRoot({ isGlobal: true }),
     HttpModule,
     ConnectionModule,
     OutOfBandModule,
@@ -38,12 +37,14 @@ import { EnrollmentModule } from './enrollment/enrollment.module';
     PingModule,
     EllucianModule,
     BasicMessagesModule,
-    EnrollmentModule,
     WorkflowModule,
     WorkflowsModule,
     MetadataModule,
     SvgModule,
     SisModule,
+
+    HelloModule,
+
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],
@@ -55,63 +56,43 @@ import { EnrollmentModule } from './enrollment/enrollment.module';
         password: configService.get<string>('WORKFLOW_DB_PASSWORD'),
         database: configService.get<string>('WORKFLOW_DB_NAME'),
         autoLoadEntities: true,
-        synchronize: true, // TODO: Disable this in production
+        synchronize: true,
       }),
     }),
-    RouterModule.register(
-      [
-        {
-          path: 'topic',
-          module: AppModule,
-          children: [
-            {
-              path: 'ping',
-              module: PingModule,
-            },
-            {
-              path: 'connections',
-              module: ConnectionModule,
-            },
-            {
-              path: 'out_of_band',
-              module: OutOfBandModule,
-            },
-            {
-              path: 'issue_credential',
-              module: CredentialModule,
-            },
-            {
-              path: 'present_proof_v2_0',
-              module: VerificationModule,
-            },
-            {
-              path: 'basicmessages',
-              module: BasicMessagesModule,
-            },
-          ]
-        },
-        {
-          path: 'sis',
-          module: SisModule,        
-        },
-        {
-          path: 'enrollment',
-          module: EnrollmentModule,
-        },
-        {
-          path: 'workflow',
-          module: WorkflowModule,
-        },
-      ],
-    ),
-    EnrollmentModule,
+
+    RouterModule.register([
+      {
+        path: 'topic',
+        module: AppModule,
+        children: [
+          { path: 'ping', module: PingModule },
+          { path: 'connections', module: ConnectionModule },
+          { path: 'out_of_band', module: OutOfBandModule },
+          { path: 'issue_credential', module: CredentialModule },
+          { path: 'present_proof_v2_0', module: VerificationModule },
+          { path: 'basicmessages', module: BasicMessagesModule },
+        ],
+      },
+      {
+        path: 'sis',
+        module: SisModule,
+      },
+      {
+        path: 'workflow',
+        module: WorkflowModule,
+      },
+
+      {
+        path: 'hello',
+        module: HelloModule,
+      },
+    ]),
   ],
   providers: [
     AppService,
     EventsGateway,
     PostgresService,
     RedisService,
-    SvgService
   ],
   controllers: [AppController],
 })
