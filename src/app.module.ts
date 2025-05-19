@@ -24,7 +24,7 @@ import { RedisService } from './services/redis.service';
 
 // Import hello
 import { AiSkillsModule } from './aiskills/aiskills.module';
-
+import { CourseModule} from './courses/course.module';
 
 @Module({
   imports: [
@@ -44,6 +44,7 @@ import { AiSkillsModule } from './aiskills/aiskills.module';
     SisModule,
 
     AiSkillsModule,
+    CourseModule,
 
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
