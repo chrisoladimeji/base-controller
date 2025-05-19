@@ -14,5 +14,6 @@ import { SisModule } from '../sis/sis.module';
   ],
   controllers: [AiSkillsController],
   providers: [AiSkillsService],
+  exports: [AiSkillsService]
 })
 export class AiSkillsModule {}

@@ -3,6 +3,7 @@ import { AcaPyService } from "src/services/acapy.service";
 import { Injectable } from "@nestjs/common";
 import { SisService } from "src/sis/sis.service";
 import { ConfigService } from "@nestjs/config";
+import { AiSkillsService } from "src/aiskills/aiskills.service";
 
 @Injectable()
 export class ExtendedAction implements IActionExtension {
@@ -10,7 +11,8 @@ export class ExtendedAction implements IActionExtension {
     constructor(
       private readonly configService: ConfigService,
       private readonly acapyService: AcaPyService,
-      private readonly sisService: SisService
+      private readonly sisService: SisService,
+      private readonly aiSkillsService: AiSkillsService,
     ) {}
 
     async actions(actionInput: any, instance: Instance, action: any, transition: Transition): Promise<Transition>{
@@ -99,6 +101,18 @@ export class ExtendedAction implements IActionExtension {
                   if(action?.value?.type=="transcript") {
                       await this.sendHSTranscriptProofRequest2(connection_id, schema_name);
                   }
+              }
+              break;
+            case "analyzecredential-Transcript":
+              console.log("Performing transcript credential analysis");
+
+              if (eval(action.condition)) {
+                console.log("Action=", action);
+                console.log("ActionInput=", actionInput);
+                const aiSkillsResponse = await this.aiSkillsService.getTranscriptAndSendToAI("0023");
+                console.log("AI Skills Response: ", aiSkillsResponse);
+
+                instance.state_data.aiSkills = aiSkillsResponse;
               }
               break;
           default:
