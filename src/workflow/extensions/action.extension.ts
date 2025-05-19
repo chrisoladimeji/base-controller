@@ -103,7 +103,7 @@ export class ExtendedAction implements IActionExtension {
                   }
               }
               break;
-            case "analyzecredential-Transcript":
+            case "analyzeCredential-Transcript":
               console.log("Performing transcript credential analysis");
 
               if (eval(action.condition)) {
@@ -115,7 +115,9 @@ export class ExtendedAction implements IActionExtension {
                 instance.state_data.aiSkills = aiSkillsResponse;
               }
               break;
-          default:
+            default:
+                console.log("Action type is not an included workflow extension: ", action?.type);
+                break;
         }
     
         return transition;
