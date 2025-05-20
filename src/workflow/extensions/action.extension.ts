@@ -107,12 +107,13 @@ export class ExtendedAction implements IActionExtension {
               console.log("Performing transcript credential analysis");
 
               if (eval(action.condition)) {
-                console.log("Action=", action);
-                console.log("ActionInput=", actionInput);
                 const aiSkillsResponse = await this.aiSkillsService.getTranscriptAndSendToAI("0023");
-                console.log("AI Skills Response: ", aiSkillsResponse);
-
-                instance.state_data.aiSkills = aiSkillsResponse;
+                if (aiSkillsResponse) {
+                    instance.state_data.aiSkills = aiSkillsResponse;
+                }
+                else {
+                    console.log("Could not get skills analysis");
+                }
               }
               break;
             default:
