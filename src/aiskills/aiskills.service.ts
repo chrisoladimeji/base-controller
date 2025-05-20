@@ -3,7 +3,8 @@ import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { lastValueFrom } from 'rxjs';
-import { SisService } from '../sis/sis.service'; // Import SisService
+import { SisService } from '../sis/sis.service';
+import { CourseService } from '../courses/course.service'; 
 import { TranscriptDto } from '../dtos/transcript.dto';
 
 @Injectable()
@@ -11,8 +12,82 @@ export class AiSkillsService {
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
-    private readonly sisService: SisService // Inject SisService
+    private readonly sisService: SisService,
+    private readonly courseService: CourseService 
   ) {}
+
+  private formatTranscript(transcript: any): string {
+  const studentInfo = `
+Student: ${transcript.studentFullName}
+Program: ${transcript.program}
+GPA (Weighted/Unweighted): ${transcript.gpa} / ${transcript.gpaUnweighted}
+Class Rank: ${transcript.classRank}
+
+Transcript Course Information:
+`;
+
+  let terms = transcript.terms;
+
+  if (typeof terms === "string") {
+    try {
+      terms = JSON.parse(terms);
+    } catch (error) {
+      console.error("Failed to parse transcript terms:", error);
+      return studentInfo + "\nInvalid terms format.";
+    }
+  }
+
+  if (!Array.isArray(terms)) {
+    return studentInfo + "\nNo terms or courses found.";
+  }
+
+  const courseBlocks = terms
+    .map((term: any) => {
+      if (!Array.isArray(term.courses)) {
+        return `\nNo courses found for term ${term.termYear}.`;
+      }
+
+      return term.courses
+        .map((course: any) => {
+          const courseInfo = this.courseService.getCourseInfo(
+            course.courseTitle,
+            course.courseCode
+          );
+
+          if (courseInfo.error) {
+            return ` 
+Course Title: ${course.courseTitle}
+Course Code: ${course.courseCode}
+Error: ${courseInfo.error}
+`;
+          }
+
+          const techSkills = Array.isArray(courseInfo.technologicalSkills)
+            ? courseInfo.technologicalSkills.join(", ")
+            : "None";
+          const skills = Array.isArray(courseInfo.skills)
+            ? courseInfo.skills.join(", ")
+            : "None";
+          const abilities = Array.isArray(courseInfo.abilities)
+            ? courseInfo.abilities.join(", ")
+            : "None";
+
+          return `
+Course Title: ${course.courseTitle}
+Course Code: ${course.courseCode}
+Description: ${courseInfo.description}
+
+||Predicted Technical Skills||: ${techSkills}
+||Predicted Skills||: ${skills}
+||Predicted Abilities||: ${abilities}
+`;
+        })
+        .join("\n");
+    })
+    .join("\n");
+
+  return studentInfo + courseBlocks;
+}
 
   async getTranscriptAndSendToAI(studentNumber: string): Promise<string> {
     console.log(`Fetching transcript for student number: ${studentNumber}`);
@@ -22,13 +97,28 @@ export class AiSkillsService {
       throw new Error('Transcript not found');
     }
 
-    // Create a prompt using the transcript data
-    const transcriptFormatted = transcript.terms;
-    const prompt = `###Step 1, understand the objective  A college student requires a list of skills, technology skills, knowledge, abilities, and work values to be created for them, based on their college courses and the transcript.###Step 2, understand the format Your output format must be concise and without redundant text, List the trait, follow by a comma, and the category it is in. An example is provided below Critical Thinking, Skills Complex Problem Solving, Skills Time Management, Skills Spreadsheet software, TechnologySkills Financial analysis software, TechnologySkills Business intelligence and data analysis software, TechnologySkills Economics and Accounting, Knowledge Administration and Management, Knowledge Sales and Marketing, Knowledge Deductive Reasoning, Abilities Problem Sensitivity, Abilities Mathematical Reasoning, Abilities Achievement, WorkValues Support, WorkValues Independence, WorkValues ###Step 3, analyze the student data The information about the student is provided below About the students: ${transcriptFormatted} ###Step 4, select the |||approved traits|||, 3 from each category |||The approved list is below.||| The approved list: ""Reading Comprehension, Skills" "Active Listening, Skills" "Critical Thinking, Skills" "Speaking, Skills" "Judgment and Decision Making, Skills" "Writing, Skills" "Complex Problem Solving, Skills" "Monitoring, Skills" "Coordination, Skills" "Mathematics, Skills" "Active Learning, Skills" "Service Orientation, Skills" "Social Perceptiveness, Skills" "Time Management, Skills" "Persuasion, Skills" "Economics and Accounting, Knowledge" "English Language, Knowledge" "Mathematics, Knowledge" "Administration and Management, Knowledge" "Customer and Personal Service, Knowledge" "Law and Government, Knowledge" "Administrative, Knowledge" "Computers and Electronics, Knowledge" "Oral Comprehension, Abilities" "Oral Expression, Abilities" "Written Comprehension, Abilities" "Deductive Reasoning, Abilities" "Inductive Reasoning, Abilities" "Near Vision, Abilities" "Problem Sensitivity, Abilities" "Written Expression, Abilities" "Information Ordering, Abilities" "Mathematical Reasoning, Abilities" "Speech Clarity, Abilities" "Speech Recognition, Abilities" "Category Flexibility, Abilities" "Number Facility, Abilities" "Flexibility of Closure, Abilities" "Perceptual Speed, Abilities" "Achievement, WorkValues" "Independence, WorkValues" "Recognition, WorkValues" "Accounting software, TechnologySkills" "Analytical or scientific software, TechnologySkills" "Business intelligence and data analysis software, TechnologySkills" "Cloud-based data access and sharing software, TechnologySkills" "Compliance software, TechnologySkills" "Customer relationship management CRM software, TechnologySkills" "Data base management system software, TechnologySkills" "Data base reporting software, TechnologySkills" "Data base user interface and query software, TechnologySkills" "Data mining software, TechnologySkills" "Desktop communications software, TechnologySkills" "Desktop publishing software, TechnologySkills" "Development environment software, TechnologySkills" "Document management software, TechnologySkills" "Electronic mail software, TechnologySkills" "Enterprise application integration software, TechnologySkills" "Enterprise resource planning ERP software, TechnologySkills" "Enterprise system management software, TechnologySkills" "Financial analysis software, TechnologySkills" "Human resources software, TechnologySkills" "Information retrieval or search software, TechnologySkills" "Inventory management software, TechnologySkills" "Medical software, TechnologySkills" "Object or component oriented development software, TechnologySkills" "Office suite software, TechnologySkills" "Operating system software, TechnologySkills" "Presentation software, TechnologySkills" "Process mapping and design software, TechnologySkills" "Project management software, TechnologySkills" "Risk management data and analysis software, TechnologySkills" "Spreadsheet software, TechnologySkills" "Tax preparation software, TechnologySkills" "Time accounting software, TechnologySkills" "Transaction security and virus protection software, TechnologySkills" "Transaction server software, TechnologySkills" "Video creation and editing software, TechnologySkills" "Word processing software, TechnologySkills" "Fine Arts, Knowledge" "Communications and Media, Knowledge" "Sociology and Anthropology, Knowledge" "Psychology, Knowledge" "Memorization, Abilities" "Originality, Abilities" "Fluency of Ideas, Abilities" "Selective Attention, Abilities" "Relationships, WorkValues" "Instant messaging software, TechnologySkills" "Internet browser software, TechnologySkills" "Video conferencing software, TechnologySkills" "Web page creation and editing software, TechnologySkills" "Systems Evaluation, Skills" "Systems Analysis, Skills" "Operations Analysis, Skills" "Working Conditions, WorkValues" "Object oriented data base management software, TechnologySkills" "Medicine and Dentistry, Knowledge" "Therapy and Counseling, Knowledge" "Sales and Marketing, Knowledge" "Education and Training, Knowledge" "Arm-Hand Steadiness, Abilities" "Finger Dexterity, Abilities" "Manual Dexterity, Abilities" "Instructing, Skills" "Learning Strategies, Skills" "Management of Personnel Resources, Skills" "Negotiation, Skills" "Operations Monitoring, Skills" "Science, Skills" "Biology, Knowledge" "Time Sharing, Abilities" "Visual Color Discrimination, Abilities" "Support, WorkValues" "Far Vision, Abilities" "Extent Flexibility, Abilities" "Gross Body Coordination, Abilities" "Multilimb Coordination, Abilities" "Stamina, Abilities" "Static Strength, Abilities" "Trunk Strength, Abilities" "Operation and Control, Skills" "Quality Control Analysis, Skills" "Repairing, Skills" "Troubleshooting, Skills" "Production and Processing, Knowledge" "Mechanical, Knowledge" "Control Precision, Abilities" "Rate Control, Abilities" "Reaction Time, Abilities" "Visualization, Abilities" "Auditory Attention, Abilities" "Depth Perception, Abilities" "Dynamic Strength, Abilities" "Legal management software, TechnologySkills" "Personnel and Human Resources, Knowledge" "Public Safety and Security, Knowledge" "Computer aided design CAD software, TechnologySkills" "Content workflow software, TechnologySkills" "Industrial control software, TechnologySkills" "Computer based training software, TechnologySkills" "Graphics or photo imaging software, TechnologySkills" "Multi-media educational software, TechnologySkills" "Chemistry, Knowledge" "Telecommunications, Knowledge" "Calendar and scheduling software, TechnologySkills" "Sales and marketing software, TechnologySkills" "Web platform development software, TechnologySkills" "Engineering and Technology, Knowledge" "Physics, Knowledge" "Graphical user interface development software, TechnologySkills" "Program testing software, TechnologySkills" "Technology Design, Skills" "Design, Knowledge" "Computer aided manufacturing CAM software, TechnologySkills" "Configuration management software, TechnologySkills" "Requirements analysis and system architecture software, TechnologySkills" "Food Production, Knowledge" "Building and Construction, Knowledge" "Geography, Knowledge" "Geographic information system, TechnologySkills" "Equipment Maintenance, Skills" "Response Orientation, Abilities" "Hearing Sensitivity, Abilities" "Map creation software, TechnologySkills" "Speed of Closure, Abilities" "Optical character reader OCR or scanning software, TechnologySkills" "Mobile location based services software, TechnologySkills" "Transportation, Knowledge" "Expert system software, TechnologySkills" "Flight control software, TechnologySkills" "Materials requirements planning logistics and supply chain software, TechnologySkills" "Equipment Selection, Skills" "Compiler and decompiler software, TechnologySkills" "Facilities management software, TechnologySkills" "Application server software, TechnologySkills" "Internet protocol IP multimedia subsystem software, TechnologySkills" "Spatial Orientation, Abilities" "Peripheral Vision, Abilities" "Glare Sensitivity, Abilities" "Night Vision, Abilities" "Route navigation software, TechnologySkills" "Helpdesk or call center software, TechnologySkills" "History and Archeology, Knowledge" "Foreign Language, Knowledge" "Philosophy and Theology, Knowledge" "Voice recognition software, TechnologySkills" "Metadata management software, TechnologySkills" "Procurement software, TechnologySkills" "Pattern design software, TechnologySkills" "Access software, TechnologySkills" "Cloud-based management software, TechnologySkills" "File versioning software, TechnologySkills" "Network monitoring software, TechnologySkills" "Network security and virtual private network VPN equipment software, TechnologySkills" "Mobile operator specific application software, TechnologySkills" "Network conferencing software, TechnologySkills" "Music or sound editing software, TechnologySkills" "Explosive Strength, Abilities" "Gross Body Equilibrium, Abilities" "Installation, Skills" "Point of sale POS software, TechnologySkills" "Portal server software, TechnologySkills" "Categorization or classification software, TechnologySkills" "Programming, Skills" "Management of Financial Resources, Skills" "Management of Material Resources, Skills" "Storage networking software, TechnologySkills" "Network security or virtual private network VPN management software, TechnologySkills" "Backup or archival software, TechnologySkills" "Communications server software, TechnologySkills" "LAN software, TechnologySkills" "Network operation system software, TechnologySkills" "Clustering software, TechnologySkills" "Data compression software, TechnologySkills" "Platform interconnectivity software, TechnologySkills" "Dynamic Flexibility, Abilities" "Interactive voice response software, TechnologySkills" "Data conversion software, TechnologySkills" "Aviation ground support software, TechnologySkills" "Charting software, TechnologySkills" "Cloud-based protection or security software, TechnologySkills" "Filesystem software, TechnologySkills" "Network connectivity terminal emulation software, TechnologySkills" "Software defined networking/ virtualization software, TechnologySkills" "Wireless software, TechnologySkills" "Administration software, TechnologySkills" "Authentication server software, TechnologySkills" "Bridge software, TechnologySkills" "Internet directory services software, TechnologySkills" "Network operating system enhancement software, TechnologySkills" "Switch or router software, TechnologySkills" "WAN switching software and firmware, TechnologySkills" "License management software, TechnologySkills" "Wrist-Finger Speed, Abilities" "Contact center software, TechnologySkills" "Fax software, TechnologySkills" "Mobile messaging service software, TechnologySkills" "Speed of Limb Movement, Abilities" "Procedure management software, TechnologySkills" "Manufacturing execution system MES software, TechnologySkills" "Storage media loading software, TechnologySkills" "Spell checkers, TechnologySkills" "Computer aided design CAD and computer aided manufacturing CAM system, TechnologySkills" "Bar coding software, TechnologySkills" "Dictionary software, TechnologySkills" "Foreign language software, TechnologySkills" "Audit software, TechnologySkills" "Label making software, TechnologySkills" "Library software, TechnologySkills" "Device drivers or system software, TechnologySkills" "Mailing and shipping software, TechnologySkills" "Computer imaging software, TechnologySkills" "Gateway software, TechnologySkills" "Action games, TechnologySkills" "Text to speech conversion software, TechnologySkills" "Sound Localization, Abilities" "Voice synthesizer and recognition software, TechnologySkills`;
+    // Format the transcript using the formatTranscript method
+    const transcriptFormatted = this.formatTranscript(transcript);
+    const prompt = `
+###Step 1, Understand the objective
+A college student requires a list of technical skills, skills, and abilities which they have listed for them, based on their college courses description from the transcript. Along with that, you will be provided with ||possibly correct|| prediction of another system which is of lower accuracy than you, you are free to use them, insure that the the technical skills, skill, and abilities actually logically match the courses and real abilities of the student.
+
+###Step 2, understand the format
+Your output format must be concise and without redundant text, simply list the technical skills, skills, and abilities. In detail, you must first print “technical skills”, underneath print all of the technical skills the student possesses, then print “skills” on the next line, similarly print all skills the student possesses, then “abilities”, and print the abilities the student possesses. Example is provided below.
+
+###Step 3, analyze the student data
+The information about the student is provided below, the structure is as follows. You will be provided with the course title, course code, course description (||Some learning outcomes are included in some description||) and the approximated technical skills, skills, and abilities generated by a simpler model than you (as mentioned before). Information is below:
+
+${transcriptFormatted}
+
+###Step 4, Generate the response, ||according to the provided format in “###Step 2, understand the format”||
+`;
+
     
     console.log("\n=== GENERATED PROMPT ===");
     console.log(prompt);
     console.log("=== END OF PROMPT ===\n");
+    console.log(transcriptFormatted);
 
     // Send the prompt to OpenAI
     const response = await this.sendPromptToOpenAI(prompt);
@@ -43,8 +133,8 @@ export class AiSkillsService {
       this.httpService.post(
         openaiUrl,
         {
-          model: "ft:gpt-4o-mini-2024-07-18:digicred:digicredpcaonetskat-01:BOnxVJpF",
-          messages: [{ role: 'system', content: "You are a helpful assistant." }, { role: 'user', content: prompt }]
+          model: "gpt-4o-mini",
+          messages: [{ role: 'system', content: "Follow the instructions, any statement in double bars, eg. ||||, is of high importance and you must attend to that piece of information within." }, { role: 'user', content: prompt }]
         },
         {
           headers: {

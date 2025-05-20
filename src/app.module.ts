@@ -21,7 +21,7 @@ import { EventsGateway } from './events/events.gateway';
 import { PostgresService } from './services/postgres.service';
 import { RedisService } from './services/redis.service';
 import { AiSkillsModule } from './aiskills/aiskills.module';
-
+import { CourseModule} from './courses/course.module';
 
 @Module({
   imports: [
@@ -40,6 +40,8 @@ import { AiSkillsModule } from './aiskills/aiskills.module';
     SvgModule,
     SisModule,
     AiSkillsModule,
+    CourseModule,
+
     TypeOrmModule.forRootAsync({
       imports: [ConfigModule],
       inject: [ConfigService],

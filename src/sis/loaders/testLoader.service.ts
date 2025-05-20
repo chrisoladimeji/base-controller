@@ -59,8 +59,24 @@ export class TestLoaderService extends SisLoaderService {
                 cumulativeUnweightedGpa: "0.0",
                 courses: [
                     {
-                        courseCode: "0001Y0",
-                        courseTitle: "Pre-Algebra",
+                        courseCode: "MATH 5301",
+                        courseTitle: "Advanced Calculus I",
+                        grade: "90",
+                        courseWeight: "0.0",
+                        creditEarned: "1",
+                        UncRequirement: true
+                    },
+                    {
+                        courseCode: "MATH 6500",
+                        courseTitle: "Mathematical Statistics",
+                        grade: "90",
+                        courseWeight: "0.0",
+                        creditEarned: "1",
+                        UncRequirement: true
+                    },
+                    {
+                        courseCode: "ECON 5031",
+                        courseTitle: "Advanced Microeconomics",
                         grade: "90",
                         courseWeight: "0.0",
                         creditEarned: "1",
@@ -77,16 +93,56 @@ export class TestLoaderService extends SisLoaderService {
                 cumulativeUnweightedGpa: "0.0",
                 courses: [
                     {
-                        courseCode: "0001X0",
-                        courseTitle: "Algebra",
+                        courseCode: "MATH 6301",
+                        courseTitle: "Analysis I",
                         grade: "99",
                         courseWeight: "1.0",
                         creditEarned: "1",
                         UncRequirement: true
                     },
                     {
-                        courseCode: "0002X0",
-                        courseTitle: "English I",
+                        courseCode: "MATH 6310",
+                        courseTitle: "Complex Analysis",
+                        grade: "90",
+                        courseWeight: "1.0",
+                        creditEarned: "1",
+                        UncRequirement: true
+                    },
+                    {
+                        courseCode: "ECON 5070",
+                        courseTitle: "Economic Data Analysis",
+                        grade: "90",
+                        courseWeight: "1.0",
+                        creditEarned: "1",
+                        UncRequirement: true
+                    },
+                    {
+                        courseCode: "ECON 6370",
+                        courseTitle: "Applied Forecasting",
+                        grade: "90",
+                        courseWeight: "1.0",
+                        creditEarned: "1",
+                        UncRequirement: true
+                    },
+                    {
+                        courseCode: "MGT 5001",
+                        courseTitle: "Managing Individuals and Teams",
+                        grade: "90",
+                        courseWeight: "1.0",
+                        creditEarned: "1",
+                        UncRequirement: true
+                    },
+                    {
+                        courseCode: "MGT 5020c",
+                        courseTitle: "Operations & Project Management",
+                        grade: "90",
+                        courseWeight: "1.0",
+                        creditEarned: "1",
+                        UncRequirement: true
+                    },
+                    {
+                        courseCode: "ENG 7030",
+                        courseTitle: "English Language",
                         grade: "90",
                         courseWeight: "1.0",
                         creditEarned: "1",
