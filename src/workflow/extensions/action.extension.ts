@@ -3,6 +3,7 @@ import { AcaPyService } from "src/services/acapy.service";
 import { Injectable } from "@nestjs/common";
 import { SisService } from "src/sis/sis.service";
 import { ConfigService } from "@nestjs/config";
+import { AiSkillsService } from "src/aiskills/aiskills.service";
 
 @Injectable()
 export class ExtendedAction implements IActionExtension {
@@ -10,7 +11,8 @@ export class ExtendedAction implements IActionExtension {
     constructor(
       private readonly configService: ConfigService,
       private readonly acapyService: AcaPyService,
-      private readonly sisService: SisService
+      private readonly sisService: SisService,
+      private readonly aiSkillsService: AiSkillsService,
     ) {}
 
     async actions(actionInput: any, instance: Instance, action: any, transition: Transition): Promise<Transition>{
@@ -101,7 +103,22 @@ export class ExtendedAction implements IActionExtension {
                   }
               }
               break;
-          default:
+            case "analyzeCredential-Transcript":
+              console.log("Performing transcript credential analysis");
+
+              if (eval(action.condition)) {
+                const aiSkillsResponse = await this.aiSkillsService.getTranscriptAndSendToAI("0023");
+                if (aiSkillsResponse) {
+                    instance.state_data.aiSkills = aiSkillsResponse;
+                }
+                else {
+                    console.log("Could not get skills analysis");
+                }
+              }
+              break;
+            default:
+                console.log("Action type is not an included workflow extension: ", action?.type);
+                break;
         }
     
         return transition;
