@@ -121,11 +121,13 @@ export class VerificationService {
 
   async handleVerifiedState(credentialData: any): Promise<void> {
     console.log("+++ Credential verified");
+    console.log("CredentialData=", JSON.stringify(credentialData));
     console.log("Save enrollment data credentialData=", JSON.stringify(credentialData?.by_format?.pres?.indy?.requested_proof?.revealed_attr_groups?.studentInfo?.values));
     const transcriptData = credentialData?.by_format?.pres?.indy?.requested_proof?.revealed_attr_groups?.studentInfo?.values;
     try {
       if(transcriptData != undefined) {
           const enrollment = new CreateEnrollmentDto();
+          enrollment.connectionId = credentialData?.connection_id;
           enrollment.studentNumber = transcriptData?.studentNumber?.raw;
           enrollment.studentFullName = transcriptData?.studentFullName?.raw;
           enrollment.gpa = JSON.parse(transcriptData?.studentInfo?.raw)?.gpa;
