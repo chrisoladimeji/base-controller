@@ -1,0 +1,91 @@
+{
+  "workflow_id": "root-menu",
+  "name": "Apply Wilmington Workflow",
+  "initial_state": "skills",
+  "render": null,
+  "states": [
+    {
+      "name": "Credential analysis menu",
+      "actions": [
+        {
+          "type": "analyzeCredential-Transcript",
+          "value": {},
+          "action_id": "analyzeSkills",
+          "condition": "true"
+        }
+      ],
+      "state_id": "menu",
+      "transitions": [
+        {
+          "type": "stateTransition",
+          "state_id": "skills",
+          "condition": "actionInput.actionID=='analyzeSkills'",
+          "workflow_id": "",
+          "transition_id": "analyzeSkills"
+        }
+      ],
+      "display_data": [
+        {
+          "text": "Welcome to our credential service.",
+          "type": "title"
+        },
+        {
+          "text": "Credential Analysis",
+          "type": "text"
+        },
+        {
+          "text": "Here, you can request an analysis of your transcript. Our AI model will determine a list of professional skills that you have aquired based on your coursework.",
+          "type": "text"
+        },
+        {
+          "type": "button",
+          "label": "Analyze skills from my transcript",
+          "actionID": "analyzeSkills"
+        },
+        {
+          "text": "Coming soon: Transcript matching to career paths and local job opportunities.",
+          "type": "text"
+        }
+      ]
+    },
+    {
+      "name": "Credential analysis skills",
+      "actions": [
+        {
+          "action_id": "mainMenu",
+          "condition": "true"
+        }
+      ],
+      "state_id": "skills",
+      "transitions": [
+        {
+          "type": "stateTransition",
+          "state_id": "menu",
+          "condition": "actionInput.actionID=='mainMenu'",
+          "workflow_id": "",
+          "transition_id": "mainMenu"
+        }
+      ],
+      "display_data": [
+        {
+          "text": "Credential Analysis",
+          "type": "text"
+        },
+        {
+          "text": "Professional skills indicated by your transcript: ",
+          "type": "text"
+        },
+        {
+          "text": "{aiSkills}",
+          "type": "text",
+          "condition": "instance?.state_data?.aiSkills!=undefined"
+        },
+        {
+          "type": "button",
+          "label": "Back to Main Menu",
+          "actionID": "mainMenu"
+        }
+      ]
+    }
+  ]
+}
