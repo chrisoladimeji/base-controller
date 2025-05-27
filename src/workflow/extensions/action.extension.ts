@@ -15,13 +15,20 @@ export class ExtendedAction implements IActionExtension {
       private readonly aiSkillsService: AiSkillsService,
     ) {}
 
-    async actions(actionInput: any, instance: Instance, action: any, transition: Transition): Promise<Transition>{
+    async actions(actionInput: any, instance: Instance, action: any, transition: Transition): Promise<[Transition, Instance]>{
         console.log("^^^ Extension -> actions actionInputs=", actionInput, "action=", action);
         const connection_id = instance.client_id;
         const cred_def_id = action?.value?.cred_def;
         const schema_name = action?.value?.schema_name;
         console.log("Cred-defID=", cred_def_id);
         transition.type = "none-nodisplay";
+
+        // get the alias of the connection and make sure it is in the state_data
+        const connectionData = await this.acapyService.getConnectionById(connection_id);
+        const alias = connectionData?.alias.trim();        
+        console.log("ConnectionData.alias=", alias);
+        instance.state_data.alias = alias
+
         // handle the types of actions
         switch(action?.type) {
             case "extension":
@@ -121,13 +128,8 @@ export class ExtendedAction implements IActionExtension {
                 break;
         }
     
-        return transition;
+        return [transition, instance];
     };
-
-    async receiveInvitation(invite: string) {
-
-
-    }
 
     async sendHSStudentIDProofRequest2(connection_id: string, schema_name: string) {
       const schema = schema_name.split(":");

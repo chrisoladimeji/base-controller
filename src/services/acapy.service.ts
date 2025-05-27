@@ -193,6 +193,22 @@ export class AcaPyService {
         }
     }
 
+    async getPresentationExchangeRecordById(pres_ex_id: string): Promise<any> {
+        const presexByIDFetchUrl = `${this.configService.get<string>('API_BASE_URL')}/present-proof/records/${pres_ex_id}`;
+        const presexByIDFetchConfig: AxiosRequestConfig = this.getRequestConfig();
+        try {
+            const response = await lastValueFrom(
+                this.httpService.get(presexByIDFetchUrl, presexByIDFetchConfig).pipe(map((resp) => resp.data))
+            );
+            this.logger.log('Presentation Exchange Record data request sent successfully');
+            return response;            
+        } catch (error) {
+            this.logger.error('Error sending presentation exchnage record request:', error.message);
+            throw new Error('Failed to send presentation exchange record request');
+        }
+    }
+
+
     async getMetadataByConnectionId(connectionId: string): Promise<any> {
         const metadataFetchUrl = `${this.configService.get<string>('API_BASE_URL')}/connections/${connectionId}/metadata`;
         const metadataFetchConfig: AxiosRequestConfig = this.getRequestConfig();
