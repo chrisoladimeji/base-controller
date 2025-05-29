@@ -70,6 +70,23 @@ export class AcaPyService {
         }
     }
 
+    async sendCredOffer2(credentialOfferBody: object): Promise<boolean> {
+        const credentialRequestUrl = `${this.configService.get<string>('API_BASE_URL')}/issue-credential-2.0/send-offer`;
+
+        try {
+            await lastValueFrom(
+                this.httpService
+                    .post(credentialRequestUrl, credentialOfferBody, this.getRequestConfig())
+                    .pipe(map((resp) => resp.data)),
+            );
+            this.logger.log('Credential offer sent successfully');
+            return true;
+        } catch (error) {
+            this.logger.error('Error sending credential offer:', error.message);
+            return false;
+        }
+    }
+
     async fetchCredentialRecord(credentialExchangeId: string): Promise<any> {
         const url = `${this.configService.get<string>('API_BASE_URL')}/issue-credential/records/${credentialExchangeId}`;
 
@@ -194,7 +211,7 @@ export class AcaPyService {
     }
 
     async getPresentationExchangeRecordById(pres_ex_id: string): Promise<any> {
-        const presexByIDFetchUrl = `${this.configService.get<string>('API_BASE_URL')}/present-proof/records/${pres_ex_id}`;
+        const presexByIDFetchUrl = `${this.configService.get<string>('API_BASE_URL')}/present-proof-2.0/records/${pres_ex_id}`;
         const presexByIDFetchConfig: AxiosRequestConfig = this.getRequestConfig();
         try {
             const response = await lastValueFrom(

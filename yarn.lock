@@ -1579,10 +1579,10 @@
   resolved "https://registry.npmjs.org/@ungap/structured-clone/-/structured-clone-1.3.0.tgz"
   integrity sha512-WmoN8qaIAo7WTYWbAZuG8PYEhn5fkz7dZrqTBZ7dtt//lL2Gwms1IcnQ5yHqjDfX8Ft5j4YzDM23f87zBfDe9g==
 
-"@veridid/workflow-parser@0.4.23":
-  version "0.4.23"
-  resolved "https://registry.yarnpkg.com/@veridid/workflow-parser/-/workflow-parser-0.4.23.tgz#95d406a8f225028d90b25da3352a172481214b4f"
-  integrity sha512-SFOWh5n5FwHn+TZuQCLCdzkvpHo7OrmUqa036xp5dluMbwfqK6dhLDl0WYREC7Bm+JFmV5qKB3UmGU1iRmKVqw==
+"@veridid/workflow-parser@0.4.25":
+  version "0.4.25"
+  resolved "https://registry.yarnpkg.com/@veridid/workflow-parser/-/workflow-parser-0.4.25.tgz#ed4a2adbfbe2e61bc5170295aad3350704025bfd"
+  integrity sha512-Q22ZTxIp5HXe/xyex9zDm9WawHyj+srWDLy3eUT72PjOT1Skqv4GwrgldzSOjSBWob37BiIXy9F6+wZwjDpb8A==
   dependencies:
     "@types/pg" "^8.11.11"
     pg "^8.14.1"
