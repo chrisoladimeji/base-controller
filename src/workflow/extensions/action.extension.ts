@@ -20,7 +20,7 @@ export class ExtendedAction implements IActionExtension {
         const connection_id = instance.client_id;
         const cred_def_id = action?.value?.cred_def;
         const schema_name = action?.value?.schema_name;
-        console.log("Cred-defID=", cred_def_id);
+        console.log("Cred-defID=", cred_def_id, " Schema_name=",schema_name);
         transition.type = "none-nodisplay";
 
         // get the alias of the connection and make sure it is in the state_data
