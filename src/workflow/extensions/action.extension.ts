@@ -110,6 +110,18 @@ export class ExtendedAction implements IActionExtension {
                   }
               }
               break;
+            case "verifycredential-CollegeTranscript":
+              console.log("Verify College Transcript Credential");
+              // check condition
+              if(eval(action.condition)) {
+                  // issue the credential
+                  console.log("Action=", action);
+                  console.log("ActionInput=", actionInput);
+                  if(action?.value?.type=="transcript") {
+                      await this.sendCollegeTranscriptProofRequest2(connection_id, schema_name);
+                  }
+              }
+              break;
             case "analyzeCredential-Transcript":
               console.log("Performing transcript credential analysis");
 
@@ -199,7 +211,7 @@ export class ExtendedAction implements IActionExtension {
         "connection_id": connection_id,
         "auto_verify": true,
         "auto_remove": false,
-        "comment": "Student Transcript Proof Request",
+        "comment": "High School Student Transcript Proof Request",
         "trace": false,
         "presentation_request": {
             "indy": {
@@ -209,6 +221,44 @@ export class ExtendedAction implements IActionExtension {
                 "requested_attributes": {
                     "studentInfo": {
                         "names": [
+                            "studentBirthDate",
+                            "studentFullName",
+                            "studentInfo",
+                            "studentNumber",
+                            "terms",
+                            "transcript"
+                        ],
+                        "restrictions": [
+                            {
+                                "schema_name": schema[2]
+                            }
+                        ]
+                    }
+                },
+                "requested_predicates": {}
+            }
+        }
+      }
+      return this.acapyService.sendProofRequest2(connection_id, proofRequest);
+    }
+
+    async sendCollegeTranscriptProofRequest2(connection_id: string, schema_name: string) {
+      const schema = schema_name.split(":");
+      const proofRequest = {
+        "connection_id": connection_id,
+        "auto_verify": true,
+        "auto_remove": false,
+        "comment": "Collge Student Transcript Proof Request",
+        "trace": false,
+        "presentation_request": {
+            "indy": {
+                "name": "proof-request",
+                "nonce": "1234567890",
+                "version": "1.0",
+                "requested_attributes": {
+                    "studentInfo": {
+                        "names": [
+                            "gpa",
                             "studentBirthDate",
                             "studentFullName",
                             "studentInfo",
