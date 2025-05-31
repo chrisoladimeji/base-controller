@@ -3,6 +3,7 @@ import { AcaPyService } from "src/services/acapy.service";
 import { Injectable } from "@nestjs/common";
 import { SisService } from "src/sis/sis.service";
 import { ConfigService } from "@nestjs/config";
+import { AiSkillsService } from "src/aiskills/aiskills.service";
 
 @Injectable()
 export class ExtendedAction implements IActionExtension {
@@ -10,16 +11,24 @@ export class ExtendedAction implements IActionExtension {
     constructor(
       private readonly configService: ConfigService,
       private readonly acapyService: AcaPyService,
-      private readonly sisService: SisService
+      private readonly sisService: SisService,
+      private readonly aiSkillsService: AiSkillsService,
     ) {}
 
-    async actions(actionInput: any, instance: Instance, action: any, transition: Transition): Promise<Transition>{
+    async actions(actionInput: any, instance: Instance, action: any, transition: Transition): Promise<[Transition, Instance]>{
         console.log("^^^ Extension -> actions actionInputs=", actionInput, "action=", action);
         const connection_id = instance.client_id;
         const cred_def_id = action?.value?.cred_def;
         const schema_name = action?.value?.schema_name;
-        console.log("Cred-defID=", cred_def_id);
+        console.log("Cred-defID=", cred_def_id, " Schema_name=",schema_name);
         transition.type = "none-nodisplay";
+
+        // get the alias of the connection and make sure it is in the state_data
+        const connectionData = await this.acapyService.getConnectionById(connection_id);
+        const alias = connectionData?.alias.trim();        
+        console.log("ConnectionData.alias=", alias);
+        instance.state_data.alias = alias
+
         // handle the types of actions
         switch(action?.type) {
             case "extension":
@@ -101,16 +110,38 @@ export class ExtendedAction implements IActionExtension {
                   }
               }
               break;
-          default:
+            case "verifycredential-CollegeTranscript":
+              console.log("Verify College Transcript Credential");
+              // check condition
+              if(eval(action.condition)) {
+                  // issue the credential
+                  console.log("Action=", action);
+                  console.log("ActionInput=", actionInput);
+                  if(action?.value?.type=="transcript") {
+                      await this.sendCollegeTranscriptProofRequest2(connection_id, schema_name);
+                  }
+              }
+              break;
+            case "analyzeCredential-Transcript":
+              console.log("Performing transcript credential analysis");
+
+              if (eval(action.condition)) {
+                const aiSkillsResponse = await this.aiSkillsService.getTranscriptAndSendToAI("0023");
+                if (aiSkillsResponse) {
+                    instance.state_data.aiSkills = aiSkillsResponse;
+                }
+                else {
+                    console.log("Could not get skills analysis");
+                }
+              }
+              break;
+            default:
+                console.log("Action type is not an included workflow extension: ", action?.type);
+                break;
         }
     
-        return transition;
+        return [transition, instance];
     };
-
-    async receiveInvitation(invite: string) {
-
-
-    }
 
     async sendHSStudentIDProofRequest2(connection_id: string, schema_name: string) {
       const schema = schema_name.split(":");
@@ -180,7 +211,7 @@ export class ExtendedAction implements IActionExtension {
         "connection_id": connection_id,
         "auto_verify": true,
         "auto_remove": false,
-        "comment": "Student Transcript Proof Request",
+        "comment": "High School Student Transcript Proof Request",
         "trace": false,
         "presentation_request": {
             "indy": {
@@ -190,6 +221,44 @@ export class ExtendedAction implements IActionExtension {
                 "requested_attributes": {
                     "studentInfo": {
                         "names": [
+                            "studentBirthDate",
+                            "studentFullName",
+                            "studentInfo",
+                            "studentNumber",
+                            "terms",
+                            "transcript"
+                        ],
+                        "restrictions": [
+                            {
+                                "schema_name": schema[2]
+                            }
+                        ]
+                    }
+                },
+                "requested_predicates": {}
+            }
+        }
+      }
+      return this.acapyService.sendProofRequest2(connection_id, proofRequest);
+    }
+
+    async sendCollegeTranscriptProofRequest2(connection_id: string, schema_name: string) {
+      const schema = schema_name.split(":");
+      const proofRequest = {
+        "connection_id": connection_id,
+        "auto_verify": true,
+        "auto_remove": false,
+        "comment": "Collge Student Transcript Proof Request",
+        "trace": false,
+        "presentation_request": {
+            "indy": {
+                "name": "proof-request",
+                "nonce": "1234567890",
+                "version": "1.0",
+                "requested_attributes": {
+                    "studentInfo": {
+                        "names": [
+                            "gpa",
                             "studentBirthDate",
                             "studentFullName",
                             "studentInfo",

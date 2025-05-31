@@ -5,6 +5,7 @@ import { ConfigService } from '@nestjs/config';
 import { lastValueFrom } from 'rxjs';
 import { SisService } from '../sis/sis.service';
 import { CourseService } from '../courses/course.service'; 
+import { TranscriptDto } from '../dtos/transcript.dto';
 
 @Injectable()
 export class AiSkillsService {
@@ -92,7 +93,7 @@ export class AiSkillsService {
   async getTranscriptAndSendToAI(studentNumber: string): Promise<string> {
     console.log(`Fetching transcript for student number: ${studentNumber}`);
 
-    const transcript = await this.sisService.getStudentTranscript(studentNumber);
+    const transcript: TranscriptDto = await this.sisService.getStudentTranscript(studentNumber);
     if (!transcript) {
       throw new Error('Transcript not found');
     }
