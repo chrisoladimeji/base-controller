@@ -2,14 +2,12 @@ import { IActionExtension, Transition, Instance } from "@veridid/workflow-parser
 import { AcaPyService } from "src/services/acapy.service";
 import { Injectable } from "@nestjs/common";
 import { SisService } from "src/sis/sis.service";
-import { ConfigService } from "@nestjs/config";
 import { AiSkillsService } from "src/aiskills/aiskills.service";
 
 @Injectable()
 export class ExtendedAction implements IActionExtension {
 
     constructor(
-      private readonly configService: ConfigService,
       private readonly acapyService: AcaPyService,
       private readonly sisService: SisService,
       private readonly aiSkillsService: AiSkillsService,
