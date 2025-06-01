@@ -16,6 +16,5 @@ import { CourseModule } from '../courses/course.module';
   ],
   controllers: [AiSkillsController],
   providers: [AiSkillsService],
-  exports: [AiSkillsService]
 })
 export class AiSkillsModule {}

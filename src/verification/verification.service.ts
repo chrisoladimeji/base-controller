@@ -8,6 +8,7 @@ import { WorkflowService } from 'src/workflow/workflow.service';
 import { EnrollmentService } from 'src/enrollment/enrollment.service';
 import { Enrollment } from 'src/enrollment/entities/enrollment.entity';
 import { CreateEnrollmentDto } from 'src/enrollment/dto/create-enrollment.dto';
+import { AcaPyService } from 'src/services/acapy.service';
 // import { parse, getWorkflowInstance, updateWorkflowInstanceByID } from '@veridid/workflow-parser';
 
 
@@ -15,6 +16,7 @@ import { CreateEnrollmentDto } from 'src/enrollment/dto/create-enrollment.dto';
 export class VerificationService {
   constructor(
     private readonly httpService: HttpService,
+    private readonly acapyService: AcaPyService,
     private readonly configService: ConfigService,
     private readonly metadataService: MetadataService,
     private readonly enrollmentService: EnrollmentService,
@@ -121,11 +123,14 @@ export class VerificationService {
 
   async handleVerifiedState(credentialData: any): Promise<void> {
     console.log("+++ Credential verified");
+    console.log("CredentialData=", JSON.stringify(credentialData));
     console.log("Save enrollment data credentialData=", JSON.stringify(credentialData?.by_format?.pres?.indy?.requested_proof?.revealed_attr_groups?.studentInfo?.values));
     const transcriptData = credentialData?.by_format?.pres?.indy?.requested_proof?.revealed_attr_groups?.studentInfo?.values;
+    let schema_id = "";
+    const enrollment = new CreateEnrollmentDto();
     try {
       if(transcriptData != undefined) {
-          const enrollment = new CreateEnrollmentDto();
+          enrollment.connectionId = credentialData?.connection_id;
           enrollment.studentNumber = transcriptData?.studentNumber?.raw;
           enrollment.studentFullName = transcriptData?.studentFullName?.raw;
           enrollment.gpa = JSON.parse(transcriptData?.studentInfo?.raw)?.gpa;
@@ -136,6 +141,11 @@ export class VerificationService {
           //console.log("Enrollment=", enrollment);
           // Save the transcript data in the enrollment table
           await this.enrollmentService.create(enrollment);
+
+          // Find the schema_id from the pres_ex_id
+          const pres_ex_record = await this.acapyService.getPresentationExchangeRecordById(credentialData?.pres_ex_id);
+          console.log("Presentation Exchange Record=", pres_ex_record);
+          schema_id = pres_ex_record?.presentation?.identifiers?.schema_id;
       }
       const connectionId = credentialData.connection_id;
       const threadId = credentialData.thread_id;
@@ -144,7 +154,7 @@ export class VerificationService {
         const action = {
           workflowID: instance.workflow_id,
           actionID: "credential-verified",
-          data: {}
+          data: {credential: [{schema_id: schema_id, attributes: enrollment}]}
         };           
         const displayData = await this.workflowService.parser.parse(connectionId, action);
         await this.workflowService.sendWorkflow(connectionId, displayData);

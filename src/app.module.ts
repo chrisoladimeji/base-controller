@@ -22,6 +22,7 @@ import { PostgresService } from './services/postgres.service';
 import { RedisService } from './services/redis.service';
 import { AiSkillsModule } from './aiskills/aiskills.module';
 import { CourseModule} from './courses/course.module';
+import { EnrollmentModule } from './enrollment/enrollment.module';
 
 @Module({
   imports: [
@@ -77,6 +78,10 @@ import { CourseModule} from './courses/course.module';
       {
         path: 'workflow',
         module: WorkflowModule,
+      },
+      {
+        path: 'enrollment',
+        module: EnrollmentModule,
       },
       {
         path: 'aiskills',
