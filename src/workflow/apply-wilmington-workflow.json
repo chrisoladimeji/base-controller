@@ -1,58 +1,245 @@
 {
   "workflow_id": "root-menu",
   "name": "Apply Wilmington Workflow",
-  "initial_state": "skills",
+  "initial_state": "analysis",
   "render": null,
   "states": [
     {
-      "name": "Credential analysis menu",
-      "actions": [
-        {
-          "type": "analyzeCredential-Transcript",
-          "value": {},
-          "action_id": "analyzeSkills",
-          "condition": "true"
-        }
-      ],
+      "name": "Welcome menu",
+      "actions": [],
       "state_id": "menu",
       "transitions": [
         {
           "type": "stateTransition",
-          "state_id": "skills",
-          "condition": "actionInput.actionID=='analyzeSkills'",
+          "state_id": "schools",
+          "condition": "actionInput.actionID=='schoolsButton'",
           "workflow_id": "",
-          "transition_id": "analyzeSkills"
+          "transition_id": "schoolsButton"
+        },
+        {
+          "type": "stateTransition",
+          "state_id": "analysis",
+          "condition": "actionInput.actionID=='analysisButton'",
+          "workflow_id": "",
+          "transition_id": "analysisButton"
         }
       ],
       "display_data": [
         {
-          "text": "Welcome to our credential service.",
+          "url": "https://crms-images.s3.us-east-1.amazonaws.com/apply-wilmington.png",
+          "type": "image"
+        },
+        {
+          "text": "Welcome to Apply Wilmington",
           "type": "title"
         },
         {
-          "text": "Credential Analysis",
-          "type": "text"
-        },
-        {
-          "text": "Here, you can request an analysis of your transcript. Our AI model will determine a list of professional skills that you have aquired based on your coursework.",
+          "text": "You can use your credentials to apply to jobs and educational opportunities.  You also have tools for credential analysis for identifying career pathways and for resume and cover letter preparation.",
           "type": "text"
         },
         {
           "type": "button",
-          "label": "Analyze skills from my transcript",
-          "actionID": "analyzeSkills"
+          "label": "Educational Opportunities",
+          "actionID": "schoolsButton"
         },
         {
-          "text": "Coming soon: Transcript matching to career paths and local job opportunities.",
-          "type": "text"
+          "type": "button",
+          "label": "Job Board",
+          "actionID": "jobButton"
+        },
+        {
+          "type": "button",
+          "label": "Credential Analysis",
+          "actionID": "analysisButton"
+        },
+        {
+          "text": "Comming soon: scholarships and portfolio hosting.",
+          "type": "information"
         }
       ]
     },
     {
-      "name": "Credential analysis skills",
+      "name": "Educational Opportunities",
+      "actions": [],
+      "state_id": "schools",
+      "transitions": [
+        {
+          "type": "stateTransition",
+          "state_id": "menu",
+          "condition": "actionInput.actionID=='backButton'",
+          "workflow_id": "",
+          "transition_id": "backButton"
+        }
+      ],
+      "display_data": [
+        {
+          "url": "https://crms-images.s3.us-east-1.amazonaws.com/apply-wilmington.png",
+          "type": "image"
+        },
+        {
+          "text": "Educational Opportunities",
+          "type": "title"
+        },
+        {
+          "text": "Connect to schools in the Wilmington area.",
+          "type": "text"
+        },
+        {
+          "type": "button",
+          "label": "New Hanover County Schools",
+          "actionID": "nhcsButton",
+          "invitationLink": "https://demo-crms.digicred.services/agent/?oob=eyJAdHlwZSI6ICJodHRwczovL2RpZGNvbW0ub3JnL291dC1vZi1iYW5kLzEuMS9pbnZpdGF0aW9uIiwgIkBpZCI6ICJlOGEyZjU4My0zMGNhLTRjZjEtYTkwYy00OGRhNzZkOTc4NzQiLCAibGFiZWwiOiAiTmV3IEhhbm92ZXIgQ291bnR5IFNjaG9vbHMiLCAiaGFuZHNoYWtlX3Byb3RvY29scyI6IFsiaHR0cHM6Ly9kaWRjb21tLm9yZy9kaWRleGNoYW5nZS8xLjAiLCAiaHR0cHM6Ly9kaWRjb21tLm9yZy9jb25uZWN0aW9ucy8xLjAiXSwgImFjY2VwdCI6IFsiZGlkY29tbS9haXAxIiwgImRpZGNvbW0vYWlwMjtlbnY9cmZjMTkiXSwgInNlcnZpY2VzIjogW3siaWQiOiAiI2lubGluZSIsICJ0eXBlIjogImRpZC1jb21tdW5pY2F0aW9uIiwgInJlY2lwaWVudEtleXMiOiBbImRpZDprZXk6ejZNa3RxSHM3UFkxQ3VzQWpWQ2FpYkdWUDRZS0NncDFjcHlBR3g1M2lIZXZpTkQ5I3o2TWt0cUhzN1BZMUN1c0FqVkNhaWJHVlA0WUtDZ3AxY3B5QUd4NTNpSGV2aU5EOSJdLCAic2VydmljZUVuZHBvaW50IjogImh0dHBzOi8vZGVtby1jcm1zLmRpZ2ljcmVkLnNlcnZpY2VzL2FnZW50LyJ9XSwgImdvYWxfY29kZSI6ICIiLCAiZ29hbCI6ICIifQ"
+        },
+        {
+          "type": "button",
+          "label": "Pender County Schools",
+          "actionID": "pcsButton",
+          "invitationLink": "https://demo-crms.digicred.services/agent/?oob=eyJAdHlwZSI6ICJodHRwczovL2RpZGNvbW0ub3JnL291dC1vZi1iYW5kLzEuMS9pbnZpdGF0aW9uIiwgIkBpZCI6ICI5ZWMyMWUyYi00ZmRmLTQ2ZmEtYWZlYS03YjRkZDZmNjIxOTQiLCAibGFiZWwiOiAiUGVuZGVyIENvdW50eSBTY2hvb2wgU3lzdGVtIiwgImltYWdlVXJsIjogImh0dHBzOi8vY3Jtcy1pbWFnZXMuczMudXMtZWFzdC0xLmFtYXpvbmF3cy5jb20vUGVuZGVyTG9nb1NxdWFyZS5qcGciLCAiaGFuZHNoYWtlX3Byb3RvY29scyI6IFsiaHR0cHM6Ly9kaWRjb21tLm9yZy9kaWRleGNoYW5nZS8xLjAiLCAiaHR0cHM6Ly9kaWRjb21tLm9yZy9jb25uZWN0aW9ucy8xLjAiXSwgImFjY2VwdCI6IFsiZGlkY29tbS9haXAxIiwgImRpZGNvbW0vYWlwMjtlbnY9cmZjMTkiXSwgInNlcnZpY2VzIjogW3siaWQiOiAiI2lubGluZSIsICJ0eXBlIjogImRpZC1jb21tdW5pY2F0aW9uIiwgInJlY2lwaWVudEtleXMiOiBbImRpZDprZXk6ejZNa2ZFVUJ3bmlOUjhDbk5Bb0h6Tjh4VkxYWGlCMlFQWDE4dWMydk5EOGl4N0V0I3o2TWtmRVVCd25pTlI4Q25OQW9Iek44eFZMWFhpQjJRUFgxOHVjMnZORDhpeDdFdCJdLCAic2VydmljZUVuZHBvaW50IjogImh0dHBzOi8vZGVtby1jcm1zLmRpZ2ljcmVkLnNlcnZpY2VzL2FnZW50LyJ9XSwgImdvYWxfY29kZSI6ICIiLCAiZ29hbCI6ICIifQ"
+        },
+        {
+          "type": "button",
+          "label": "Cape Fear Community College",
+          "actionID": "cfccButton",
+          "invitationLink": "https://demo-crms.digicred.services/agent/?oob=eyJAdHlwZSI6ICJodHRwczovL2RpZGNvbW0ub3JnL291dC1vZi1iYW5kLzEuMS9pbnZpdGF0aW9uIiwgIkBpZCI6ICJlMTY5MjhjNS0xMWRmLTRlOTQtYThkZi1iMWEwMWI4MzkxMmYiLCAibGFiZWwiOiAiQ2FwZSBGZWFyIENvbW11bml0eSBDb2xsZWdlIiwgImltYWdlVXJsIjogImh0dHBzOi8vY3Jtcy1pbWFnZXMuczMudXMtZWFzdC0xLmFtYXpvbmF3cy5jb20vYmFkZ2Vfb25lY29sb3JfbG9yZXMuanBnIiwgImhhbmRzaGFrZV9wcm90b2NvbHMiOiBbImh0dHBzOi8vZGlkY29tbS5vcmcvZGlkZXhjaGFuZ2UvMS4wIiwgImh0dHBzOi8vZGlkY29tbS5vcmcvY29ubmVjdGlvbnMvMS4wIl0sICJhY2NlcHQiOiBbImRpZGNvbW0vYWlwMSIsICJkaWRjb21tL2FpcDI7ZW52PXJmYzE5Il0sICJzZXJ2aWNlcyI6IFt7ImlkIjogIiNpbmxpbmUiLCAidHlwZSI6ICJkaWQtY29tbXVuaWNhdGlvbiIsICJyZWNpcGllbnRLZXlzIjogWyJkaWQ6a2V5Ono2TWtyQjFIR3daQTk4UEtKbVZBMnVFUFZ2UDF2cnRvVFNNTlpzMzdjOVc4VHZRaiN6Nk1rckIxSEd3WkE5OFBLSm1WQTJ1RVBWdlAxdnJ0b1RTTU5aczM3YzlXOFR2UWoiXSwgInNlcnZpY2VFbmRwb2ludCI6ICJodHRwczovL2RlbW8tY3Jtcy5kaWdpY3JlZC5zZXJ2aWNlcy9hZ2VudC8ifV0sICJnb2FsX2NvZGUiOiAiIiwgImdvYWwiOiAiIn0"
+        },
+        {
+          "type": "button",
+          "label": "University of North Carolina Wilmington",
+          "actionID": "uncwButton",
+          "invitationLink": "https://demo-crms.digicred.services/agent/?oob=eyJAdHlwZSI6ICJodHRwczovL2RpZGNvbW0ub3JnL291dC1vZi1iYW5kLzEuMS9pbnZpdGF0aW9uIiwgIkBpZCI6ICIxNDk1NjQxOC0zYWRmLTRmN2ItOTkxZC1mMGU5ZTZhYWViMTEiLCAibGFiZWwiOiAiVW5pdmVyc2l0eSBvZiBOb3J0aCBDYXJvbGluYSBXaWxtaW5ndG9uIiwgImltYWdlVXJsIjogImh0dHBzOi8vY3Jtcy1pbWFnZXMuczMudXMtZWFzdC0xLmFtYXpvbmF3cy5jb20vdW5jdy1sb2dvLmpwZyIsICJoYW5kc2hha2VfcHJvdG9jb2xzIjogWyJodHRwczovL2RpZGNvbW0ub3JnL2RpZGV4Y2hhbmdlLzEuMCIsICJodHRwczovL2RpZGNvbW0ub3JnL2Nvbm5lY3Rpb25zLzEuMCJdLCAiYWNjZXB0IjogWyJkaWRjb21tL2FpcDEiLCAiZGlkY29tbS9haXAyO2Vudj1yZmMxOSJdLCAic2VydmljZXMiOiBbeyJpZCI6ICIjaW5saW5lIiwgInR5cGUiOiAiZGlkLWNvbW11bmljYXRpb24iLCAicmVjaXBpZW50S2V5cyI6IFsiZGlkOmtleTp6Nk1raFQ2eXY1WGRNU2ttOFFEVEM1N054Zm9QZGhlYnQxd2l4QU1EdXF3S3AzQkMjejZNa2hUNnl2NVhkTVNrbThRRFRDNTdOeGZvUGRoZWJ0MXdpeEFNRHVxd0twM0JDIl0sICJzZXJ2aWNlRW5kcG9pbnQiOiAiaHR0cHM6Ly9kZW1vLWNybXMuZGlnaWNyZWQuc2VydmljZXMvYWdlbnQvIn1dLCAiZ29hbF9jb2RlIjogIiIsICJnb2FsIjogIiJ9"
+        },
+        {
+          "type": "button",
+          "label": "Back to welcome menu",
+          "actionID": "backButton"
+        }
+      ]
+    },
+    {
+      "name": "Credential Analysis",
       "actions": [
         {
-          "action_id": "mainMenu",
+          "type": "verifycredential-HSTranscript",
+          "value": {
+            "type": "transcript",
+            "schema_name": "64zTt4edLTprWQTUkrYhZJ:2:NC High School Transcript:1.4"
+          },
+          "action_id": "hsShareButton",
+          "condition": "true"
+        },
+        {
+          "type": "verifycredential-CollegeTranscript",
+          "value": {
+            "type": "transcript",
+            "schema_name": "64zTt4edLTprWQTUkrYhZJ:2:NC College Transcript:1.0"
+          },
+          "action_id": "collegeShareButton",
+          "condition": "true"
+        }
+      ],
+      "state_id": "analysis",
+      "transitions": [
+        {
+          "type": "stateTransition",
+          "state_id": "menu",
+          "condition": "actionInput.actionID=='backButton'",
+          "workflow_id": "",
+          "transition_id": "backButton"
+        },
+        {
+          "type": "stateTransition",
+          "state_id": "verified",
+          "condition": "actionInput.actionID=='credential-verified'",
+          "workflow_id": "",
+          "transition_id": "credential-verified"
+        }
+      ],
+      "display_data": [
+        {
+          "url": "https://crms-images.s3.us-east-1.amazonaws.com/apply-wilmington.png",
+          "type": "image"
+        },
+        {
+          "text": "Credential Analysis",
+          "type": "title"
+        },
+        {
+          "text": "Take a look at posible career and educational pathways you could explore based on your current school transcript.",
+          "type": "text"
+        },
+        {
+          "type": "button",
+          "label": "Share your High School Transcript",
+          "actionID": "hsShareButton"
+        },
+        {
+          "type": "button",
+          "label": "Share your College Transcript",
+          "actionID": "collegeShareButton"
+        },
+        {
+          "type": "button",
+          "label": "Back to welcome menu",
+          "actionID": "backButton"
+        }
+      ]
+    },
+    {
+      "name": "Start Analysis",
+      "actions": [
+        {
+          "type": "analyzeCredential-Transcript",
+          "action_id": "startAnalysisButton",
+          "condition": "true"
+        }
+      ],
+      "state_id": "verified",
+      "transitions": [
+        {
+          "type": "stateTransition",
+          "state_id": "menu",
+          "condition": "actionInput.actionID=='backButton'",
+          "workflow_id": "",
+          "transition_id": "backButton"
+        },
+        {
+          "type": "stateTransition",
+          "state_id": "skills",
+          "condition": "actionInput.actionID=='startAnalysisButton'",
+          "workflow_id": "",
+          "transition_id": "startAnalysisButton"
+        }
+      ],
+      "display_data": [
+        {
+          "url": "https://crms-images.s3.us-east-1.amazonaws.com/apply-wilmington.png",
+          "type": "image"
+        },
+        {
+          "text": "Credential Analysis",
+          "type": "title"
+        },
+        {
+          "text": "Take a look at posible career and educational pathways you could explore based on your current school transcript.",
+          "type": "text"
+        },
+        {
+          "type": "button",
+          "label": "Start Credential Analysis",
+          "actionID": "startAnalysisButton"
+        },
+        {
+          "type": "button",
+          "label": "Back to welcome menu",
+          "actionID": "backButton"
+        }
+      ]
+    },
+    {
+      "name": "Complete analysis",
+      "actions": [
+        {
+          "action_id": "backButton",
           "condition": "true"
         }
       ],
@@ -61,9 +248,9 @@
         {
           "type": "stateTransition",
           "state_id": "menu",
-          "condition": "actionInput.actionID=='mainMenu'",
+          "condition": "actionInput.actionID=='backButton'",
           "workflow_id": "",
-          "transition_id": "mainMenu"
+          "transition_id": "backButton"
         }
       ],
       "display_data": [
@@ -82,8 +269,8 @@
         },
         {
           "type": "button",
-          "label": "Back to Main Menu",
-          "actionID": "mainMenu"
+          "label": "Back to welcome menu",
+          "actionID": "backButton"
         }
       ]
     }

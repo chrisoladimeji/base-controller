@@ -134,16 +134,16 @@ export class ExtendedAction implements IActionExtension {
               if (eval(action.condition)) {
 
                 const connectionEnrollment: Enrollment = await this.enrollmentsService.findOne(connection_id);
-                console.log("Enrollment data: ", connectionEnrollment);
-                console.log("Connection id: ", connection_id);
-
-                const aiSkillsResponse = await this.aiSkillsService.getTranscriptAndSendToAI(connectionEnrollment);
+                
+                let aiSkillsResponse;
+                try {
+                  aiSkillsResponse = await this.aiSkillsService.getTranscriptAndSendToAI(connectionEnrollment);
+                } catch(err) {
+                  console.error("AISkills response threw an error: ", err);
+                }
 
                 if (aiSkillsResponse) {
-                    instance.state_data.aiSkills = aiSkillsResponse;
-                }
-                else {
-                    console.log("Could not get skills analysis");
+                  instance.state_data.aiSkills = aiSkillsResponse ? aiSkillsResponse.toString() : null;
                 }
               }
               break;

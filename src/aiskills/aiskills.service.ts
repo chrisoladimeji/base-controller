@@ -3,9 +3,6 @@ import { Injectable } from '@nestjs/common';
 import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { lastValueFrom } from 'rxjs';
-import { SisService } from '../sis/sis.service';
-import { CourseService } from '../courses/course.service';
-import { TranscriptDto } from '../dtos/transcript.dto';
 
 import * as onetData from './saved_matches_no_tech.json';
 import * as courseSkillData from './havover_cleaned_courses.json';
@@ -33,20 +30,17 @@ export class AiSkillsService {
   constructor(
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
-    private readonly sisService: SisService,
-    private readonly courseService: CourseService,
   ) {}
 
   // Puts the transcript into format which is accepted by sendPromptToOpenAI
   private formatTranscript(transcript: any): string {
-    let terms = transcript.terms;
+    let terms = transcript?.terms;
 
     if (typeof terms === 'string') {
       try {
         terms = JSON.parse(terms);
       } catch (error) {
-        console.error('Failed to parse transcript terms:', error);
-        return '\nInvalid terms format.';
+        throw new Error("Transcript passed to credential analysis did not have properly formed terms: ");
       }
     }
 
@@ -54,58 +48,15 @@ export class AiSkillsService {
       return '\nNo terms or courses found.';
     }
 
-    const courseBlocks = terms
-      .map((term: any) => {
-        if (!Array.isArray(term.courses)) {
-          return `\nNo courses found for term ${term.termYear}.`;
-        }
+    let transcriptString = "";
+    for (const term of terms) {
+      transcriptString += `Grade ${term.termGradeLevel}:\n`;
+      for (const course of term.courses) {
+        transcriptString += `-  ${course.courseTitle}\n`;
+      }
+    }
 
-        return term.courses
-          .map((course: any) => {
-            const courseInfo = this.courseService.getCourseInfo(course.courseTitle, course.courseCode);
-
-            if (courseInfo.error) {
-              return `
-                Course Title: ${course.courseTitle}
-                Course Code: ${course.courseCode}
-                Error: ${courseInfo.error}
-              `;
-            }
-
-            // Updated property names here:
-            const techSkills = Array.isArray(courseInfo.techAndTools)
-              ? courseInfo.techAndTools.join(', ')
-              : 'None';
-
-            const skills = Array.isArray(courseInfo.skills)
-              ? courseInfo.skills.join(', ')
-              : 'None';
-
-            const abilities = Array.isArray(courseInfo.abilities)
-              ? courseInfo.abilities.join(', ')
-              : 'None';
-
-            const knowledge = Array.isArray(courseInfo.knowledge)
-              ? courseInfo.knowledge.join(', ')
-              : 'None';
-
-            return `
-              Course Title: ${course.courseTitle}
-              Course Code: ${course.courseCode}
-              Description: ${courseInfo.description}
-              University: ${courseInfo.university}
-
-              ||Predicted Technical Skills||: ${techSkills}
-              ||Predicted Skills||: ${skills}
-              ||Predicted Abilities||: ${abilities}
-              ||Predicted Knowledge||: ${knowledge}
-            `;
-          })
-          .join('\n');
-      })
-      .join('\n');
-
-    return courseBlocks;
+    return transcriptString;
   }
 
   // Main code which executes the process
@@ -281,7 +232,7 @@ export class AiSkillsService {
                 You work in a high school education environment; specifically, you specialize in understanding which skills, technology, and knowledge students gain from completing specific high school courses. Your main objective today is taking in student transcripts and listing the abilities, tech and tools, skills, and knowledge that the student is most likely to have, assuming they have completed all courses and retained knowledge from them.
                 It must be clarified that we only have the description of the course, and nothing else. This means that many decisions you make are educational approximations; therefore, assumptions are acceptable, but must be justified with solid evidence from a course’s description.
                 To make the job easier, we have already pre-selected a list of "matches" (e.g., Abilities, Tech and Tools, Skills, and Knowledge) that students gain for individual courses. Those matches are also assumptions; we have tried our best to select the most fitting ones.
-                Here is your task: Given a student’s full transcript (usually 12–24 courses), which includes the courses' titles, descriptions, and matches, you must create a sophisticated and justifiable list of (Abilities, Tech and Tools, Skills, and Knowledge) that the student is most likely to have. Key point: Your job here is to have the grand view of the student and their interests; you must recognize that these courses are interconnected and will require deep analysis.
+                Here is your task: Given a student’s full course list (usually 12–24 courses), create a sophisticated and justifiable list of (Abilities, Tech and Tools, Skills, and Knowledge) that the student is most likely to have. Key point: Your job here is to have the grand view of the student and their interests; you must recognize that these courses are interconnected and will require deep analysis.
                 Another key point: You must recognize that your job is the grand view, therefore reflection is a key step here. Please follow this protocol.
 
                 ### 1. Objective
