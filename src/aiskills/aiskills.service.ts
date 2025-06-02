@@ -4,26 +4,6 @@ import { HttpService } from '@nestjs/axios';
 import { ConfigService } from '@nestjs/config';
 import { lastValueFrom } from 'rxjs';
 
-import * as onetData from './saved_matches_no_tech.json';
-import * as courseSkillData from './havover_cleaned_courses.json';
-
-interface OnetOccupation {
-  occupation_title: string;
-  matches: string[];
-}
-
-interface CourseSkillsEntry {
-  name: string;
-  code: string;
-  university: string;
-  description: string;
-  Matches: {
-    Abilities: string[];
-    TechAndTools: string[];
-    Skills: string[];
-    Knowledge: string[];
-  };
-}
 
 @Injectable()
 export class AiSkillsService {
@@ -294,70 +274,6 @@ export class AiSkillsService {
     } catch (err) {
       throw new Error('Failed to parse function.arguments as JSON.');
     }
-  }
-
-  // Find top 5 occupation matches based on course names ===>
-  public findTopOccupationMatches(courseNames: string[]): Array<{occupation: string, matchCount: number, totalPossible: number, percentage: number, matchedSkills: string[] }> {
-    const studentSkillSet = new Set<string>();
-    const allCourses: CourseSkillsEntry[] = (courseSkillData as any) as CourseSkillsEntry[];
-    
-    for (const c of allCourses) {
-      if (courseNames.includes(c.name)) {
-        const m = c.Matches;
-
-        if (Array.isArray(m.Abilities)) {
-          m.Abilities.forEach(skill => studentSkillSet.add(skill));
-        }
-
-        //if (Array.isArray(m.TechAndTools)) {
-        //  m.TechAndTools.forEach(skill => studentSkillSet.add(skill)); // To be enabled if using the "saved_matches.json" instead of "saved_matches_no_tech.json"
-        //}
-
-        if (Array.isArray(m.Skills)) {
-          m.Skills.forEach(skill => studentSkillSet.add(skill));
-        }
-
-        if (Array.isArray(m.Knowledge)) {
-          m.Knowledge.forEach(skill => studentSkillSet.add(skill));
-        }
-      }
-    }
-
-    console.log('\n=== GENERATED studentSkillSet ===');
-    console.log(studentSkillSet);
-    console.log('=== END OF studentSkillSet ===\n');
-
-    // Search the ONET dataset
-    const allOccupations: OnetOccupation[] = (onetData as any) as OnetOccupation[];
-
-    // Score each occupation
-    const scored = allOccupations.map((occ) => {
-      let matchCount = 0;
-      const matchedSkills: string[] = [];
-
-      for (const skill of occ.matches) {
-        if (studentSkillSet.has(skill)) {
-          matchCount++;
-          matchedSkills.push(skill);
-        }
-      }
-
-      const totalPossible = occ.matches.length || 1; // Avoid divide-by-zero
-      const percentage = parseFloat(((matchCount / totalPossible) * 100).toFixed(1));
-
-      return {
-        occupation: occ.occupation_title,
-        matchCount,
-        totalPossible,
-        percentage,
-        matchedSkills,
-      };
-    });
-
-    // Sort by descending order
-    scored.sort((a, b) => b.matchCount - a.matchCount);
-
-    return scored.slice(0, 5);
   }
 
   formatJsonResponse(response: any): string {
