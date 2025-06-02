@@ -2,17 +2,18 @@ import { IActionExtension, Transition, Instance } from "@veridid/workflow-parser
 import { AcaPyService } from "src/services/acapy.service";
 import { Injectable } from "@nestjs/common";
 import { SisService } from "src/sis/sis.service";
-import { ConfigService } from "@nestjs/config";
 import { AiSkillsService } from "src/aiskills/aiskills.service";
+import { EnrollmentService } from "src/enrollment/enrollment.service";
+import { Enrollment } from "src/enrollment/entities/enrollment.entity";
 
 @Injectable()
 export class ExtendedAction implements IActionExtension {
 
     constructor(
-      private readonly configService: ConfigService,
       private readonly acapyService: AcaPyService,
       private readonly sisService: SisService,
       private readonly aiSkillsService: AiSkillsService,
+      private readonly enrollmentsService: EnrollmentService
     ) {}
 
     async actions(actionInput: any, instance: Instance, action: any, transition: Transition): Promise<[Transition, Instance]>{
@@ -131,12 +132,19 @@ export class ExtendedAction implements IActionExtension {
               console.log("Performing transcript credential analysis");
 
               if (eval(action.condition)) {
-                const aiSkillsResponse = await this.aiSkillsService.getTranscriptAndSendToAI("0023");
-                if (aiSkillsResponse) {
-                    instance.state_data.aiSkills = aiSkillsResponse;
+
+                const connectionEnrollment: Enrollment = await this.enrollmentsService.findOne(connection_id);
+                
+                let aiSkillsResponse;
+                try {
+                  aiSkillsResponse = await this.aiSkillsService.getTranscriptAndSendToAI(connectionEnrollment);
+                } catch(err) {
+                  console.error("AISkills response threw an error: ", err);
                 }
-                else {
-                    console.log("Could not get skills analysis");
+
+                if (aiSkillsResponse) {
+                  console.log("AI Skills response: ", aiSkillsResponse);
+                  instance.state_data.aiSkills = aiSkillsResponse ? aiSkillsResponse : null;
                 }
               }
               break;

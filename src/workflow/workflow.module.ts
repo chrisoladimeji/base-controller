@@ -8,6 +8,7 @@ import { HttpModule } from '@nestjs/axios';
 import { ExtendedAction } from './extensions/action.extension';
 import { SisModule } from '../sis/sis.module';
 import { AiSkillsModule } from '../aiskills/aiskills.module';
+import { EnrollmentModule } from 'src/enrollment/enrollment.module';
 
 @Module({
   imports: [
@@ -15,7 +16,8 @@ import { AiSkillsModule } from '../aiskills/aiskills.module';
     InstancesModule,
     HttpModule,
     SisModule,
-    AiSkillsModule
+    AiSkillsModule,
+    EnrollmentModule
   ],
   controllers: [WorkflowController],
   providers: [WorkflowService, AcaPyService, ExtendedAction],

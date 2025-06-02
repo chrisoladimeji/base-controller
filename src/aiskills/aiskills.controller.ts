@@ -2,23 +2,24 @@
 import { Controller, Get, Query, HttpException, HttpStatus } from '@nestjs/common';
 import { AiSkillsService } from './aiskills.service';
 import { ApiOperation, ApiQuery, ApiResponse, ApiTags } from '@nestjs/swagger';
+import { testTranscript } from './testTranscript';
 
 @ApiTags('AI Skills')
 @Controller()
 export class AiSkillsController {
   constructor(private readonly aiSkillsService: AiSkillsService) {}
 
-  @Get('transcript')
-  @ApiQuery({ name: 'studentNumber', required: true, type: String, description: 'The student number' })
+  @Get()
   @ApiResponse({ status: 200, description: 'OpenAI Response' })
   @ApiResponse({ status: 404, description: 'Transcript not found' })
-  async getTranscriptResponse(@Query('studentNumber') studentNumber: string): Promise<string> {
+  async getTranscriptResponse(): Promise<string> {
     try {
-      const result = await this.aiSkillsService.getTranscriptAndSendToAI(studentNumber);
+      const result = await this.aiSkillsService.getTranscriptAndSendToAI(testTranscript);
       return result;
     } catch (error) {
       console.error(error);
       throw new HttpException(error.message || 'Failed to process request', HttpStatus.INTERNAL_SERVER_ERROR);
     }
   }
+
 }
