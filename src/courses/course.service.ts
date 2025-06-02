@@ -5,7 +5,7 @@ import * as courseData from './hanover_courses.json';
 export class CourseService {
   private courses = courseData as any[]; // Optionally define a type if available
 
-  getCourseInfo(courseTitle: string) {
+  getCourseInfo(courseTitle: string, courseCode: string) {
     const course = this.courses.find(
       (c) => c.name.toLowerCase() === courseTitle.toLowerCase()
     );

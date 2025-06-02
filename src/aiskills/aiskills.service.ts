@@ -62,7 +62,7 @@ export class AiSkillsService {
 
         return term.courses
           .map((course: any) => {
-            const courseInfo = this.courseService.getCourseInfo(course.courseTitle);
+            const courseInfo = this.courseService.getCourseInfo(course.courseTitle, course.courseCode);
 
             if (courseInfo.error) {
               return `
@@ -109,10 +109,8 @@ export class AiSkillsService {
   }
 
   // Main code which executes the process
-  async getTranscriptAndSendToAI(studentNumber: string): Promise<{ json: string; topMatches: any[] }> {
-    console.log(`Fetching transcript for student number: ${studentNumber}`);
-
-    const transcript: TranscriptDto = await this.sisService.getStudentTranscript(studentNumber);
+  async getTranscriptAndSendToAI(transcript: any): Promise<{ json: string; topMatches: any[] }> {
+    console.log("Preparing transcript for skills analysis");
     if (!transcript) {
       throw new Error('Transcript not found');
     }
