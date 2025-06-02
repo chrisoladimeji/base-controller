@@ -23,12 +23,6 @@ export class ExtendedAction implements IActionExtension {
         console.log("Cred-defID=", cred_def_id, " Schema_name=",schema_name);
         transition.type = "none-nodisplay";
 
-        // get the alias of the connection and make sure it is in the state_data
-        const connectionData = await this.acapyService.getConnectionById(connection_id);
-        const alias = connectionData?.alias.trim();        
-        console.log("ConnectionData.alias=", alias);
-        instance.state_data.alias = alias
-
         // handle the types of actions
         switch(action?.type) {
             case "extension":
@@ -36,6 +30,17 @@ export class ExtendedAction implements IActionExtension {
                 if(eval(action.condition)) {
                     // save the data from the workflow action to the instance data
                     instance.state_data = Object.assign(instance.state_data, action.value);
+                }
+                break;
+            case "getAliasIntoStateData":
+                try {
+                  const connectionData = await this.acapyService.getConnectionById(connection_id);
+                  const alias = connectionData?.alias.trim();        
+                  console.log("ConnectionData.alias=", alias);
+                  instance.state_data.alias = alias
+                }
+                catch (error) {
+                  console.error('Error fetching connection record:', error);
                 }
                 break;
             case "issuecredential-HSStudentCard":
