@@ -4,6 +4,7 @@ import { Injectable } from "@nestjs/common";
 import { SisService } from "src/sis/sis.service";
 import { AiSkillsService } from "src/aiskills/aiskills.service";
 import { EnrollmentService } from "src/enrollment/enrollment.service";
+import { Enrollment } from "src/enrollment/entities/enrollment.entity";
 
 @Injectable()
 export class ExtendedAction implements IActionExtension {
@@ -131,9 +132,11 @@ export class ExtendedAction implements IActionExtension {
               console.log("Performing transcript credential analysis");
 
               if (eval(action.condition)) {
-                
-                const enrollmentTranscript = this.enrollmentsService.findOne(connection_id);
-                const aiSkillsResponse = await this.aiSkillsService.getTranscriptAndSendToAI(enrollmentTranscript);
+
+                const enrollmentTranscripts: Enrollment[] = await this.enrollmentsService.findAll();
+                console.log("Enrollment data: ", enrollmentTranscripts);
+
+                const aiSkillsResponse = await this.aiSkillsService.getTranscriptAndSendToAI(enrollmentTranscripts);
 
                 if (aiSkillsResponse) {
                     instance.state_data.aiSkills = aiSkillsResponse;
