@@ -362,9 +362,6 @@ export class AiSkillsService {
 
   formatJsonResponse(response: any): string {
     let formattedResponse = "";
-
-    formattedResponse += "Skills, Abilities, and Knowledge:\n\n"
-
     
     for (const skill of [...response["abilities"], ...response["skills"], ...response["knowledge"]]) {
       formattedResponse += skill["name"] + "\n";
