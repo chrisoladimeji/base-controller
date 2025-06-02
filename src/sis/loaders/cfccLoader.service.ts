@@ -56,8 +56,9 @@ export class CfccLoaderService extends SisLoaderService {
         catch (err) {
             console.error(`Error fetching photo for student ${studentNumber} from ${imageUrl}:`, err);
         }
-        if (!response) {
+        if (!response || !response.data) {
             console.error("No image data found for student: ", studentNumber);
+            return null;
         }
         const rawPhotoBuffer = Buffer.from(response.data);
 
