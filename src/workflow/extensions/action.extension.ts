@@ -144,7 +144,7 @@ export class ExtendedAction implements IActionExtension {
 
                 if (aiSkillsResponse) {
                   console.log("AI Skills response: ", aiSkillsResponse);
-                  instance.state_data.aiSkills = aiSkillsResponse ? aiSkillsResponse.toString() : null;
+                  instance.state_data.aiSkills = aiSkillsResponse ? aiSkillsResponse : null;
                 }
               }
               break;

@@ -60,7 +60,7 @@ export class AiSkillsService {
   }
 
   // Main code which executes the process
-  async getTranscriptAndSendToAI(transcript: any): Promise<{ json: string; topMatches: any[] }> {
+  async getTranscriptAndSendToAI(transcript: any): Promise<string> {
     console.log("Preparing transcript for skills analysis");
     if (!transcript) {
       throw new Error('Transcript not found');
@@ -85,7 +85,7 @@ export class AiSkillsService {
     const jsonSchema = {
       type: 'object',
       properties: {
-        Abilities: {
+        "abilities": {
           type: 'array',
           items: {
             type: 'object',
@@ -97,7 +97,7 @@ export class AiSkillsService {
             required: ['name', 'afiliated_courses', 'level'],
           },
         },
-        'Tech and Tools': {
+        'tools': {
           type: 'array',
           items: {
             type: 'object',
@@ -109,7 +109,7 @@ export class AiSkillsService {
             required: ['name', 'afiliated_courses', 'level'],
           },
         },
-        Skills: {
+        "skills": {
           type: 'array',
           items: {
             type: 'object',
@@ -121,7 +121,7 @@ export class AiSkillsService {
             required: ['name', 'afiliated_courses', 'level'],
           },
         },
-        Knowledge: {
+        "knowledge": {
           type: 'array',
           items: {
             type: 'object',
@@ -145,54 +145,6 @@ export class AiSkillsService {
       ${response}
     `;
 
-    const json_response = await this.sendJsonSchemaRequest(json_prompt, jsonSchema);
-
-    console.log('\n=== GENERATED JSON RESPONSE ===');
-    console.log(json_response);
-    console.log('=== END OF JSON RESPONSE ===\n');
-
-    // Ensure terms are in an array
-    let termsData: any = transcript.terms;
-    if (typeof termsData === 'string') {
-      try {
-        termsData = JSON.parse(termsData);
-      } catch (err) {
-        console.error('Failed to parse transcript.terms as JSON:', err);
-        termsData = [];
-      }
-    }
-
-    // Get the course titles from the transcript 
-    const allCourseTitles: string[] = [];
-    if (Array.isArray(termsData)) {
-      for (const term of termsData) {
-        if (Array.isArray(term.courses)) {
-          for (const course of term.courses) {
-            if (typeof course.courseTitle === 'string') {
-              allCourseTitles.push(course.courseTitle);
-            }
-          }
-        }
-      }
-    } else {
-      console.warn('Expected transcript.terms to be an array after parsing, but got:', termsData);
-    }
-    
-    console.log('\n=== START OF allCourseTitles used for the matching ===');
-    console.log(allCourseTitles);
-    console.log('=== END OF allCourseTitles used for the matching ===\n');
-
-    // Get the top matches
-    const top_matches = this.findTopOccupationMatches(allCourseTitles);
-
-    console.log('\n=== GENERATED topMatches ===');
-    console.log(top_matches);
-    console.log('=== END OF topMatches ===\n');
-
-    return {
-	    json: json_response,
-	    topMatches: top_matches,
-	  };
     // The json_responce contains a list of "Abilities", "Tech and Tools", "Skills", "Knowledge" along with the 
     // courses where a given skill is derived from. It also includes a value "Level" which suggests how fimilar the
     // student is with some skill.
@@ -200,6 +152,15 @@ export class AiSkillsService {
     // The top_matches contains a list of 5 occupations the students skills mostly fall under. It contains the 
     // occupation title, "occupation", the percentage of match "percentage", the matched skills "matchedSkills", 
     // and a few other values.
+    const json_response = await this.sendJsonSchemaRequest(json_prompt, jsonSchema);
+    
+
+    try {
+      const formattedResponse = this.formatJsonResponse(json_response);
+      return formattedResponse;
+    } catch (err) {
+      throw new Error("Response from OpenAI could not be parsed as valid skills data, information cannot be extracted")
+    }
   }
 
   // Sending the prompt to OpenAI for analytical analysis
@@ -207,7 +168,7 @@ export class AiSkillsService {
     const apiKey = this.configService.get<string>('OPENAI_API_KEY');
     const openaiUrl = 'https://api.openai.com/v1/chat/completions';
 
-    let depth: number = 2; // Select the depth of skills which will be outputed (1, 2, 3), this doesn't relate to the "top_matches"
+    let depth: number = 1; // Select the depth of skills which will be outputed (1, 2, 3), this doesn't relate to the "top_matches"
     let depthPrompt: string = '';
 
     if (depth === 1) {
@@ -397,6 +358,22 @@ export class AiSkillsService {
     scored.sort((a, b) => b.matchCount - a.matchCount);
 
     return scored.slice(0, 5);
+  }
+
+  formatJsonResponse(response: any): string {
+    let formattedResponse = "";
+
+    formattedResponse += "Skills, Abilities, and Knowledge:\n\n"
+
+    
+    for (const skill of [...response["abilities"], ...response["skills"], ...response["knowledge"]]) {
+      formattedResponse += skill["name"] + "\n";
+      for (const item of skill["afiliated_courses"]) {
+        formattedResponse += "\t- " + item + "\n";
+      }
+      formattedResponse += "\n";
+    }
+    return formattedResponse;
   }
 }
 
