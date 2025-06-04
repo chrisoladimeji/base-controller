@@ -26,6 +26,7 @@ export class CfccLoaderService extends SisLoaderService {
 
     async getStudentId(studentNumber: string): Promise<StudentIdDto> {
         let studentId: StudentIdDto = await this.ellucianService.getStudentId(studentNumber);
+        studentId.schoolName = "Cape Fear Community College";
         studentId.studentPhoto = await this.getStudentPhoto(studentNumber);
         return studentId;
     }
