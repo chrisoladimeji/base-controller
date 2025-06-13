@@ -22,6 +22,12 @@ jobs:
           node-version: '20'
 
       - name: Start Services
+        # THIS ENV BLOCK IS THE FIX
+        # It securely provides the credentials to Docker Compose
+        env:
+          WORKFLOW_DB_USER: ${{ secrets.WORKFLOW_DB_USER }}
+          WORKFLOW_DB_PASSWORD: ${{ secrets.WORKFLOW_DB_PASSWORD }}
+          WORKFLOW_DB_NAME: ${{ secrets.WORKFLOW_DB_NAME }}
         run: docker-compose up -d
 
       - name: Install Dependencies
@@ -29,10 +35,11 @@ jobs:
 
       - name: Run Tests
         run: yarn test
-        env:
+        env:   
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL: 'digicred-Test'
 
       - name: Stop Services
+        # This 'if' statement ensures this step runs even if tests fail
         if: always()
-        run: docker-compose down
+        run: docker-compose down 
