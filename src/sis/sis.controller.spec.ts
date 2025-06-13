@@ -1,50 +1,60 @@
-import { ConfigService } from "@nestjs/config";
-import { SisLoaderService } from "./loaders/sisLoader.service";
-import { SisController } from "./sis.controller";
-import { SisService } from "./sis.service";
-import { StudentsService } from "./students/students.service";
-import { ModuleMocker } from "jest-mock"
-import { Test } from "@nestjs/testing";
-import { of } from "rxjs";
+import { Test, TestingModule } from '@nestjs/testing';
+import { SisController } from './sis.controller';
+import { SisService } from './sis.service';
+import { lastValueFrom, of } from 'rxjs'; // lastValueFrom is still needed
 
-const testStudentId = {
+const mockStudent = {
     studentName: 'Michael Jordan',
-    studentNumber: '0023'
-}
+    studentNumber: '0023',
+};
 
 describe('SisController', () => {
-
     let sisController: SisController;
     let sisService: SisService;
 
     beforeEach(async () => {
-        const moduleRef = await Test.createTestingModule({
+        const module: TestingModule = await Test.createTestingModule({
             controllers: [SisController],
             providers: [
                 {
                     provide: SisService,
                     useValue: {
-                        getStudentId: jest.fn(() => of(testStudentId)),
-                    }
-                }
+                        getStudentId: jest.fn().mockReturnValue(of(mockStudent)),
+                    },
+                },
             ],
-        }).compile()
+        }).compile();
 
-        sisController = moduleRef.get(SisController);
-    })
+        sisController = module.get<SisController>(SisController);
+        sisService = module.get<SisService>(SisService);
+    });
 
     it('should be defined', () => {
         expect(sisController).toBeDefined();
     });
 
-
-
     describe('getStudentId', () => {
-        it('should return a studentid when given a number', async () => {
-            sisController.getStudentId('0023').then(response =>
-            expect(response).toEqual(testStudentId));
-        })
-    })
+        it('should return a student when given a valid number', async () => {
+            const studentNumber = '0023';
 
+            // STEP 1: Await the promise from the controller to get the resolved object.
+            const responseObject = await sisController.getStudentId(studentNumber);
 
-})
+            // STEP 2: Now that you have the object, access the .studentIdCred property, which contains the Observable.
+            const studentObservable$ = responseObject.studentIdCred;
+
+            // STEP 3: Use lastValueFrom to get the final value from that Observable.
+            const finalResult = await lastValueFrom(studentObservable$);
+
+            // STEP 4: Assert against the final, unwrapped data.
+            expect(finalResult).toEqual(mockStudent);
+        });
+
+        // The test for checking if the service was called should also be async now.
+        it('should call sisService.getStudentId with the correct student number', async () => {
+            const studentNumber = '0023';
+            await sisController.getStudentId(studentNumber); // Await the call
+            expect(sisService.getStudentId).toHaveBeenCalledWith(studentNumber);
+        });
+    });
+});
