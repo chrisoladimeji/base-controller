@@ -1,4 +1,4 @@
-# This is the correct and final content for .github/workflows/ci.yml
+# This is the final version of .github/workflows/ci.yml
 
 name: Base Controller CI
 
@@ -11,7 +11,7 @@ on:
 
 jobs:
   build-and-test:
-    # Using your self-hosted runner as specified in your file
+    # Using your self-hosted runner configuration
     runs-on: self-hosted
 
     steps:
@@ -26,6 +26,11 @@ jobs:
 
       - name: Install Dependencies
         run: yarn install --frozen-lockfile
+
+      # --- THIS IS THE FIX ---
+      # This new step creates the directory that your tests need.
+      - name: Create uploads directory for tests
+        run: mkdir ./uploads
 
       - name: Run Tests and Send Notification
         run: yarn test
