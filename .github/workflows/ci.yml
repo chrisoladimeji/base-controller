@@ -1,4 +1,5 @@
-# .github/workflows/ci.yml
+# This is the correct and final content for .github/workflows/ci.yml
+
 name: Base Controller CI
 
 on:
@@ -10,29 +11,25 @@ on:
 
 jobs:
   build-and-test:
+    # Using your self-hosted runner as specified in your file
     runs-on: self-hosted
 
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
 
-      - name: Setup Node.js
+      - name: Setup Node.js environment
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-
-      - name: Start Services
-        run: docker-compose up -d
+          cache: 'yarn' 
 
       - name: Install Dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
-      - name: Run Tests
+      - name: Run Tests and Send Notification
         run: yarn test
         env:
           SLACK_BOT_TOKEN: ${{ secrets.SLACK_BOT_TOKEN }}
           SLACK_CHANNEL: 'digicred-Test'
-
-      - name: Stop Services
-        if: always()
-        run: docker-compose down
+          SLACK_MESSAGE: 'DigiCred-Holdings-Base-Controller Unit tested'
